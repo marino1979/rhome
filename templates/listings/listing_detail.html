@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}{{ listing.title }} - Rhome Book{% endblock %}
+
+{% block content %}
+<!-- Hero Section con Galleria -->
+<div class="container mx-auto px-4 py-6">
+    <div class="grid grid-cols-12 gap-4">
+        <!-- Immagine Principale -->
+        <div class="col-span-12 md:col-span-8">
+            {% if listing.main_image %}
+            <div class="aspect-w-16 aspect-h-9 overflow-hidden rounded-lg">
+                <img src="{{ listing.main_image.file.url }}" 
+                     alt="{{ listing.main_image.alt_text }}"
+                     class="w-full h-full object-cover cursor-pointer hover:opacity-95 transition">
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Grid Thumbnails -->
+        <div class="col-span-12 md:col-span-4">
+            <div class="grid grid-cols-2 gap-4 h-full">
+                {% for image in listing.other_images|slice:":4" %}
+                <div class="aspect-w-4 aspect-h-3 overflow-hidden rounded-lg">
+                    <img src="{{ image.file.url }}" 
+                         alt="{{ image.alt_text }}"
+                         class="w-full h-full object-cover cursor-pointer hover:opacity-75 transition">
+                </div>
+                {% endfor %}
+                {% if listing.other_images.count > 4 %}
+                <div class="aspect-w-4 aspect-h-3 bg-black/50 rounded-lg flex items-center justify-center cursor-pointer">
+                    <span class="text-white text-lg font-semibold">
+                        +{{ listing.other_images.count|add:"-4" }} foto
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenuto Principale -->
+    <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Colonna Principale -->
+        <div class="lg:col-span-2">
+            <!-- Titolo e Info Base -->
+            <div class="mb-6">
+                <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ listing.title }}</h1>
+                <div class="flex flex-wrap gap-4 text-gray-600">
+                    <div class="flex items-center">
+                        <i class="fas fa-ruler-combined mr-2"></i>
+                        {{ listing.total_square_meters }} m²
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-bed mr-2"></i>
+                        {{ listing.total_beds }} letti
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-user-friends mr-2"></i>
+                        {{ listing.total_sleeps }} ospiti
+                    </div>
+                    {% if listing.outdoor_square_meters %}
+                    <div class="flex items-center">
+                        <i class="fas fa-tree mr-2"></i>
+                        {{ listing.outdoor_square_meters }} m² esterni
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Descrizione -->
+            <div class="prose max-w-none mb-8">
+                <h2 class="text-2xl font-semibold mb-4">Descrizione</h2>
+                {{ listing.description|linebreaks }}
+            </div>
+
+            <!-- Stanze -->
+            <div class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">Le Stanze</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {% for room in listing.rooms.all %}
+                    <div class="border rounded-lg overflow-hidden bg-white">
+                        {% if room.main_image %}
+                        <div class="aspect-w-16 aspect-h-9">
+                            <img src="{{ room.main_image.file.url }}" 
+                                 alt="Immagine {{ room.name }}"
+                                 class="w-full h-full object-cover">
+                        </div>
+                        {% endif %}
+                        <div class="p-4">
+                            <h3 class="font-semibold text-lg mb-2">{{ room.name }}</h3>
+                            {% if room.square_meters %}
+                            <p class="text-gray-600 text-sm mb-2">{{ room.square_meters }} m²</p>
+                            {% endif %}
+                            {% if room.beds.exists %}
+                            <div class="text-sm text-gray-600">
+                                {% for bed in room.beds.all %}
+                                <div class="flex items-center">
+                                    <i class="fas fa-bed mr-2 text-gray-400"></i>
+                                    {{ bed.quantity }}x {{ bed.bed_type.name }}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="lg:col-span-1">
+       <!-- Card Servizi -->
+<div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-4">Servizi</h2>
+    {% regroup listing.amenities.all by category as amenity_list %}
+    {% for category in amenity_list %}
+    <div class="mb-4">
+        <h3 class="font-medium text-gray-700 mb-2">{{ category.grouper.name }}</h3>
+        <div class="grid grid-cols-2 gap-2">
+            {% for amenity in category.list %}
+            <div class="flex items-center text-gray-600">
+                <i class="fas {{ amenity.icon }} mr-2"></i> <!-- Rimosso text-gray-400 -->
+                {{ amenity.name }}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Card Posizione -->
+<div class="bg-white rounded-lg shadow-sm p-6">
+    <h2 class="text-xl font-semibold mb-4">Posizione</h2>
+    <p class="text-gray-600">{{ listing.address }}</p>
+</div>
+                <!-- Qui in futuro la mappa -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Galleria (nascosto di default) -->
+<div id="gallery-modal" class="hidden fixed inset-0 bg-black/90 z-50 p-4">
+    <div class="relative w-full h-full flex items-center justify-center">
+        <!-- Contenuto galleria -->
+        <button class="absolute top-4 right-4 text-white text-2xl">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="max-w-6xl w-full">
+            <!-- Qui le immagini della galleria -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Base per la galleria immagini
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('gallery-modal');
+    const images = document.querySelectorAll('img[class*="cursor-pointer"]');
+    
+    images.forEach(img => {
+        img.addEventListener('click', () => {
+            modal.classList.remove('hidden');
+        });
+    });
+
+    modal.querySelector('button').addEventListener('click', () => {
+        modal.classList.add('hidden');
+    });
+});
+</script>
+{% endblock %}

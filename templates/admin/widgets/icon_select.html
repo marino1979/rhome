@@ -1,0 +1,36 @@
+<div class="icon-picker-container">
+    <!-- Debug info visibile -->
+    <div style="background: #f5f5f5; padding: 5px; margin-bottom: 10px;">
+        Selected value: {{ widget.value }}
+    </div>
+
+    <input type="hidden" name="{{ widget.name }}" id="{{ widget.attrs.id }}" value="{{ widget.value }}">
+    
+    <div class="icon-picker-tabs">
+        {% for category in categories %}
+        <div class="icon-picker-tab {% if forloop.first %}active{% endif %}" data-category="{{ category.slug }}">
+            {{ category.name }}
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="icon-picker-content">
+        {% for category in categories %}
+        <div class="icon-picker-category {% if forloop.first %}active{% endif %}" data-category="{{ category.slug }}">
+            <div class="icon-grid">
+                {% for icon in category.icons.all %}
+                <div class="icon-item {% if icon.id == widget.value|add:0 %}selected{% endif %}" 
+                     data-icon-id="{{ icon.id }}" 
+                     data-icon-name="{{ icon.name }}">
+                     {% if icon.icon_type == 'fa' %}
+                     <i class="{{ icon.fa_class }}"></i>  {# Questo è corretto #}
+                 {% else %}
+                     <img src="{{ icon.custom_icon.url }}" alt="{{ icon.name }}">
+                 {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>

@@ -1,0 +1,131 @@
+/* static/admin/css/icon-picker.css */
+.icon-picker-container {
+    margin-top: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+}
+
+.icon-library-tabs {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    background: #f8f9fa;
+    padding: 0 10px;
+}
+
+.icon-library-tab {
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    color: #666;
+    transition: all 0.2s;
+}
+
+.icon-library-tab:hover {
+    color: #333;
+    background: #fff;
+}
+
+.icon-library-tab.active {
+    border-bottom-color: #2196F3;
+    color: #2196F3;
+    background: #fff;
+}
+
+.icon-search {
+    width: calc(100% - 20px);
+    padding: 8px;
+    margin: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.icon-search:focus {
+    outline: none;
+    border-color: #2196F3;
+}
+
+.icon-library {
+    display: none;
+    padding: 10px;
+}
+
+.icon-library.active {
+    display: block;
+}
+
+.icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.icon-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    aspect-ratio: 1;
+}
+
+.icon-item:hover {
+    background: #f0f0f0;
+    border-color: #ccc;
+    transform: scale(1.05);
+}
+
+.icon-item.selected {
+    background: #e3f2fd;
+    border-color: #2196F3;
+}
+
+.icon-item i,
+.icon-item span {
+    font-size: 1.5em;
+}
+
+/* Tooltip per il nome dell'icona */
+.icon-item {
+    position: relative;
+}
+
+.icon-item:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+}
+
+/* Scrollbar personalizzata per la griglia */
+.icon-grid::-webkit-scrollbar {
+    width: 8px;
+}
+
+.icon-grid::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.icon-grid::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+
+.icon-grid::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}

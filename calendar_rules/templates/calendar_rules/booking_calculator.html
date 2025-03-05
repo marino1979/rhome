@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="booking-calculator-root"></div>
+
+<script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+<script type="text/babel">
+// Explicit React import to ensure React is in scope for JSX
+const React = window.React;
+const ReactDOM = window.ReactDOM;
+const { useState } = React;
+
+function BookingCalculator({ listingId }) {
+  const [guests, setGuests] = useState(1);
+  const [checkIn, setCheckIn] = useState('');
+  const [checkOut, setCheckOut] = useState('');
+  const [priceDetails, setPriceDetails] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // Funzione per ottenere il CSRF token in modo sicuro
+  function getCsrfToken() {
+    const element = document.querySelector('[name=csrfmiddlewaretoken]');
+    return element ? element.value : '';
+  }
+
+  // Funzione per calcolare il prezzo
+  async function calculatePrice() {
+    // Aggiunta validazione di base
+    if (!checkIn || !checkOut) {
+      setError('Seleziona date valide');
+      return;
+    }
+
+    if (new Date(checkIn) >= new Date(checkOut)) {
+      setError('La data di check-out deve essere successiva al check-in');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const token = getCsrfToken();
+      const response = await fetch('/api/calculate-price/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': token
+        },
+        body: JSON.stringify({
+          listing_id: listingId,
+          guests: guests,
+          check_in: checkIn,
+          check_out: checkOut,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Errore nel calcolo del prezzo');
+      }
+
+      const data = await response.json();
+      setPriceDetails(data);
+    } catch (error) {
+      setError(error.message);
+      setPriceDetails(null);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto p-4 bg-white rounded-lg shadow">
+      <h2 className="text-xl font-bold mb-4">Calcola il prezzo del soggiorno</h2>
+      
+      <div className="space-y-4">
+        {/* Input ospiti */}
+        <div>
+          <label className="block text-sm font-medium mb-1">Numero di ospiti</label>
+          <input
+            type="number"
+            min="1"
+            value={guests}
+            onChange={(e) => setGuests(parseInt(e.target.value) || 1)}
+            className="w-full p-2 border rounded"
+          />
+        </div>
+
+        {/* Date */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Check-in</label>
+            <input
+              type="date"
+              value={checkIn}
+              onChange={(e) => setCheckIn(e.target.value)}
+              className="w-full p-2 border rounded"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Check-out</label>
+            <input
+              type="date"
+              value={checkOut}
+              onChange={(e) => setCheckOut(e.target.value)}
+              className="w-full p-2 border rounded"
+            />
+          </div>
+        </div>
+
+        {/* Button */}
+        <button 
+          onClick={calculatePrice}
+          disabled={!checkIn || !checkOut || !guests || loading}
+          className="w-full p-2 bg-blue-600 text-white rounded disabled:bg-blue-300"
+        >
+          {loading ? 'Calcolo in corso...' : 'Calcola Prezzo'}
+        </button>
+
+        {/* Error */}
+        {error && (
+          <div className="p-4 bg-red-100 text-red-700 rounded">
+            {error}
+          </div>
+        )}
+
+        {/* Results */}
+        {priceDetails && (
+          <div className="mt-6 space-y-4">
+            <h3 className="font-semibold text-lg">Dettaglio Prezzi</h3>
+            
+            <div className="space-y-2">
+              {priceDetails.daily_prices && priceDetails.daily_prices.map((day) => (
+                <div key={day.date} className="flex justify-between">
+                  <span>{new Date(day.date).toLocaleDateString('it-IT')}</span>
+                  <div className="flex gap-2">
+                    <span className="text-gray-600">{day.note}</span>
+                    <span className="font-medium">€{day.price}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="border-t pt-2 space-y-2">
+              {priceDetails.extras && React.createElement(React.Fragment, null,
+                <div className="flex justify-between">
+                  <span>Pulizie finali</span>
+                  <span>€{priceDetails.extras.cleaning}</span>
+                </div>,
+                
+                priceDetails.extras.extra_guests > 0 && (
+                  <div className="flex justify-between">
+                    <span>Supplemento ospiti extra</span>
+                    <span>€{priceDetails.extras.extra_guests}</span>
+                  </div>
+                )
+              )}
+            </div>
+
+            <div className="border-t pt-2">
+              <div className="flex justify-between font-bold text-lg">
+                <span>Totale</span>
+                <span>€{priceDetails.total}</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Rendering del componente
+ReactDOM.render(
+  React.createElement(React.StrictMode, null, 
+    React.createElement(BookingCalculator, { listingId: 1 })
+  ), 
+  document.getElementById('booking-calculator-root')
+);
+</script>
+
+{% csrf_token %}
+{% endblock %}

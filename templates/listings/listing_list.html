@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>I nostri appartamenti</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .listings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 2rem;
+        }
+        .listing-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .listing-price {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c5282;
+        }
+        .listing-location {
+            color: #666;
+            margin-bottom: 1rem;
+        }
+        .listing-specs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            color: #444;
+        }
+        .popular-amenities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+        .amenity-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.3rem 0.6rem;
+            background-color: #f3f4f6;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+        .amenity-badge i {
+            font-size: 0.8rem;
+        }
+        .view-more {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background-color: #2c5282;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .view-more:hover {
+            background-color: #2a4365;
+        }
+    </style>
+</head>
+<body>
+    <h1>I nostri appartamenti</h1>
+    
+    {% if listings %}
+        <div class="listings-grid">
+            {% for listing in listings %}
+                <div class="listing-card">
+                    <h2>{{ listing.title }}</h2>
+                    <p class="listing-price">€{{ listing.base_price }} per notte</p>
+                    <p class="listing-location">{{ listing.city }} - {{ listing.zone }}</p>
+                    
+                    <div class="listing-specs">
+                        <span><i class="fas fa-bed"></i> {{ listing.bedrooms }} camere</span>
+                        <span><i class="fas fa-users"></i> {{ listing.max_guests }} ospiti</span>
+                    </div>
+
+                    <!-- Mostra solo le amenities popolari (max 5) -->
+                    <div class="popular-amenities">
+                        {% for amenity in listing.amenities.filter|dictsort:"name"|slice:":5" %}
+                            <span class="amenity-badge">
+                                <i class="fa {{ amenity.icon }}"></i>
+                                {{ amenity.name }}
+                            </span>
+                        {% endfor %}
+                        {% if listing.amenities.count > 5 %}
+                            <span class="amenity-badge">
+                                +{{ listing.amenities.count|add:"-5" }} servizi
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <a href="{% url 'listings:detail' listing.slug %}" class="view-more">
+                        Vedi dettagli
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>Nessun appartamento disponibile al momento.</p>
+    {% endif %}
+</body>
+</html>
