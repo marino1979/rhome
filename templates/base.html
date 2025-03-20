@@ -28,6 +28,30 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+        .amenity-list {
+    list-style: none;
+    padding: 0;
+}
+
+.amenity-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.amenity-item i {
+    font-size: 1.2em;
+    width: 25px;
+    margin-right: 10px;
+    text-align: center;
+}
+
+.amenity-item .custom-icon {
+    height: 20px;
+    width: 20px;
+    margin-right: 10px;
+    object-fit: contain;
+}
     </style>
     
     {% block extra_css %}{% endblock %}

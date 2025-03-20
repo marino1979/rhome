@@ -1,0 +1,396 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="wizard-container">
+    <!-- Progress bar -->
+    <div class="progress-container">
+        <div class="progress-bar">
+            <div class="progress" id="wizard-progress"></div>
+        </div>
+        <div class="steps-indicator">
+            <div class="step active" data-step="1">Info Base</div>
+            <div class="step" data-step="2">Posizione</div>
+            <div class="step" data-step="3">Stanze</div>
+            <div class="step" data-step="4">Servizi</div>
+            <div class="step" data-step="5">Foto</div>
+            <div class="step" data-step="6">Prezzi</div>
+        </div>
+    </div>
+
+    <!-- Form container -->
+    <div class="wizard-form-container">
+        <form id="listing-wizard-form" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <!-- Step 1: Info Base -->
+            <div class="wizard-step" data-step="1">
+                <h2>Informazioni Base</h2>
+                <div class="form-group">
+                    <label for="title">Titolo dell'annuncio</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Descrizione</label>
+                    <textarea id="description" name="description" rows="4" required></textarea>
+                </div>
+            </div>
+
+            <!-- Step 2: Posizione -->
+            <div class="wizard-step" data-step="2" style="display: none;">
+                <h2>Posizione</h2>
+                <div class="form-group">
+                    <label for="address">Indirizzo</label>
+                    <input type="text" id="address" name="address" required>
+                </div>
+                <div class="form-group">
+                    <label for="total_square_meters">Metri quadri totali</label>
+                    <input type="number" id="total_square_meters" name="total_square_meters" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="outdoor_square_meters">Metri quadri esterni</label>
+                    <input type="number" id="outdoor_square_meters" name="outdoor_square_meters" min="0">
+                </div>
+            </div>
+
+            <!-- Step 3: Stanze -->
+            <div class="wizard-step" data-step="3" style="display: none;">
+                <h2>Stanze</h2>
+                <div id="rooms-container">
+                    <!-- Le stanze verranno aggiunte dinamicamente -->
+                </div>
+                <button type="button" id="add-room" class="btn btn-secondary">Aggiungi Stanza</button>
+            </div>
+
+            <!-- Step 4: Servizi -->
+            <div class="wizard-step" data-step="4" style="display: none;">
+                <h2>Servizi</h2>
+                <div id="amenities-container">
+                    <!-- I servizi verranno caricati dinamicamente -->
+                </div>
+            </div>
+
+            <!-- Step 5: Foto -->
+            <div class="wizard-step" data-step="5" style="display: none;">
+                <h2>Foto</h2>
+                <div class="form-group">
+                    <label for="photos">Carica le foto</label>
+                    <input type="file" id="photos" name="photos[]" multiple accept="image/*">
+                </div>
+                <div id="photos-preview" class="photos-preview">
+                    <!-- Le anteprime delle foto verranno mostrate qui -->
+                </div>
+            </div>
+
+            <!-- Step 6: Prezzi -->
+            <div class="wizard-step" data-step="6" style="display: none;">
+                <h2>Prezzi</h2>
+                <div class="form-group">
+                    <label for="base_price">Prezzo base per notte</label>
+                    <input type="number" id="base_price" name="base_price" min="0" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="cleaning_fee">Tariffa di pulizia</label>
+                    <input type="number" id="cleaning_fee" name="cleaning_fee" min="0" step="0.01">
+                </div>
+            </div>
+
+            <!-- Navigation buttons -->
+            <div class="wizard-navigation">
+                <button type="button" id="prev-step" class="btn btn-secondary" style="display: none;">Indietro</button>
+                <button type="button" id="next-step" class="btn btn-primary">Avanti</button>
+                <button type="button" id="save-listing" class="btn btn-success" style="display: none;">Salva Annuncio</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Template per le stanze -->
+<template id="room-template">
+    <div class="room-item">
+        <div class="form-group">
+            <label>Nome Stanza</label>
+            <input type="text" name="room_name" required>
+        </div>
+        <div class="form-group">
+            <label>Tipo di Stanza</label>
+            <select name="room_type" required>
+                <!-- Popolato dinamicamente -->
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Metri Quadri</label>
+            <input type="number" name="square_meters" min="1">
+        </div>
+        <div class="beds-container">
+            <h4>Letti</h4>
+            <!-- I letti verranno aggiunti qui -->
+        </div>
+        <button type="button" class="btn btn-secondary add-bed">Aggiungi Letto</button>
+        <button type="button" class="btn btn-danger remove-room">Rimuovi Stanza</button>
+    </div>
+</template>
+
+<!-- Template per i letti -->
+<template id="bed-template">
+    <div class="bed-item">
+        <div class="form-group">
+            <label>Tipo di Letto</label>
+            <select name="bed_type" required>
+                <!-- Popolato dinamicamente -->
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Quantità</label>
+            <input type="number" name="quantity" min="1" value="1" required>
+        </div>
+        <button type="button" class="btn btn-danger remove-bed">Rimuovi Letto</button>
+    </div>
+</template>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.wizard-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.progress-container {
+    margin-bottom: 2rem;
+}
+
+.progress-bar {
+    height: 4px;
+    background: #e9ecef;
+    border-radius: 2px;
+    margin-bottom: 1rem;
+}
+
+.progress {
+    height: 100%;
+    background: #007bff;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.steps-indicator {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+}
+
+.step {
+    flex: 1;
+    text-align: center;
+    padding: 0.5rem;
+    color: #6c757d;
+    position: relative;
+}
+
+.step.active {
+    color: #007bff;
+    font-weight: bold;
+}
+
+.step::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: #007bff;
+    transition: width 0.3s ease;
+}
+
+.step.active::after {
+    width: 100%;
+}
+
+.wizard-step {
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+
+.wizard-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #dee2e6;
+}
+
+.room-item {
+    border: 1px solid #dee2e6;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+}
+
+.bed-item {
+    border: 1px solid #e9ecef;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+}
+
+.photos-preview {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.photo-preview {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.photo-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.photo-preview .remove-photo {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: rgba(255,255,255,0.8);
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentStep = 1;
+    const totalSteps = 6;
+    const form = document.getElementById('listing-wizard-form');
+    const prevButton = document.getElementById('prev-step');
+    const nextButton = document.getElementById('next-step');
+    const saveButton = document.getElementById('save-listing');
+    const progressBar = document.getElementById('wizard-progress');
+    const steps = document.querySelectorAll('.step');
+    const wizardSteps = document.querySelectorAll('.wizard-step');
+
+    // Inizializzazione
+    async function initializeWizard() {
+        try {
+            const response = await fetch('/appartamenti/wizard/');
+            const data = await response.json();
+            if (data.current_step) {
+                currentStep = data.current_step;
+                updateWizardState();
+            }
+            if (data.data) {
+                populateFormData(data.data);
+            }
+        } catch (error) {
+            console.error('Errore nell\'inizializzazione del wizard:', error);
+        }
+    }
+
+    // Aggiornamento dello stato del wizard
+    function updateWizardState() {
+        // Aggiorna la barra di progresso
+        const progress = ((currentStep - 1) / (totalSteps - 1)) * 100;
+        progressBar.style.width = `${progress}%`;
+
+        // Aggiorna gli indicatori degli step
+        steps.forEach((step, index) => {
+            if (index + 1 <= currentStep) {
+                step.classList.add('active');
+            } else {
+                step.classList.remove('active');
+            }
+        });
+
+        // Mostra/nascondi gli step
+        wizardSteps.forEach((step, index) => {
+            step.style.display = index + 1 === currentStep ? 'block' : 'none';
+        });
+
+        // Aggiorna i pulsanti di navigazione
+        prevButton.style.display = currentStep === 1 ? 'none' : 'block';
+        nextButton.style.display = currentStep === totalSteps ? 'none' : 'block';
+        saveButton.style.display = currentStep === totalSteps ? 'block' : 'none';
+    }
+
+    // Gestione della navigazione
+    async function handleNavigation(action) {
+        const formData = new FormData(form);
+        formData.append('step', currentStep);
+        formData.append('action', action);
+
+        try {
+            const response = await fetch('/appartamenti/wizard/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                if (action === 'next') {
+                    currentStep++;
+                } else if (action === 'prev') {
+                    currentStep--;
+                } else if (action === 'save') {
+                    window.location.href = `/appartamenti/${data.listing_id}/`;
+                }
+                updateWizardState();
+            } else {
+                alert(data.error || 'Si è verificato un errore');
+            }
+        } catch (error) {
+            console.error('Errore nella navigazione:', error);
+            alert('Si è verificato un errore durante il salvataggio');
+        }
+    }
+
+    // Event listeners
+    prevButton.addEventListener('click', () => handleNavigation('prev'));
+    nextButton.addEventListener('click', () => handleNavigation('next'));
+    saveButton.addEventListener('click', () => handleNavigation('save'));
+
+    // Inizializza il wizard
+    initializeWizard();
+});
+</script>
+{% endblock %} 

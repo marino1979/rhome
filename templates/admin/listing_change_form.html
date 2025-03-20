@@ -1,0 +1,9 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls %}
+
+{% block submit_buttons_bottom %}
+    {{ block.super }}
+    <div class="submit-row">
+        <a href="{% url 'admin:listing-upload-images' original.pk %}" class="button" style="background-color: #28a745;">Carica Multiple Immagini</a>
+    </div>
+{% endblock %}

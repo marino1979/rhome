@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}{{ listing.title }} - Rhome Book{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header/Navigation Area -->
+    <div class="bg-white border-b border-gray-200 py-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold text-gray-900">Rhome Book</h1>
+        <button class="bg-blue-500 text-white rounded-full px-4 py-2">
+            Prenota ora
+        </button>
+    </div>
+
+    <!-- Gallery Section -->
+    <div class="mt-6 bg-white border border-gray-200 rounded-lg p-4">
+        <div class="grid grid-cols-12 gap-4">
+            <!-- Main Image -->
+            <div class="col-span-12 md:col-span-8">
+                {% if listing.main_image %}
+                <div class="aspect-w-16 aspect-h-9 bg-gray-200 flex justify-center items-center">
+                    <img src="{{ listing.main_image.file.url }}" 
+                         alt="{{ listing.main_image.alt_text }}"
+                         class="w-full h-full object-cover">
+                </div>
+                {% endif %}
+            </div>
+            <!-- Thumbnails -->
+            <div class="col-span-12 md:col-span-4">
+                <div class="grid grid-cols-1 gap-4">
+                    {% for image in listing.other_images|slice:":2" %}
+                    <div class="aspect-w-4 aspect-h-3 bg-gray-200 flex justify-center items-center">
+                        <img src="{{ image.file.url }}" 
+                             alt="{{ image.alt_text }}"
+                             class="w-full h-full object-cover">
+                    </div>
+                    {% endfor %}
+                    {% if listing.other_images.count > 2 %}
+                    <div class="aspect-w-4 aspect-h-3 bg-gray-200 flex justify-center items-center">
+                        <span class="text-lg font-semibold">
+                            +{{ listing.other_images.count|add:"-2" }} foto
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Title and Basic Info -->
+    <div class="mt-6 bg-white border border-gray-200 rounded-lg p-4">
+        <h2 class="text-2xl font-bold text-gray-900">{{ listing.title }}</h2>
+        <div class="flex flex-wrap gap-4 mt-2">
+            <div class="bg-gray-100 rounded-full px-3 py-1">{{ listing.total_square_meters }} m²</div>
+            <div class="bg-gray-100 rounded-full px-3 py-1">{{ listing.total_beds }} letti</div>
+            <div class="bg-gray-100 rounded-full px-3 py-1">{{ listing.total_sleeps }} ospiti</div>
+            {% if listing.outdoor_square_meters %}
+            <div class="bg-gray-100 rounded-full px-3 py-1">{{ listing.outdoor_square_meters }} m² esterni</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Column -->
+        <div class="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-4">
+            <!-- Tabs -->
+            <div class="flex space-x-4 border-b border-gray-200">
+                <div class="py-2 text-blue-600 border-b-2 border-blue-600 cursor-pointer">Descrizione</div>
+                <div class="py-2 text-gray-600 cursor-pointer">Stanze</div>
+                <div class="py-2 text-gray-600 cursor-pointer">Servizi</div>
+                <div class="py-2 text-gray-600 cursor-pointer">Regole</div>
+                <div class="py-2 text-gray-600 cursor-pointer">Recensioni</div>
+            </div>
+            <div class="mt-4">
+                <!-- Description Section -->
+                <h3 class="text-xl font-semibold text-gray-900">Descrizione</h3>
+                <div class="prose max-w-none">
+                    {{ listing.description|linebreaks }}
+                </div>
+            </div>
+            <div class="mt-4">
+                <!-- Rooms Section -->
+                <h3 class="text-xl font-semibold text-gray-900">Le Stanze</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for room in listing.rooms.all %}
+                    <div class="border rounded-lg overflow-hidden bg-white">
+                        {% if room.main_image %}
+                        <div class="aspect-w-16 aspect-h-9">
+                            <img src="{{ room.main_image.file.url }}" 
+                                 alt="Immagine {{ room.name }}"
+                                 class="w-full h-full object-cover">
+                        </div>
+                        {% endif %}
+                        <div class="p-4">
+                            <h4 class="font-semibold text-lg">{{ room.name }}</h4>
+                            {% if room.square_meters %}
+                            <p class="text-gray-600 text-sm">{{ room.square_meters }} m²</p>
+                            {% endif %}
+                            {% if room.beds.exists %}
+                            <div class="text-sm text-gray-600">
+                                {% for bed in room.beds.all %}
+                                <div class="flex items-center">
+                                    <i class="fas fa-bed mr-2 text-gray-400"></i>
+                                    {{ bed.quantity }}x {{ bed.bed_type.name }}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="lg:col-span-1">
+            <!-- Booking Card -->
+            <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+                <h2 class="text-xl font-semibold mb-4">Prenota</h2>
+                <p class="text-2xl font-bold text-gray-900">€120 <span class="text-base font-normal text-gray-600">/ notte</span></p>
+                <div class="mt-4">
+                    <input type="date" class="w-full bg-gray-100 border border-gray-300 rounded-lg p-2 mb-2" placeholder="Check-in">
+                    <input type="date" class="w-full bg-gray-100 border border-gray-300 rounded-lg p-2 mb-2" placeholder="Check-out">
+                    <select class="w-full bg-gray-100 border border-gray-300 rounded-lg p-2 mb-2">
+                        <option>2 ospiti</option>
+                    </select>
+                    <button class="w-full bg-blue-500 text-white rounded-lg px-4 py-2 mt-2">Prenota ora</button>
+                </div>
+            </div>
+
+         <!-- Amenities Card -->
+<div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+    <h2 class="text-xl font-semibold mb-4">Servizi in evidenza</h2>
+    <div class="space-y-2">
+        {% regroup listing.amenities.all by category as amenity_list %}
+        {% for category in amenity_list %}
+        <div>
+            <h3 class="font-medium text-gray-700">{{ category.grouper.name }}</h3>
+            <div class="grid grid-cols-2 gap-2">
+                {% for amenity in category.list %}
+                <div class="flex items-center text-gray-600">
+                    {% if amenity.icon %}
+                        {% if amenity.icon.icon_type == 'fa' %}
+                            <i class="{{ amenity.icon.fa_class }} mr-2"></i>
+                        {% elif amenity.icon.icon_type == 'custom' and amenity.icon.custom_icon %}
+                            <img src="{{ amenity.icon.custom_icon.url }}" alt="{{ amenity.name }}" class="h-5 w-5 mr-2">
+                        {% endif %}
+                    {% else %}
+                        <span class="inline-block w-5 mr-2"></span> <!-- Placeholder per allineamento -->
+                    {% endif %}
+                    {{ amenity.name }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+            <!-- Location Card -->
+            <div class="bg-white border border-gray-200 rounded-lg p-4">
+                <h2 class="text-xl font-semibold mb-4">Posizione</h2>
+                <p class="text-gray-600">{{ listing.address }}</p>
+                <div class="bg-gray-200 rounded-lg h-32 flex items-center justify-center mt-2">
+                    Mappa
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Base per la galleria immagini
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('gallery-modal');
+    const images = document.querySelectorAll('img[class*="cursor-pointer"]');
+    
+    images.forEach(img => {
+        img.addEventListener('click', () => {
+            modal.classList.remove('hidden');
+        });
+    });
+
+    modal.querySelector('button').addEventListener('click', () => {
+        modal.classList.add('hidden');
+    });
+});
+</script>
+{% endblock %}

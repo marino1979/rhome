@@ -1,6 +1,9 @@
 from django.db import models
+import datetime
 from django.utils.text import slugify
 from amenities.models import Amenity
+
+
 class Listing(models.Model):
     STATUS_CHOICES = [
         ('draft', 'Bozza'),
@@ -117,6 +120,23 @@ class Listing(models.Model):
             else:
                 beds_summary[bed_type] = bed.quantity
         return beds_summary
+    
+     # Campi per le regole standard
+    checkin_from = models.TimeField(default=datetime.time(15, 0), verbose_name="Check-in dalle")
+    checkin_to = models.TimeField(default=datetime.time(20, 0), verbose_name="Check-in fino alle")
+    checkout_time = models.TimeField(default=datetime.time(10, 0), verbose_name="Check-out entro le")
+    
+    # Regole booleane
+    allow_parties = models.BooleanField(default=False, verbose_name="Feste consentite")
+    allow_photos = models.BooleanField(default=True, verbose_name="Foto/Video consentiti")
+    allow_smoking = models.BooleanField(default=False, verbose_name="Consentito fumare")
+    
+    # Note aggiuntive per le regole
+    checkin_notes = models.TextField(blank=True, verbose_name="Note check-in")
+    checkout_notes = models.TextField(blank=True, verbose_name="Note check-out")
+    parties_notes = models.TextField(blank=True, verbose_name="Note feste")
+    photos_notes = models.TextField(blank=True, verbose_name="Note foto/video")
+    smoking_notes = models.TextField(blank=True, verbose_name="Note fumo")
     # Metadati
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

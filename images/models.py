@@ -32,3 +32,4 @@ class Image(models.Model):
                 is_main=True
             ).update(is_main=False)
         super().save(*args, **kwargs)
+  
