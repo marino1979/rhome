@@ -7,6 +7,8 @@ from rooms.models import Room
 from beds.models import Bed
 from images.models import Image
 from django.utils.html import format_html
+from modeltranslation.admin import TranslationAdmin,TabbedTranslationAdmin
+
 
 class BedInline(admin.TabularInline):
     model = Bed
@@ -51,11 +53,48 @@ class ImageInline(admin.TabularInline):  # Usa StackedInline se preferisci un la
             return format_html('<img src="{}" width="100" height="auto" style="border-radius: 5px;" />', obj.file.url)
         return "No Image"
 
-class ListingAdmin(admin.ModelAdmin):
+class ListingAdmin(TabbedTranslationAdmin):
     inlines = [RoomInline, BedInline, ImageInline]
     list_display = ['title', 'bedrooms', 'total_beds']
     change_form_template = 'admin/listing_change_form.html'
+   
+  
+    
+    fieldsets = (
+        ('📍 Posizione', {
+            'fields': ('address', 'city', 'zone')
+        }),
+        ('🏠 Proprietà', {
+            'fields': (
+                'title',
+                'description',
+                'total_square_meters', 'outdoor_square_meters',
+                'bedrooms', 'bathrooms', 'total_beds', 'total_sleeps',
+                'max_guests', 'included_guests',
+                'amenities'
+            )
+        }),
+        ('💶 Prezzi e prenotazione', {
+            'fields': (
+                'base_price', 'cleaning_fee', 'extra_guest_fee',
+                'min_booking_advance', 'max_booking_advance', 'gap_between_bookings'
+            )
+        }),
+        ('🕒 Regole della casa', {
+            'fields': (
+                'checkin_from', 'checkin_to', 'checkout_time',
+                'allow_parties', 'allow_photos', 'allow_smoking',
+                'checkin_notes',
+                'checkout_notes',
+                'parties_notes', 'photos_notes', 'smoking_notes'
+            )
+        }),
+        ('⚙️ Sistema', {
+            'fields': ('slug', 'status', 'created_at', 'updated_at')
+        }),
+    )
 
+    readonly_fields = ('created_at', 'updated_at')
     def get_form(self, request, obj=None, **kwargs):
         # Passa l'oggetto listing alla inline
         request._obj_ = obj

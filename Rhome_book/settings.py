@@ -34,25 +34,29 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'modeltranslation',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'listings',  # aggiungi questa riga,
+    'listings.apps.ListingsConfig',  # aggiungi questa riga,
     'amenities',
     'beds',
     'rooms.apps.RoomsConfig',
     'images',
     'icons.apps.IconsConfig',
     'calendar_rules',
-    'rest_framework'
+    'rest_framework',
+    'translations',
+ 
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',  # Aggiungi dopo SessionMiddleware
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -114,7 +118,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
-
+# Lingue supportate
+LANGUAGES = [
+    ('it', 'Italiano'),
+    ('en', 'English'),
+    ('es', 'Español'),
+    # Puoi aggiungerne altre
+]
 LANGUAGE_CODE = 'it'
 
 TIME_ZONE = 'UTC'
@@ -144,7 +154,16 @@ MEDIA_URL = '/media/'
 # Definisce il percorso assoluto dove vengono salvati i file
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 print("Template dirs:", TEMPLATES[0]['DIRS'])
+# Attiva l'internazionalizzazione
+USE_I18N = True
 
+# Attiva la localizzazione
+USE_L10N = True
+
+# Cartella dove verranno salvati i file di traduzione
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, 'locale'),
+]
 
 
 

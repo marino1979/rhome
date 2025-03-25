@@ -1,10 +1,12 @@
 {% load static %}
+{% load i18n %}
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Rhome Book{% endblock %}</title>
+    <title>{% block title %}Maggi Milano{% endblock %}</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -23,6 +25,8 @@
      <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
      <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.js"></script>
+    <link rel="stylesheet" href="{% static 'css/header.css' %}">
+<script src="{% static 'js/header.js' %}"></script>
     <!-- Stili Custom -->
     <style>
         body {
@@ -53,39 +57,226 @@
     object-fit: contain;
 }
     </style>
-    
+     <style>
+        .listings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 2rem;
+        }
+        .listing-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .listing-price {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c5282;
+        }
+        .listing-location {
+            color: #666;
+            margin-bottom: 1rem;
+        }
+        .listing-specs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            color: #444;
+        }
+        .popular-amenities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+        .amenity-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.3rem 0.6rem;
+            background-color: #f3f4f6;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+        .amenity-badge i {
+            font-size: 0.8rem;
+        }
+        .view-more {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background-color: #2c5282;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .view-more:hover {
+            background-color: #2a4365;
+        }
+        /* Questo CSS può essere aggiunto al tuo file di stile principale */
+
+/* Effetto hover sulle card degli appartamenti */
+.grid a.group {
+    text-decoration: none;
+    display: block;
+    height: 100%;
+    transform: translateY(0);
+    transition: all 0.3s ease;
+    backface-visibility: hidden;
+}
+
+/* Animazione per le immagini */
+.grid a.group img {
+    transition: transform 0.6s ease-out;
+    will-change: transform;
+}
+
+/* Effetto badge per servizi */
+.inline-flex.items-center {
+    transition: all 0.2s ease;
+}
+
+.inline-flex.items-center:hover {
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* Assicuriamoci che l'overlay funzioni correttamente */
+.relative {
+    overflow: hidden;
+}
+    </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <header class="bg-white shadow-sm">
-        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <!-- Logo -->
-                <div class="flex items-center">
-                    <a href="/" class="text-xl font-bold text-gray-900">
-                        Rhome Book
-                    </a>
+<!-- Header fisso durante lo scroll con colori del brand -->
+<header class="header-main" id="mainHeader">
+    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-20">
+            <!-- Logo con immagine -->
+            <div class="flex items-center">
+                <a href="/chi-siamo/" class="brand-logo">
+                    <img src="{% static 'images/maggi_color.png' %}" alt="Maggi Milano Logo">
+                    <span class="brand-name hidden md:block"></span>
+                </a>
+            </div>
+            
+            <!-- Menu principale (desktop) -->
+            <div class="main-menu">
+                <a href="/appartamenti/" class="menu-item {% if request.resolver_match.url_name == 'apartment_list' %}active{% endif %}">
+                    {% trans "Appartamenti" %}
+                </a>
+              
+                
+                <a href="/contatti/" class="menu-item {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">
+                    {% trans "Contatti" %}
+                </a>
+            </div>
+            
+            <!-- Area destra con selettore lingua e login/registrazione -->
+            <div class="flex items-center space-x-4">
+                <!-- Selettore lingua migliorato -->
+                <div class="language-selector">
+                    <form action="{% url 'set_language' %}" method="post" id="languageForm">
+                        {% csrf_token %}
+                        <input name="next" type="hidden" value="{{ request.path }}">
+                        <div class="language-toggle" id="languageToggle">
+                            <span>
+                                {% get_current_language as CURRENT_LANGUAGE %}
+                                {% if CURRENT_LANGUAGE == 'it' %}
+                                    <img src="{% static 'images/flags/it.svg' %}" alt="Italiano">
+                                    IT
+                                {% elif CURRENT_LANGUAGE == 'en' %}
+                                    <img src="{% static 'images/flags/en.svg' %}" alt="English">
+                                    EN
+                                    {% elif CURRENT_LANGUAGE == 'es' %}
+                                    <img src="{% static 'images/flags/es.svg' %}" alt="Espanol">
+                                    ES
+                                {% else %}
+                                    {{ CURRENT_LANGUAGE|upper }}
+                                {% endif %}
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                        
+                        <!-- Dropdown menu per le lingue -->
+                        <div id="languageDropdown" class="language-dropdown">
+                            {% get_available_languages as LANGUAGES %}
+                            {% for lang_code, lang_name in LANGUAGES %}
+                                <button type="button" onclick="changeLanguage('{{ lang_code }}')" class="language-option {% if lang_code == CURRENT_LANGUAGE %}active{% endif %}">
+                                    {% if lang_code == 'it' %}
+                                        <img src="{% static 'images/flags/it.svg' %}" alt="Italiano">
+                                    {% elif lang_code == 'en' %}
+                                        <img src="{% static 'images/flags/en.svg' %}" alt="English">
+                                    {% elif lang_code == 'es' %}
+                                        <img src="{% static 'images/flags/es.svg' %}" alt="Espanol">
+                                    {% endif %}
+                                    {{ lang_name }}
+                                </button>
+                            {% endfor %}
+                        </div>
+                        
+                        <select name="language" id="languageSelect" class="hidden" onchange="this.form.submit()">
+                            {% for lang_code, lang_name in LANGUAGES %}
+                                <option value="{{ lang_code }}" {% if lang_code == CURRENT_LANGUAGE %}selected{% endif %}>
+                                    {{ lang_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </form>
                 </div>
                 
-                <!-- Menu principale -->
-                <div class="hidden md:flex items-center space-x-4">
-                   <!-- A: -->
-<a href="/appartamenti/" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md">
-    Appartamenti
-</a>
-                    <!-- Aggiungi altri link del menu -->
-                </div>
-
-                <!-- Menu mobile (da implementare con JS) -->
-                <div class="md:hidden flex items-center">
-                    <button class="text-gray-600 hover:text-gray-900">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                </div>
+                <!-- Login / Registrazione -->
+                <a href="" class="login-button">
+                    {% trans "Accedi" %}
+                </a>
+                <a href="" class="register-button">
+                    {% trans "Registrati" %}
+                </a>
             </div>
-        </nav>
-    </header>
+            
+            <!-- Menu mobile (hamburger) -->
+            <div class="mobile-menu-button">
+                <button id="mobileMenuButton" aria-label="Menu">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Menu mobile dropdown (nascosto di default) -->
+        <div id="mobileMenu" class="mobile-menu">
+            <a href="/appartamenti/" class="mobile-menu-item {% if request.resolver_match.url_name == 'apartment_list' %}active{% endif %}">
+                {% trans "Appartamenti" %}
+            </a>
+          
+            <a href="/chi-siamo/" class="mobile-menu-item {% if request.resolver_match.url_name == 'about_us' %}active{% endif %}">
+                {% trans "Chi Siamo" %}
+            </a>
+            <a href="/contatti/" class="mobile-menu-item {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">
+                {% trans "Contatti" %}
+            </a>
+            <div class="pt-4 pb-3 border-t border-gray-700">
+                <a href="" class="mobile-menu-item">
+                    {% trans "Accedi" %}
+                </a>
+                <a href="" class="mobile-menu-item bg-opacity-20 bg-white">
+                    {% trans "Registrati" %}
+                </a>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<!-- Spacer per compensare l'header fisso -->
+<div class="header-spacer"></div>
 
     <!-- Contenuto principale -->
     <main>
@@ -103,58 +294,171 @@
         {% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t mt-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Colonna 1 -->
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Rhome Book</h3>
-                    <p class="text-gray-600">
-                        La tua piattaforma per gli affitti brevi a Roma
-                        <i class="fas fa-star" style="font-size: 24px; color: red;"></i>
-                    </p>
+<!-- Footer -->
+<footer class="bg-[var(--rhome-bg-color)] text-[var(--rhome-text-color)] mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Colonna 1: Logo e descrizione -->
+            <div>
+                <div class="flex items-center mb-4">
+                   
+                    <h3 class="text-lg font-semibold">Maggi Milano</h3>
                 </div>
-                
-                <!-- Colonna 2 -->
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Link Utili</h3>
-                    <ul class="space-y-2">
-                        <li>
-                            <a href="#" class="text-gray-600 hover:text-gray-900">Chi Siamo</a>
-                        </li>
-                        <li>
-                            <a href="#" class="text-gray-600 hover:text-gray-900">Contatti</a>
-                        </li>
-                        <li>
-                            <a href="#" class="text-gray-600 hover:text-gray-900">Privacy Policy</a>
-                        </li>
-                    </ul>
-                </div>
-                
-                <!-- Colonna 3 -->
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">Contatti</h3>
-                    <ul class="space-y-2 text-gray-600">
-                        <li class="flex items-center">
-                            <i class="fas fa-envelope mr-2"></i>
-                            info@rhomebook.it
-                        </li>
-                        <li class="flex items-center">
-                            <i class="fas fa-phone mr-2"></i>
-                            +39 06 1234567
-                        </li>
-                    </ul>
+                <p class="text-[var(--rhome-accent-color)] mb-6">
+                    {% trans "Il tuo appartamento a Milano" %}
+                </p>
+                <div class="flex space-x-4 mt-6">
+                    <a href="#" class="text-[var(--rhome-text-color)] hover:text-[var(--rhome-text-hover)] transition-colors">
+                        <i class="fab fa-facebook-f text-xl"></i>
+                    </a>
+                    <a href="#" class="text-[var(--rhome-text-color)] hover:text-[var(--rhome-text-hover)] transition-colors">
+                        <i class="fab fa-instagram text-xl"></i>
+                    </a>
+                    <a href="#" class="text-[var(--rhome-text-color)] hover:text-[var(--rhome-text-hover)] transition-colors">
+                        <i class="fab fa-whatsapp text-xl"></i>
+                    </a>
                 </div>
             </div>
             
-            <!-- Copyright -->
-            <div class="border-t mt-8 pt-8 text-center text-gray-600">
-                <p>&copy; {% now "Y" %} Rhome Book. Tutti i diritti riservati.</p>
+            <!-- Colonna 2: Link utili -->
+            <div>
+                <h3 class="text-lg font-semibold mb-4 border-b border-[rgba(255,255,255,0.1)] pb-2">{% trans "Link utili" %}</h3>
+                <ul class="space-y-3">
+                    <li>
+                        <a href="#" class="text-[var(--rhome-text-color)] hover:text-[var(--rhome-text-hover)] transition-colors flex items-center">
+                            <i class="fas fa-chevron-right mr-2 text-xs"></i>
+                            {% trans "Chi siamo" %}
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="text-[var(--rhome-text-color)] hover:text-[var(--rhome-text-hover)] transition-colors flex items-center">
+                            <i class="fas fa-chevron-right mr-2 text-xs"></i>
+                            {% trans "Contatti" %}
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="text-[var(--rhome-text-color)] hover:text-[var(--rhome-text-hover)] transition-colors flex items-center">
+                            <i class="fas fa-chevron-right mr-2 text-xs"></i>
+                            {% trans "Privacy Policy" %}
+                        </a>
+                    </li>
+                </ul>
+                
+                <!-- Selettore lingua -->
+                <div class="mt-6 pt-4 border-t border-[rgba(255,255,255,0.1)]">
+                    <h4 class="text-sm font-medium mb-2">{% trans "Seleziona lingua" %}</h4>
+                    <form action="{% url 'set_language' %}" method="post" class="flex items-center">
+                        {% csrf_token %}
+                        <input name="next" type="hidden" value="{{ request.path }}">
+                        <select name="language" onchange="this.form.submit()" class="bg-[var(--rhome-dark-color)] text-[var(--rhome-text-color)] rounded px-3 py-2 border border-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-1 focus:ring-[var(--rhome-accent-color)]">
+                            {% get_current_language as CURRENT_LANGUAGE %}
+                            {% get_available_languages as LANGUAGES %}
+                            {% for lang_code, lang_name in LANGUAGES %}
+                                <option value="{{ lang_code }}" {% if lang_code == CURRENT_LANGUAGE %}selected{% endif %}>
+                                    {{ lang_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Colonna 3: Contatti -->
+            <div>
+                <h3 class="text-lg font-semibold mb-4 border-b border-[rgba(255,255,255,0.1)] pb-2">{% trans "Contatti" %}</h3>
+                <ul class="space-y-4">
+                    <li class="flex items-start">
+                        <div class="flex-shrink-0 bg-[rgba(255,255,255,0.1)] rounded-full p-2 mr-3 mt-1">
+                            <i class="fas fa-envelope text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium">{% trans "Email" %}</p>
+                            <a href="mailto:info@maggimilano.com" class="text-[var(--rhome-accent-color)] hover:text-[var(--rhome-text-hover)] transition-colors">info@maggimilano.com</a>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="flex-shrink-0 bg-[rgba(255,255,255,0.1)] rounded-full p-2 mr-3 mt-1">
+                            <i class="fas fa-phone text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium">{% trans "Telefono" %}</p>
+                            <a href="tel:+390612345678" class="text-[var(--rhome-accent-color)] hover:text-[var(--rhome-text-hover)] transition-colors">+39 06 1234567</a>
+                        </div>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="flex-shrink-0 bg-[rgba(255,255,255,0.1)] rounded-full p-2 mr-3 mt-1">
+                            <i class="fas fa-map-marker-alt text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium">{% trans "Indirizzo" %}</p>
+                            <p class="text-[var(--rhome-accent-color)]">Via Milano, 123<br>20100 Milano, Italia</p>
+                        </div>
+                    </li>
+                </ul>
             </div>
         </div>
-    </footer>
+        
+        <!-- Divider -->
+        <div class="border-t border-[rgba(255,255,255,0.1)] my-8"></div>
+        
+        <!-- Copyright -->
+        <div class="flex flex-col md:flex-row md:justify-between items-center text-sm">
+            <p>&copy; {% now "Y" %} Maggi Milano. {% trans "Tutti i diritti riservati." %}</p>
+            <div class="mt-4 md:mt-0">
+                <a href="#" class="text-[var(--rhome-text-color)] hover:text-[var(--rhome-text-hover)] transition-colors mx-2">{% trans "Termini di Servizio" %}</a>
+                <span class="text-[rgba(255,255,255,0.3)]">|</span>
+                <a href="#" class="text-[var(--rhome-text-color)] hover:text-[var(--rhome-text-hover)] transition-colors mx-2">Privacy Policy</a>
+                <span class="text-[rgba(255,255,255,0.3)]">|</span>
+                <a href="#" class="text-[var(--rhome-text-color)] hover:text-[var(--rhome-text-hover)] transition-colors mx-2">Cookie Policy</a>
+            </div>
+        </div>
+    </div>
+</footer>
 
     {% block extra_js %}{% endblock %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gestione apertura/chiusura del menu mobile
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            mobileMenuButton.addEventListener('click', function() {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            // Chiudi il menu mobile quando si clicca fuori
+            document.addEventListener('click', function(event) {
+                if (!mobileMenuButton.contains(event.target) && !mobileMenu.contains(event.target)) {
+                    mobileMenu.classList.add('hidden');
+                }
+            });
+            
+            // Chiudi il dropdown delle lingue quando si clicca fuori
+            const languageDropdown = document.getElementById('language-dropdown');
+            document.addEventListener('click', function(event) {
+                const languageSelector = document.querySelector('.language-selector');
+                if (!languageSelector.contains(event.target)) {
+                    languageDropdown.classList.add('hidden');
+                }
+            });
+            
+            // Funzione per cambiare lingua
+            window.changeLanguage = function(langCode) {
+                const select = document.getElementById('language-select');
+                select.value = langCode;
+                document.getElementById('language-form').submit();
+            };
+            
+            // Effetto shadow durante lo scroll
+            const header = document.getElementById('main-header');
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 10) {
+                    header.classList.add('shadow-md');
+                } else {
+                    header.classList.remove('shadow-md');
+                }
+            });
+        });
+        </script>
     {% csrf_token %}
 </html>

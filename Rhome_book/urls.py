@@ -18,14 +18,20 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings  # aggiungi questo import
 from django.conf.urls.static import static  # aggiungi questo import
-
-
+from django.shortcuts import render
+def chi_siamo(request):
+    return render(request, 'chi-siamo.html')
 urlpatterns = [
+    path('i18n/', include('django.conf.urls.i18n')),
+]
+urlpatterns += [
     path('admin/', admin.site.urls),
     path('appartamenti/', include('listings.urls')),
     path('icons/', include('icons.urls')),
     path('api/', include('calendar_rules.urls')),  # per le API
     path('calendar/', include('calendar_rules.urls')),  # per le viste web
+    path('i18n/', include('django.conf.urls.i18n')),
+    path('chi-siamo/', chi_siamo, name='about_us'),
     
 ]
 

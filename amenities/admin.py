@@ -2,15 +2,15 @@ from django.contrib import admin
 from django.utils.html import format_html
 from .models import Amenity, AmenityCategory
 from .widgets import IconSelectWidget
-
+from modeltranslation.admin import TabbedTranslationAdmin
 @admin.register(AmenityCategory)
-class AmenityCategoryAdmin(admin.ModelAdmin):
+class AmenityCategoryAdmin(TabbedTranslationAdmin):
     list_display = ['name', 'order']
     search_fields = ['name']
     ordering = ['order', 'name']
 
 @admin.register(Amenity)
-class AmenityAdmin(admin.ModelAdmin):
+class AmenityAdmin(TabbedTranslationAdmin):
     list_display = ['amenity_name_with_icon', 'category', 'is_popular', 'order']
     list_filter = ['category', 'is_popular']
     search_fields = ['name', 'description']

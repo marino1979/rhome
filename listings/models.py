@@ -2,7 +2,7 @@ from django.db import models
 import datetime
 from django.utils.text import slugify
 from amenities.models import Amenity
-
+from django.utils.translation import gettext_lazy as _
 
 class Listing(models.Model):
     STATUS_CHOICES = [
@@ -24,9 +24,9 @@ class Listing(models.Model):
   
     amenities = models.ManyToManyField('amenities.Amenity', blank=True, verbose_name='Servizi')
     # Dettagli proprietà
-    max_guests = models.IntegerField(verbose_name='Numero massimo ospiti')
+    max_guests = models.IntegerField( verbose_name=_("Numero massimo ospiti"))
     bedrooms = models.PositiveIntegerField(
-        verbose_name="Camere da letto",
+        verbose_name=_("Camere da letto"),
         default=1
     )
     bathrooms = models.DecimalField(
@@ -44,7 +44,7 @@ class Listing(models.Model):
     base_price = models.DecimalField(
         max_digits=10, 
         decimal_places=2,
-        verbose_name='Prezzo base per notte'
+        verbose_name=_("Prezzo base per")
     )
     cleaning_fee = models.DecimalField(
         max_digits=10, 

@@ -1,0 +1,425 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-03-25 11:47+0100\n"
+"PO-Revision-Date: 2025-03-20 19:18+0100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.5\n"
+
+#: .\listings\models.py:27
+msgid "Numero massimo ospiti"
+msgstr "Maximum number of guests"
+
+#: .\listings\models.py:29
+msgid "Camere da letto"
+msgstr "Bedrooms."
+
+#: .\listings\models.py:47
+msgid "Prezzo base per"
+msgstr "Base price for"
+
+#: ⁨.\templates\base - Copia.html⁩:77 .\templates\base.html:171
+#: .\templates\base.html:259
+msgid "Appartamenti"
+msgstr "Apartments"
+
+#: ⁨.\templates\base - Copia.html⁩:130
+msgid "La tua piattaforma per gli affitti brevi a Roma"
+msgstr "Your platform for short term rentals in Rome"
+
+#: ⁨.\templates\base - Copia.html⁩:140 .\templates\base.html:327
+msgid "Link utili"
+msgstr "Useful links"
+
+#: ⁨.\templates\base - Copia.html⁩:143 .\templates\base.html:332
+msgid "Chi siamo"
+msgstr "Who we are"
+
+#: ⁨.\templates\base - Copia.html⁩:146 .\templates\base.html:178
+#: .\templates\base.html:266 .\templates\base.html:338
+#: .\templates\base.html:370
+msgid "Contatti"
+msgstr "Contact"
+
+#: ⁨.\templates\base - Copia.html⁩:149 .\templates\base.html:344
+msgid "Privacy Policy"
+msgstr "Privacy Policy"
+
+#: ⁨.\templates\base - Copia.html⁩:186 .\templates\base.html:408
+msgid "Tutti i diritti riservati."
+msgstr "All rights reserved."
+
+#: .\templates\base.html:175 .\templates\base.html:263
+msgid "Chi Siamo"
+msgstr "Who we are"
+
+#: .\templates\base.html:239 .\templates\base.html:270
+msgid "Accedi"
+msgstr "Sign in"
+
+#: .\templates\base.html:242 .\templates\base.html:273
+msgid "Registrati"
+msgstr "Register"
+
+#: .\templates\base.html:310
+msgid "Il tuo appartamento a Milano"
+msgstr "Your apartment in Milan"
+
+#: .\templates\base.html:351
+msgid "Seleziona lingua"
+msgstr "Select language"
+
+#: .\templates\base.html:377
+msgid "Email"
+msgstr "Email"
+
+#: .\templates\base.html:386
+msgid "Telefono"
+msgstr "Phone"
+
+#: .\templates\base.html:395
+msgid "Indirizzo"
+msgstr "Address"
+
+#: .\templates\base.html:410
+msgid "Termini di Servizio"
+msgstr "Terms of service"
+
+#: .\templates\chi-siamo.html:20
+msgid "Foto profilo"
+msgstr "Profile Photos"
+
+#: .\templates\chi-siamo.html:25
+msgid "Host dal"
+msgstr "Host from the"
+
+#: .\templates\chi-siamo.html:33
+msgid "Verificato"
+msgstr "Verified"
+
+#: .\templates\chi-siamo.html:47
+#, fuzzy
+#| msgid "Recensioni"
+msgid "recensioni"
+msgstr "Reviews"
+
+#: .\templates\chi-siamo.html:53
+msgid "Tasso risposta"
+msgstr "Response rate"
+
+#: .\templates\chi-siamo.html:57
+msgid "Tempo risposta"
+msgstr "Time response"
+
+#: .\templates\chi-siamo.html:58
+msgid "ora"
+msgstr "now"
+
+#: .\templates\chi-siamo.html:64
+#, fuzzy
+#| msgid "Contatti"
+msgid "Contatta"
+msgstr "Contact"
+
+#: .\templates\chi-siamo.html:72
+#, fuzzy
+#| msgid "Chi siamo"
+msgid "Chi sono"
+msgstr "Who we are"
+
+#: .\templates\chi-siamo.html:73
+msgid ""
+"Ciao! Sono Marco, vivo a Roma da sempre e conosco ogni angolo della città. "
+"Adoro condividere i miei spazi e accogliere visitatori da tutto il mondo."
+msgstr ""
+"Hi! I am Marco, I have lived in Rome all my life and know every corner of "
+"the city. I love sharing my space and welcoming visitors from all over the "
+"world."
+
+#: .\templates\chi-siamo.html:74
+msgid ""
+"Sono un appassionato di architettura e cucina romana. I miei ospiti "
+"apprezzano particolarmente i miei consigli sui ristoranti locali e sui "
+"luoghi poco conosciuti ma meravigliosi della città."
+msgstr ""
+"I am passionate about Roman architecture and cuisine. My guests particularly"
+" appreciate my advice on local restaurants and little-known but wonderful "
+"places in the city."
+
+#: .\templates\chi-siamo.html:75
+msgid ""
+"Le mie strutture sono tutte curate personalmente e arredate con attenzione "
+"ai dettagli per garantire un soggiorno confortevole e autentico."
+msgstr ""
+"My facilities are all personally cared for and furnished with attention to "
+"detail to ensure a comfortable and authentic stay."
+
+#: .\templates\chi-siamo.html:80
+msgid "Lingue parlate"
+msgstr "Languages spoken"
+
+#: .\templates\chi-siamo.html:83
+msgid "Italiano (Madrelingua)"
+msgstr "Italian (Mother tongue)"
+
+#: .\templates\chi-siamo.html:86
+msgid "Inglese (Fluente)"
+msgstr "English (Fluent)"
+
+#: .\templates\chi-siamo.html:89
+msgid "Spagnolo (Base)"
+msgstr "Spanish (Basic)"
+
+#: .\templates\chi-siamo.html:96
+msgid "Cosa aspettarsi"
+msgstr "What to expect"
+
+#: .\templates\chi-siamo.html:105
+msgid "Check-in flessibile"
+msgstr "Flexible check-in"
+
+#: .\templates\chi-siamo.html:106
+msgid "Facile processo di self check-in"
+msgstr "Easy self check-in process"
+
+#: .\templates\chi-siamo.html:117
+msgid "Alloggi comodi"
+msgstr "Comfortable accommodations"
+
+#: .\templates\chi-siamo.html:118
+msgid "Appartamenti puliti e ben arredati"
+msgstr "Clean and well-appointed apartments"
+
+#: .\templates\chi-siamo.html:129
+#, fuzzy
+#| msgid "Servizi Disponibili"
+msgid "Disponibilità"
+msgstr "Services Available"
+
+#: .\templates\chi-siamo.html:130
+msgid "Risposta veloce alle richieste"
+msgstr "Quick response to requests"
+
+#: .\templates\chi-siamo.html:141
+msgid "Supporto locale"
+msgstr "Local support"
+
+#: .\templates\chi-siamo.html:142
+msgid "Sempre disponibile per emergenze"
+msgstr "Always available for emergencies"
+
+#: .\templates\chi-siamo.html:157
+msgid ""
+"Suggerisco ai miei ospiti di visitare il mercato di Campo de' Fiori la "
+"mattina presto per un'esperienza autentica. Per la cena, provate Da Enzo al "
+"29 a Trastevere, ma ricordatevi di prenotare in anticipo!"
+msgstr ""
+"I suggest my guests visit the Campo de' Fiori market early in the morning "
+"for an authentic experience. For dinner, try Da Enzo at 29 in Trastevere, "
+"but remember to make reservations in advance!"
+
+#: .\templates\listings\listing_detail.html:116
+msgid "Prezzo per notte"
+msgstr "Price per night"
+
+#: .\templates\listings\listing_detail.html:134
+msgid "letti"
+msgstr "beds"
+
+#: .\templates\listings\listing_detail.html:141
+#: .\templates\listings\listing_detail.html:593
+#: .\templates\listings\listing_list.html:60
+msgid "ospiti"
+msgstr "guests"
+
+#: .\templates\listings\listing_detail.html:149
+msgid "esterni"
+msgstr "exteriors"
+
+#: .\templates\listings\listing_detail.html:231
+#: .\templates\listings\listing_detail.html:254
+msgid "Descrizione"
+msgstr "Description"
+
+#: .\templates\listings\listing_detail.html:234
+msgid "Stanze"
+msgstr "Rooms"
+
+#: .\templates\listings\listing_detail.html:237
+msgid "Servizi"
+msgstr "Services"
+
+#: .\templates\listings\listing_detail.html:240
+msgid "Regole"
+msgstr "Rules"
+
+#: .\templates\listings\listing_detail.html:243
+#: .\templates\listings\listing_detail.html:524
+msgid "Recensioni"
+msgstr "Reviews"
+
+#: .\templates\listings\listing_detail.html:268
+msgid "Le Stanze"
+msgstr "The Rooms"
+
+#: .\templates\listings\listing_detail.html:339
+msgid "Dettagli letti:"
+msgstr "Bed details:"
+
+#: .\templates\listings\listing_detail.html:363
+msgid "Servizi Disponibili"
+msgstr "Services Available"
+
+#: .\templates\listings\listing_detail.html:395
+msgid "Regole della Casa"
+msgstr "House Rules"
+
+#: .\templates\listings\listing_detail.html:425
+msgid "Entro le"
+msgstr "By the"
+
+#: .\templates\listings\listing_detail.html:444
+msgid "Fumare"
+msgstr "Smoking"
+
+#: .\templates\listings\listing_detail.html:447
+msgid "Consentito"
+msgstr "Allowed"
+
+#: .\templates\listings\listing_detail.html:449
+msgid "Non consentito"
+msgstr "Not allowed"
+
+#: .\templates\listings\listing_detail.html:469
+msgid "Feste"
+msgstr "Parties"
+
+#: .\templates\listings\listing_detail.html:472
+msgid "Consentite"
+msgstr "Allowed"
+
+#: .\templates\listings\listing_detail.html:474
+msgid "Non Consentite"
+msgstr "Not Allowed"
+
+#: .\templates\listings\listing_detail.html:495
+msgid "Foto/Video"
+msgstr "Photo/Video"
+
+#: .\templates\listings\listing_detail.html:498
+msgid "Consentiti"
+msgstr "Allowed"
+
+#: .\templates\listings\listing_detail.html:500
+msgid "Non COnsentiti"
+msgstr "Not COnsistent"
+
+#: .\templates\listings\listing_detail.html:558
+msgid "Non ci sono ancora recensioni per questo alloggio"
+msgstr "There are no reviews for this accommodation yet"
+
+#: .\templates\listings\listing_detail.html:569
+msgid "Prenota"
+msgstr "Book now"
+
+#: .\templates\listings\listing_detail.html:572
+#: .\templates\listings\listing_list.html:64
+msgid "notte"
+msgstr "nights"
+
+#: .\templates\listings\listing_detail.html:583
+msgid "Check out"
+msgstr "Check out"
+
+#: .\templates\listings\listing_detail.html:589
+msgid "Ospiti"
+msgstr "guests"
+
+#: .\templates\listings\listing_detail.html:593
+msgid "ospite"
+msgstr "guest"
+
+#: .\templates\listings\listing_detail.html:603
+msgid "Prenota ora"
+msgstr "Book now"
+
+#: .\templates\listings\listing_detail.html:606
+msgid "Non ti verrà addebitato nulla in questa fase"
+msgstr "You will not be charged at this stage"
+
+#: .\templates\listings\listing_detail.html:611
+msgid "notti"
+msgstr "nights"
+
+#: .\templates\listings\listing_detail.html:615
+msgid "Pulizie"
+msgstr "Housekeeping"
+
+#: .\templates\listings\listing_detail.html:619
+msgid "Tasse di servizio"
+msgstr "Service fees"
+
+#: .\templates\listings\listing_detail.html:623
+msgid "Totale"
+msgstr "Total"
+
+#: .\templates\listings\listing_detail.html:632
+msgid "Servizi in evidenza"
+msgstr "Featured Services"
+
+#: .\templates\listings\listing_detail.html:658
+msgid "Vedi tutti i servizi"
+msgstr "See all services"
+
+#: .\templates\listings\listing_detail.html:672
+msgid "Posizione"
+msgstr "Location"
+
+#: .\templates\listings\listing_detail.html:699
+msgid "Punti di interesse vicini"
+msgstr "Nearby points of interest"
+
+#: .\templates\listings\listing_list.html:15
+msgid "I nostri appartamenti"
+msgstr "Our Apartments"
+
+#: .\templates\listings\listing_list.html:48
+msgid "camere"
+msgstr "rooms"
+
+#: .\templates\listings\listing_list.html:54
+msgid "bagno"
+msgstr "bathroom"
+
+#: .\templates\listings\listing_list.html:65
+msgid "Visualizza"
+msgstr "View"
+
+#: .\templates\listings\listing_list.html:77
+#, fuzzy
+#| msgid "Servizi"
+msgid "servizi"
+msgstr "Services"
+
+#: .\templates\listings\listing_list.html:86
+msgid "Nessun appartamento disponibile al momento"
+msgstr "No apartments available at this time"
+
+#~ msgid "spiti"
+#~ msgstr "guests"
+
+#~ msgid "Costo pulizie"
+#~ msgstr "Cleaning cost"
