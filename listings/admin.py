@@ -58,7 +58,18 @@ class ListingAdmin(TabbedTranslationAdmin):
     list_display = ['title', 'bedrooms', 'total_beds']
     change_form_template = 'admin/listing_change_form.html'
    
-  
+     # Aggiungi questi metodi per distinguere tra add_view e change_view
+    def add_view(self, request, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['show_image_upload'] = False  # Nascondi il pulsante in fase di creazione
+        return super().add_view(request, form_url, extra_context)
+    
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['show_image_upload'] = True  # Mostra il pulsante in fase di modifica
+        return super().change_view(request, object_id, form_url, extra_context)
+    
+
     
     fieldsets = (
         ('📍 Posizione', {
@@ -106,6 +117,7 @@ class ListingAdmin(TabbedTranslationAdmin):
             path('<int:listing_id>/upload-images/', self.admin_site.admin_view(self.multiple_images_upload_view), name='listing-upload-images'),
         ]
         return custom_urls + urls
+
     
     def multiple_images_upload_view(self, request, listing_id):
         listing = self.get_object(request, listing_id)

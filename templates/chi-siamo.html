@@ -70,7 +70,7 @@
                         <!-- Bio -->
                         <div class="mb-6">
                             <h3 class="text-lg font-semibold text-gray-900 mb-3">{% trans "Chi sono" %}</h3>
-                            <p class="text-gray-700 mb-2">{% trans "Ciao! Sono Marco, romano di nascita ma milanese d'adozione.Vivo a Milano con la mia adorabile moglie Chiara. " %}</p>
+                            <p class="text-gray-700 mb-2">{% trans "Ciao! Sono Marco, romano di nascita e milanese d'adozione. Vivo a Milano con la mia adorabile moglie Chiara e le nostre due bambine. " %}</p>
                             <p class="text-gray-700 mb-2">{% trans "Adoro condividere i miei spazi e accogliere visitatori da tutto il mondo.. I miei ospiti apprezzano particolarmente i miei consigli sui ristoranti locali e sui luoghi poco conosciuti ma meravigliosi della città." %}</p>
                             <p class="text-gray-700">{% trans "I nostri appartamenti si trovano di fronte al Parco Sempione in una delle zone più belle e centrali di Milano e possono essere affittati singolarmente o insieme, per accogliere tutti i nostri ospiti!." %}</p>
                         </div>
@@ -146,23 +146,24 @@
                         </div>
                         
                         <!-- Tips per gli ospiti -->
-                        <div class="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                            <h3 class="text-lg font-semibold text-blue-800 mb-3 flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Tips di Marco
-                            </h3>
-                            <div class="text-blue-800">
-                                <p>{% trans "Suggerisco ai miei ospiti di visitare il mercato di Campo de' Fiori la mattina presto per un'esperienza autentica. Per la cena, provate Da Enzo al 29 a Trastevere, ma ricordatevi di prenotare in anticipo!" %}</p>
-                            </div>
-                        </div>
+<div class="mt-6 p-6 bg-gray-50 rounded-xl border border-gray-200 shadow-sm">
+    <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Tips di Marco
+    </h3>
+    <div class="text-gray-700 text-sm leading-relaxed">
+        <p>{% trans "Al mattino, prendete un cappuccino al banco da Panificio Pattini in via Solferino, poi passeggiate verso Brera passando tra le botteghe d’arte e i cortili nascosti. Al tramonto, raggiungete l’Arco della Pace per un aperitivo tra locali frequentati da gente del posto: niente menu turistici, solo chiacchiere, cocktail fatti bene e atmosfera autentica." %}</p>
+    </div>
+</div>
+
                     </div>
                 </div>
             </div>
         </div>
         
-        <div class="bg-[var(--rhome-bg-color)] text-[var(--rhome-text-color)] rounded-lg p-8 text-center">
+        <div class="bg-[var(--rhome-bg-color)] text-[var(--rhome-text-color)] rounded-lg p-8 text-center mt-12">
             <h2 class="text-2xl font-bold mb-4">{% trans "Pronti a scoprire Milano con noi?" %}</h2>
             <p class="mb-6 text-[var(--rhome-accent-color)] max-w-2xl mx-auto">{% trans "Esplora i nostri appartamenti e prenota il tuo prossimo soggiorno. Saremo felici di accoglierti e di rendere la tua esperienza a Milano indimenticabile." %}</p>
             <a href="/appartamenti/" class="inline-block bg-[var(--rhome-text-color)] text-[var(--rhome-bg-color)] font-medium py-3 px-6 rounded-lg hover:bg-[var(--rhome-text-hover)] transition-colors">

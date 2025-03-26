@@ -159,7 +159,7 @@
         <div class="flex justify-between h-20">
             <!-- Logo con immagine -->
             <div class="flex items-center">
-                <a href="/chi-siamo/" class="brand-logo">
+                <a href="/appartamenti/" class="brand-logo">
                     <img src="{% static 'images/maggi_color.png' %}" alt="Maggi Milano Logo">
                     <span class="brand-name hidden md:block"></span>
                 </a>
@@ -167,8 +167,8 @@
             
             <!-- Menu principale (desktop) -->
             <div class="main-menu">
-                <a href="/appartamenti/" class="menu-item {% if request.resolver_match.url_name == 'apartment_list' %}active{% endif %}">
-                    {% trans "Appartamenti" %}
+                <a href="/chi-siamo/" class="menu-item {% if request.resolver_match.url_name == 'chi-siamo' %}active{% endif %}">
+                    {% trans "Chi siamo" %}
                 </a>
               
                 

@@ -107,7 +107,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            {{ listing.neighborhood }}, {{ listing.city }}
+            {{ listing.city }} - {{ listing.zone }}
           </p>
         </div>
         
@@ -209,17 +209,7 @@
         </div>
     </div>
 </div>
-<!-- Debug info -->
-<div style="background: #f5f5f5; padding: 10px; margin: 10px 0; font-size: 12px;">
-    Immagine principale: {% if listing.main_image %}Sì{% else %}No{% endif %}<br>
-    Altre immagini: {{ listing.other_images.all|length }}<br>
-    Immagini totali: 
-    {% if listing.main_image %}
-        {{ listing.other_images.all|length|add:1 }}
-    {% else %}
-        {{ listing.other_images.all|length }}
-    {% endif %}
-</div>
+
 
     <!-- Main Content Area -->
     <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -811,7 +801,7 @@
                     </svg>
                     {% trans "Posizione" %}
                 </h2>
-                <p class="text-gray-700 mb-3">{{ listing.address }}</p>
+                <p class="text-gray-700 mb-3"></p>
                 <div class="bg-gray-100 rounded-lg h-48 overflow-hidden">
                     <img src="https://maps.googleapis.com/maps/api/staticmap?center=45.536528,8.744477&zoom=15&size=600x300&maptype=roadmap&markers=color:red%7C45.536528,8.744477&key=AIzaSyA8Qq3APnYxKT_nfHVUC8hy-FoqNOS6nOA
                     " 
@@ -825,8 +815,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                         <div>
-                            <p class="font-medium text-gray-700">{{ listing.neighborhood }}</p>
-                            <p class="text-sm text-gray-600">{{ listing.city }}, {{ listing.region }}</p>
+                            <p class="font-medium text-gray-700">{{ listing.city }} - Zona {{ listing.zone }}</p>
+                            <p class="text-sm text-gray-600">   {{ listing.address }}</p>
                         </div>
                     </div>
                     

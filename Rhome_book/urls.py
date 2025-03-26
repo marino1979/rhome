@@ -21,6 +21,8 @@ from django.conf.urls.static import static  # aggiungi questo import
 from django.shortcuts import render
 def chi_siamo(request):
     return render(request, 'chi-siamo.html')
+def contatti(request):
+    return render(request, 'contatti.html')
 urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
 ]
@@ -32,6 +34,7 @@ urlpatterns += [
     path('calendar/', include('calendar_rules.urls')),  # per le viste web
     path('i18n/', include('django.conf.urls.i18n')),
     path('chi-siamo/', chi_siamo, name='about_us'),
+    path('contatti/', contatti, name='contacts'),
     
 ]
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-25 11:47+0100\n"
+"POT-Creation-Date: 2025-03-26 11:38+0100\n"
 "PO-Revision-Date: 2025-03-24 17:13+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -33,8 +33,7 @@ msgstr "Dormitorios"
 msgid "Prezzo base per"
 msgstr "Precio base para"
 
-#: ⁨.\templates\base - Copia.html⁩:77 .\templates\base.html:171
-#: .\templates\base.html:259
+#: ⁨.\templates\base - Copia.html⁩:77 .\templates\base.html:257
 msgid "Appartamenti"
 msgstr "Pisos"
 
@@ -42,109 +41,230 @@ msgstr "Pisos"
 msgid "La tua piattaforma per gli affitti brevi a Roma"
 msgstr "Su plataforma para alquileres de corta duración en Roma"
 
-#: ⁨.\templates\base - Copia.html⁩:140 .\templates\base.html:327
+#: ⁨.\templates\base - Copia.html⁩:140 .\templates\base.html:325
 msgid "Link utili"
 msgstr "Enlaces útiles"
 
-#: ⁨.\templates\base - Copia.html⁩:143 .\templates\base.html:332
+#: ⁨.\templates\base - Copia.html⁩:143 .\templates\base.html:171
+#: .\templates\base.html:330
 msgid "Chi siamo"
 msgstr "Quiénes somos"
 
-#: ⁨.\templates\base - Copia.html⁩:146 .\templates\base.html:178
-#: .\templates\base.html:266 .\templates\base.html:338
-#: .\templates\base.html:370
+#: ⁨.\templates\base - Copia.html⁩:146 .\templates\base.html:176
+#: .\templates\base.html:264 .\templates\base.html:336
+#: .\templates\base.html:368
 msgid "Contatti"
 msgstr "Póngase en contacto con"
 
-#: ⁨.\templates\base - Copia.html⁩:149 .\templates\base.html:344
+#: ⁨.\templates\base - Copia.html⁩:149 .\templates\base.html:342
 msgid "Privacy Policy"
 msgstr "Política de privacidad"
 
-#: ⁨.\templates\base - Copia.html⁩:186 .\templates\base.html:408
+#: ⁨.\templates\base - Copia.html⁩:186 .\templates\base.html:406
 msgid "Tutti i diritti riservati."
 msgstr "Todos los derechos reservados."
 
-#: .\templates\base.html:175 .\templates\base.html:263
+#: .\templates\base.html:237 .\templates\base.html:268
+msgid "Accedi"
+msgstr "Conectarse"
+
+#: .\templates\base.html:240 .\templates\base.html:271
+msgid "Registrati"
+msgstr "Regístrese en"
+
+#: .\templates\base.html:261
 #, fuzzy
 #| msgid "Chi siamo"
 msgid "Chi Siamo"
 msgstr "Quiénes somos"
 
-#: .\templates\base.html:239 .\templates\base.html:270
-msgid "Accedi"
-msgstr "Conectarse"
-
-#: .\templates\base.html:242 .\templates\base.html:273
-msgid "Registrati"
-msgstr "Regístrese en"
-
-#: .\templates\base.html:310
+#: .\templates\base.html:308
 msgid "Il tuo appartamento a Milano"
 msgstr "Su piso en Milán"
 
-#: .\templates\base.html:351
+#: .\templates\base.html:349
 msgid "Seleziona lingua"
 msgstr "Seleccionar idioma"
 
-#: .\templates\base.html:377
+#: .\templates\base.html:375
 msgid "Email"
 msgstr "Correo electrónico"
 
-#: .\templates\base.html:386
+#: .\templates\base.html:384
 msgid "Telefono"
 msgstr "Teléfono"
 
-#: .\templates\base.html:395
+#: .\templates\base.html:393
 msgid "Indirizzo"
 msgstr "Dirección"
 
-#: .\templates\base.html:410
+#: .\templates\base.html:408
 msgid "Termini di Servizio"
 msgstr "Términos de servicio"
 
-#: .\templates\chi-siamo.html:20
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:20 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:20 .\templates\chi-siamo.html:20
 msgid "Foto profilo"
 msgstr "Fotos de perfil"
 
-#: .\templates\chi-siamo.html:25
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:25 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:25 .\templates\chi-siamo.html:25
 msgid "Host dal"
 msgstr "Anfitrión desde"
 
-#: .\templates\chi-siamo.html:33
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:33 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:33 .\templates\chi-siamo.html:33
 msgid "Verificato"
 msgstr "Verificado"
 
-#: .\templates\chi-siamo.html:47
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:47 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:47 .\templates\chi-siamo.html:47
 #, fuzzy
 #| msgid "Recensioni"
 msgid "recensioni"
 msgstr "Reseñas"
 
-#: .\templates\chi-siamo.html:53
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:53 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:53 .\templates\chi-siamo.html:53
 msgid "Tasso risposta"
 msgstr "Tasa de respuesta"
 
-#: .\templates\chi-siamo.html:57
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:57 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:57 .\templates\chi-siamo.html:57
 msgid "Tempo risposta"
 msgstr "Tiempo de respuesta"
 
-#: .\templates\chi-siamo.html:58
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:58 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:58 .\templates\chi-siamo.html:58
 msgid "ora"
 msgstr "ahora"
 
-#: .\templates\chi-siamo.html:64
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:64 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:64 .\templates\chi-siamo.html:64
 #, fuzzy
 #| msgid "Contatti"
 msgid "Contatta"
 msgstr "Póngase en contacto con"
 
-#: .\templates\chi-siamo.html:72
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:72 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:72 .\templates\chi-siamo.html:72
 #, fuzzy
 #| msgid "Chi siamo"
 msgid "Chi sono"
 msgstr "Quiénes somos"
 
-#: .\templates\chi-siamo.html:73
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:73
+msgid ""
+"Ciao! Sono Marco, romano di nascita ma milanese d'adozione.Vivo a Milano con"
+" la mia adorabile moglie Chiara. "
+msgstr ""
+"¡Hola! Soy Marco, romano de nacimiento pero milanés de adopción. Vivo en "
+"Milán con mi encantadora esposa Chiara."
+
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:74 .\templates\chi-siamo.html:74
+#, fuzzy
+#| msgid ""
+#| "Sono un appassionato di architettura e cucina romana. I miei ospiti "
+#| "apprezzano particolarmente i miei consigli sui ristoranti locali e sui "
+#| "luoghi poco conosciuti ma meravigliosi della città."
+msgid ""
+"Adoro condividere i miei spazi e accogliere visitatori da tutto il mondo.. I"
+" miei ospiti apprezzano particolarmente i miei consigli sui ristoranti "
+"locali e sui luoghi poco conosciuti ma meravigliosi della città."
+msgstr ""
+"Soy un apasionado de la arquitectura y la cocina romanas. Mis huéspedes "
+"aprecian especialmente mis consejos sobre restaurantes locales y lugares "
+"poco conocidos pero maravillosos de la ciudad."
+
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:75 .\templates\chi-siamo.html:75
+msgid ""
+"I nostri appartamenti si trovano di fronte al Parco Sempione in una delle "
+"zone più belle e centrali di Milano e possono essere affittati singolarmente"
+" o insieme, per accogliere tutti i nostri ospiti!."
+msgstr ""
+"Nuestros pisos están situados frente al Parco Sempione, en una de las zonas "
+"más bonitas y céntricas de Milán, y pueden alquilarse individualmente o "
+"juntos para alojar a todos nuestros huéspedes."
+
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:80 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:80 .\templates\chi-siamo.html:80
+msgid "Lingue parlate"
+msgstr "Lenguas habladas"
+
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:83 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:83 .\templates\chi-siamo.html:83
+msgid "Italiano (Madrelingua)"
+msgstr "Italiano (lengua materna)"
+
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:86 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:86 .\templates\chi-siamo.html:86
+msgid "Inglese (Fluente)"
+msgstr "Inglés (fluido)"
+
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:89 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:89 .\templates\chi-siamo.html:89
+msgid "Spagnolo (Base)"
+msgstr "Español (Básico)"
+
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:96 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:96 .\templates\chi-siamo.html:96
+msgid "Cosa aspettarsi"
+msgstr "Qué esperar"
+
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:105 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:105 .\templates\chi-siamo.html:105
+msgid "Check-in flessibile"
+msgstr "Facturación flexible"
+
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:106 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:106 .\templates\chi-siamo.html:106
+msgid "Facile processo di self check-in"
+msgstr "Fácil proceso de autofacturación"
+
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:117 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:117 .\templates\chi-siamo.html:117
+msgid "Alloggi comodi"
+msgstr "Alojamiento confortable"
+
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:118 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:118 .\templates\chi-siamo.html:118
+msgid "Appartamenti puliti e ben arredati"
+msgstr "Pisos limpios y bien amueblados"
+
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:129 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:129 .\templates\chi-siamo.html:129
+#, fuzzy
+#| msgid "Servizi Disponibili"
+msgid "Disponibilità"
+msgstr "Servicios disponibles"
+
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:130 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:130 .\templates\chi-siamo.html:130
+msgid "Risposta veloce alle richieste"
+msgstr "Respuesta rápida a las solicitudes"
+
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:141 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:141 .\templates\chi-siamo.html:141
+msgid "Supporto locale"
+msgstr "Apoyo local"
+
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:142 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:142 .\templates\chi-siamo.html:142
+msgid "Sempre disponibile per emergenze"
+msgstr "Siempre disponible para emergencias"
+
+#: ⁨.\templates\chi-siamo - Copia (2).html⁩:157 ⁨.\templates\chi-siamo -
+#: Copia.html⁩:157
+msgid ""
+"Suggerisco ai miei ospiti di visitare il mercato di Campo de' Fiori la "
+"mattina presto per un'esperienza autentica. Per la cena, provate Da Enzo al "
+"29 a Trastevere, ma ricordatevi di prenotare in anticipo!"
+msgstr ""
+"Sugiero a mis clientes que visiten el mercado de Campo de' Fiori a primera "
+"hora de la mañana para vivir una experiencia auténtica. Para cenar, pruebe "
+"Da Enzo al 29 en Trastevere, pero recuerde reservar con antelación."
+
+#: ⁨.\templates\chi-siamo - Copia.html⁩:73
 msgid ""
 "Ciao! Sono Marco, vivo a Roma da sempre e conosco ogni angolo della città. "
 "Adoro condividere i miei spazi e accogliere visitatori da tutto il mondo."
@@ -153,7 +273,7 @@ msgstr ""
 " ciudad. Me encanta compartir mi espacio y dar la bienvenida a visitantes de"
 " todo el mundo."
 
-#: .\templates\chi-siamo.html:74
+#: ⁨.\templates\chi-siamo - Copia.html⁩:74
 msgid ""
 "Sono un appassionato di architettura e cucina romana. I miei ospiti "
 "apprezzano particolarmente i miei consigli sui ristoranti locali e sui "
@@ -163,7 +283,7 @@ msgstr ""
 "aprecian especialmente mis consejos sobre restaurantes locales y lugares "
 "poco conocidos pero maravillosos de la ciudad."
 
-#: .\templates\chi-siamo.html:75
+#: ⁨.\templates\chi-siamo - Copia.html⁩:75
 msgid ""
 "Le mie strutture sono tutte curate personalmente e arredate con attenzione "
 "ai dettagli per garantire un soggiorno confortevole e autentico."
@@ -171,69 +291,76 @@ msgstr ""
 "Todas mis instalaciones están cuidadas personalmente y amuebladas con "
 "atención al detalle para garantizar una estancia cómoda y auténtica."
 
-#: .\templates\chi-siamo.html:80
-msgid "Lingue parlate"
-msgstr "Lenguas habladas"
-
-#: .\templates\chi-siamo.html:83
-msgid "Italiano (Madrelingua)"
-msgstr "Italiano (lengua materna)"
-
-#: .\templates\chi-siamo.html:86
-msgid "Inglese (Fluente)"
-msgstr "Inglés (fluido)"
-
-#: .\templates\chi-siamo.html:89
-msgid "Spagnolo (Base)"
-msgstr "Español (Básico)"
-
-#: .\templates\chi-siamo.html:96
-msgid "Cosa aspettarsi"
-msgstr "Qué esperar"
-
-#: .\templates\chi-siamo.html:105
-msgid "Check-in flessibile"
-msgstr "Facturación flexible"
-
-#: .\templates\chi-siamo.html:106
-msgid "Facile processo di self check-in"
-msgstr "Fácil proceso de autofacturación"
-
-#: .\templates\chi-siamo.html:117
-msgid "Alloggi comodi"
-msgstr "Alojamiento confortable"
-
-#: .\templates\chi-siamo.html:118
-msgid "Appartamenti puliti e ben arredati"
-msgstr "Pisos limpios y bien amueblados"
-
-#: .\templates\chi-siamo.html:129
-#, fuzzy
-#| msgid "Servizi Disponibili"
-msgid "Disponibilità"
-msgstr "Servicios disponibles"
-
-#: .\templates\chi-siamo.html:130
-msgid "Risposta veloce alle richieste"
-msgstr "Respuesta rápida a las solicitudes"
-
-#: .\templates\chi-siamo.html:141
-msgid "Supporto locale"
-msgstr "Apoyo local"
-
-#: .\templates\chi-siamo.html:142
-msgid "Sempre disponibile per emergenze"
-msgstr "Siempre disponible para emergencias"
+#: .\templates\chi-siamo.html:73
+msgid ""
+"Ciao! Sono Marco, romano di nascita e milanese d'adozione. Vivo a Milano con"
+" la mia adorabile moglie Chiara e le nostre due bambine. "
+msgstr ""
+"¡Hola! Soy Marco, romano de nacimiento y milanés de adopción. Vivo en Milán "
+"con mi encantadora esposa Chiara y nuestras dos hijas pequeñas."
 
 #: .\templates\chi-siamo.html:157
 msgid ""
-"Suggerisco ai miei ospiti di visitare il mercato di Campo de' Fiori la "
-"mattina presto per un'esperienza autentica. Per la cena, provate Da Enzo al "
-"29 a Trastevere, ma ricordatevi di prenotare in anticipo!"
+"Al mattino, prendete un cappuccino al banco da Panificio Pattini in via "
+"Solferino, poi passeggiate verso Brera passando tra le botteghe d’arte e i "
+"cortili nascosti. Al tramonto, raggiungete l’Arco della Pace per un "
+"aperitivo tra locali frequentati da gente del posto: niente menu turistici, "
+"solo chiacchiere, cocktail fatti bene e atmosfera autentica."
 msgstr ""
-"Sugiero a mis clientes que visiten el mercado de Campo de' Fiori a primera "
-"hora de la mañana para vivir una experiencia auténtica. Para cenar, pruebe "
-"Da Enzo al 29 en Trastevere, pero recuerde reservar con antelación."
+"Por la mañana, tómate un capuchino en el mostrador del Panificio Pattini, en"
+" Via Solferino, y luego pasea hacia Brera pasando por tiendas de arte y "
+"patios escondidos. Al atardecer, diríjase al Arco della Pace para tomar un "
+"aperitivo entre los lugareños: sin menús turísticos, sólo charla, cócteles "
+"bien hechos y un ambiente auténtico."
+
+#: .\templates\chi-siamo.html:167
+msgid "Pronti a scoprire Milano con noi?"
+msgstr "¿Listo para descubrir Milán con nosotros?"
+
+#: .\templates\chi-siamo.html:168
+msgid ""
+"Esplora i nostri appartamenti e prenota il tuo prossimo soggiorno. Saremo "
+"felici di accoglierti e di rendere la tua esperienza a Milano "
+"indimenticabile."
+msgstr ""
+"Explore nuestros pisos y reserve su próxima estancia. Estaremos encantados "
+"de recibirte y hacer que tu experiencia en Milán sea inolvidable."
+
+#: .\templates\chi-siamo.html:170
+#, fuzzy
+#| msgid "I nostri appartamenti"
+msgid "Visualizza appartamenti"
+msgstr "Nuestros Pisos"
+
+#: .\templates\contatti.html:4 .\templates\contatti.html:15
+#, fuzzy
+#| msgid "Contatti"
+msgid "Contattaci"
+msgstr "Póngase en contacto con"
+
+#: .\templates\contatti.html:21
+msgid "Hai domande? Scrivici o vieni a trovarci!"
+msgstr "¿Tiene alguna pregunta? Escríbanos o visítenos."
+
+#: .\templates\contatti.html:42
+msgid "Nome"
+msgstr "Nombre"
+
+#: .\templates\contatti.html:43
+msgid "Il tuo nome"
+msgstr "Su nombre"
+
+#: .\templates\contatti.html:50
+msgid "Messaggio"
+msgstr "Mensaje"
+
+#: .\templates\contatti.html:51
+msgid "Scrivici il tuo messaggio..."
+msgstr "Escríbanos su mensaje..."
+
+#: .\templates\contatti.html:54
+msgid "Invia messaggio"
+msgstr "Enviar mensaje"
 
 #: .\templates\listings\listing_detail.html:116
 msgid "Prezzo per notte"
@@ -244,8 +371,8 @@ msgid "letti"
 msgstr "camas"
 
 #: .\templates\listings\listing_detail.html:141
-#: .\templates\listings\listing_detail.html:593
-#: .\templates\listings\listing_list.html:60
+#: .\templates\listings\listing_detail.html:723
+#: .\templates\listings\listing_list.html:61
 msgid "ospiti"
 msgstr "invitados"
 
@@ -253,174 +380,185 @@ msgstr "invitados"
 msgid "esterni"
 msgstr "exteriores"
 
-#: .\templates\listings\listing_detail.html:231
-#: .\templates\listings\listing_detail.html:254
+#: .\templates\listings\listing_detail.html:221
+#: .\templates\listings\listing_detail.html:244
 msgid "Descrizione"
 msgstr "Descripción"
 
-#: .\templates\listings\listing_detail.html:234
+#: .\templates\listings\listing_detail.html:224
 msgid "Stanze"
 msgstr "Habitaciones"
 
-#: .\templates\listings\listing_detail.html:237
+#: .\templates\listings\listing_detail.html:227
 msgid "Servizi"
 msgstr "Servicios"
 
-#: .\templates\listings\listing_detail.html:240
+#: .\templates\listings\listing_detail.html:230
 msgid "Regole"
 msgstr "Reglas"
 
-#: .\templates\listings\listing_detail.html:243
-#: .\templates\listings\listing_detail.html:524
+#: .\templates\listings\listing_detail.html:233
+#: .\templates\listings\listing_detail.html:514
 msgid "Recensioni"
 msgstr "Reseñas"
 
-#: .\templates\listings\listing_detail.html:268
+#: .\templates\listings\listing_detail.html:258
 msgid "Le Stanze"
 msgstr "Las habitaciones"
 
-#: .\templates\listings\listing_detail.html:339
+#: .\templates\listings\listing_detail.html:329
 msgid "Dettagli letti:"
 msgstr "Detalles de la cama:"
 
-#: .\templates\listings\listing_detail.html:363
+#: .\templates\listings\listing_detail.html:353
 msgid "Servizi Disponibili"
 msgstr "Servicios disponibles"
 
-#: .\templates\listings\listing_detail.html:395
+#: .\templates\listings\listing_detail.html:385
 msgid "Regole della Casa"
 msgstr "Normas de la casa"
 
-#: .\templates\listings\listing_detail.html:425
+#: .\templates\listings\listing_detail.html:415
 msgid "Entro le"
 msgstr "En"
 
-#: .\templates\listings\listing_detail.html:444
+#: .\templates\listings\listing_detail.html:434
 msgid "Fumare"
 msgstr "Fumar"
 
-#: .\templates\listings\listing_detail.html:447
+#: .\templates\listings\listing_detail.html:437
 msgid "Consentito"
 msgstr "Permitido"
 
-#: .\templates\listings\listing_detail.html:449
+#: .\templates\listings\listing_detail.html:439
 msgid "Non consentito"
 msgstr "No autorizado"
 
-#: .\templates\listings\listing_detail.html:469
+#: .\templates\listings\listing_detail.html:459
 msgid "Feste"
 msgstr "Fiestas"
 
-#: .\templates\listings\listing_detail.html:472
+#: .\templates\listings\listing_detail.html:462
 msgid "Consentite"
 msgstr "Permitido"
 
-#: .\templates\listings\listing_detail.html:474
+#: .\templates\listings\listing_detail.html:464
 msgid "Non Consentite"
 msgstr "No permitido"
 
-#: .\templates\listings\listing_detail.html:495
+#: .\templates\listings\listing_detail.html:485
 msgid "Foto/Video"
 msgstr "Foto/Vídeo"
 
-#: .\templates\listings\listing_detail.html:498
+#: .\templates\listings\listing_detail.html:488
 msgid "Consentiti"
 msgstr "Permitido"
 
-#: .\templates\listings\listing_detail.html:500
+#: .\templates\listings\listing_detail.html:490
 msgid "Non COnsentiti"
 msgstr "No coherente"
 
-#: .\templates\listings\listing_detail.html:558
-msgid "Non ci sono ancora recensioni per questo alloggio"
-msgstr "Aún no hay opiniones para este alojamiento"
-
-#: .\templates\listings\listing_detail.html:569
+#: .\templates\listings\listing_detail.html:699
 msgid "Prenota"
 msgstr "Reserve ahora"
 
-#: .\templates\listings\listing_detail.html:572
-#: .\templates\listings\listing_list.html:64
+#: .\templates\listings\listing_detail.html:702
+#: .\templates\listings\listing_list.html:65
 msgid "notte"
 msgstr "noches"
 
-#: .\templates\listings\listing_detail.html:583
+#: .\templates\listings\listing_detail.html:713
 msgid "Check out"
 msgstr "Echa un vistazo"
 
-#: .\templates\listings\listing_detail.html:589
+#: .\templates\listings\listing_detail.html:719
 msgid "Ospiti"
 msgstr "invitados"
 
-#: .\templates\listings\listing_detail.html:593
+#: .\templates\listings\listing_detail.html:723
 msgid "ospite"
 msgstr "invitado"
 
-#: .\templates\listings\listing_detail.html:603
+#: .\templates\listings\listing_detail.html:733
 msgid "Prenota ora"
 msgstr "Reserve ahora"
 
-#: .\templates\listings\listing_detail.html:606
+#: .\templates\listings\listing_detail.html:736
 msgid "Non ti verrà addebitato nulla in questa fase"
 msgstr "No se le cobrará nada en esta fase"
 
-#: .\templates\listings\listing_detail.html:611
+#: .\templates\listings\listing_detail.html:741
 msgid "notti"
 msgstr "noches"
 
-#: .\templates\listings\listing_detail.html:615
+#: .\templates\listings\listing_detail.html:745
 msgid "Pulizie"
 msgstr "Limpieza"
 
-#: .\templates\listings\listing_detail.html:619
+#: .\templates\listings\listing_detail.html:749
 msgid "Tasse di servizio"
 msgstr "Tasas de servicio"
 
-#: .\templates\listings\listing_detail.html:623
+#: .\templates\listings\listing_detail.html:753
 msgid "Totale"
 msgstr "Total"
 
-#: .\templates\listings\listing_detail.html:632
+#: .\templates\listings\listing_detail.html:762
 msgid "Servizi in evidenza"
 msgstr "Servicios destacados"
 
-#: .\templates\listings\listing_detail.html:658
+#: .\templates\listings\listing_detail.html:788
 msgid "Vedi tutti i servizi"
 msgstr "Ver todos los servicios"
 
-#: .\templates\listings\listing_detail.html:672
+#: .\templates\listings\listing_detail.html:802
 msgid "Posizione"
 msgstr "Ubicación"
 
-#: .\templates\listings\listing_detail.html:699
+#: .\templates\listings\listing_detail.html:829
 msgid "Punti di interesse vicini"
 msgstr "Puntos de interés cercanos"
 
-#: .\templates\listings\listing_list.html:15
+#: .\templates\listings\listing_list.html:24
 msgid "I nostri appartamenti"
 msgstr "Nuestros Pisos"
 
-#: .\templates\listings\listing_list.html:48
+#: .\templates\listings\listing_list.html:29
+msgid ""
+"\n"
+"         <p class=\" text-base leading-relaxed\"> I nostri appartamenti si trovano nel cuore di Moscova, una delle zone più vivaci e dinamiche e luogo ideale per cene e drinks. Il quartiere di Brera, cuore artistico e centro della moda e del design di Milano, si trova proprio a ridosso.</p>\n"
+"        <p>  Per chi invece avesse voglia di godersi una corsa mattutina o un drink lontano dal caos cittadino, basta attraversare la strada per essere nel Parco Sempione.<br/> Passeggiando per il parco è anche possibile raggiungere alcune grandi attrazioni che meritano sicuramente una visita come il Castello Sforzesco, la Triennale e l’Arco della Pace.</p>\n"
+"          "
+msgstr ""
+"\n"
+"         <p class=\" text-base leading-relaxed\"> Nuestros pisos están situados en el corazón de Moscova, una de las zonas más animadas y dinámicas y un lugar ideal para cenas y copas. El barrio de Brera, corazón artístico y centro de la moda y el diseño de Milán, está justo al lado.</p>.\n"
+"        <p>Para aquellos que quieran disfrutar de una carrera matutina o de una copa lejos del caos de la ciudad, sólo tienen que cruzar la calle y se encontrarán en el Parco Sempione.<br/>Caminando por el parque también se puede llegar a algunas grandes atracciones que sin duda merecen una visita como el Castello Sforzesco, la Triennale y el Arco della Pace.</p> <p>Para aquellos que quieran disfrutar de una carrera matutina o de una copa lejos del caos de la ciudad, sólo tienen que cruzar la calle y se encontrarán en el Parco Sempione.\n"
+"          "
+
+#: .\templates\listings\listing_list.html:59
 msgid "camere"
 msgstr "habitaciones"
 
-#: .\templates\listings\listing_list.html:54
+#: .\templates\listings\listing_list.html:60
 msgid "bagno"
 msgstr "cuarto de baño"
 
-#: .\templates\listings\listing_list.html:65
+#: .\templates\listings\listing_list.html:67
 msgid "Visualizza"
 msgstr "Ver"
 
-#: .\templates\listings\listing_list.html:77
+#: .\templates\listings\listing_list.html:81
 #, fuzzy
 #| msgid "Servizi"
 msgid "servizi"
 msgstr "Servicios"
 
-#: .\templates\listings\listing_list.html:86
+#: .\templates\listings\listing_list.html:94
 msgid "Nessun appartamento disponibile al momento"
 msgstr "No hay piso disponible en este momento"
+
+#~ msgid "Non ci sono ancora recensioni per questo alloggio"
+#~ msgstr "Aún no hay opiniones para este alojamiento"
 
 #, fuzzy
 #~ msgid "spiti"
