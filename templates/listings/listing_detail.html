@@ -1,8 +1,5 @@
-
-
-
-{% extends "base.html" %}
-{% load i18n %}
+﻿{% extends "base.html" %}
+{% load i18n %}\n{% load static %}
 {% load listing_filters %}
 {% block title %}{{ listing.title }} - Rhome Book{% endblock %}
 
@@ -11,6 +8,8 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css">
 <!-- Lightbox CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css">
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <!-- Stili aggiuntivi -->
 <style>
   /* Miglioramenti generali */
@@ -65,6 +64,101 @@
   }
   .animate-fadeIn {
     animation: fadeIn 0.5s ease forwards;
+  }
+
+  /* Fix allineamento calendario Flatpickr */
+  .flatpickr-calendar .dayContainer {
+    justify-content: flex-start !important;
+  }
+
+  .flatpickr-calendar .flatpickr-day {
+    flex: 0 0 14.2857% !important; /* 100% / 7 giorni */
+    max-width: 14.2857% !important;
+  }
+
+  /* Giorni completamente disabilitati/prenotati - barrati */
+  .flatpickr-calendar .flatpickr-disabled {
+    text-decoration: line-through !important;
+    font-weight: 300 !important;
+    cursor: not-allowed !important;
+    opacity: 0.5 !important;
+    background-color: #f5f5f5 !important;
+  }
+
+  /* Regola specifica per giorni selezionati con flatpickr-disabled */
+  .flatpickr-calendar .flatpickr-day.selected.flatpickr-disabled,
+  .flatpickr-calendar .flatpickr-day.flatpickr-disabled.selected,
+  .flatpickr-calendar .flatpickr-day.startRange.flatpickr-disabled,
+  .flatpickr-calendar .flatpickr-day.flatpickr-disabled.startRange {
+    opacity: 1 !important;
+    background-color: #569ff7 !important;
+    color: white !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    border: 2px solid #569ff7 !important;
+    box-shadow: 0 0 0 2px #569ff7 !important;
+  }
+
+  /* Giorni con restrizioni check-in - font light e cursore not-allowed di default */
+  .flatpickr-calendar .no-checkin-rule {
+    font-weight: 300 !important;
+    cursor: not-allowed !important;
+  }
+
+  /* Giorni no-checkin disponibili per checkout (quando check-in è selezionato) */
+  .flatpickr-calendar .no-checkin-rule.available-for-checkout {
+    font-weight: 700 !important;
+    cursor: pointer !important;
+  }
+
+  /* Giorni di turnover */
+  .flatpickr-calendar .checkout-available {
+    background-color: #f0f9ff !important;
+    border: 1px solid #7dd3fc !important;
+  }
+
+  /* Giorni completamente disponibili - bold */
+  .flatpickr-calendar .flatpickr-day:not(.flatpickr-disabled):not(.no-checkin-rule):not(.no-checkout-rule) {
+    font-weight: 700 !important;
+  }
+
+  /* Giorni bloccati per check-out - RIMOSSO stile di default */
+  /* La classe no-checkout-rule non deve avere stili di default */
+  
+  /* Giorni con check-out bloccato quando check-in è selezionato */
+  .flatpickr-calendar .flatpickr-day.flatpickr-disabled.no-checkout-rule {
+    background-color: #f5f5f5 !important;
+    color: #999 !important;
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    text-decoration: line-through !important;
+    font-weight: 300 !important;
+  }
+
+  /* Giorni disponibili per check-out quando check-in è selezionato */
+  .flatpickr-calendar .flatpickr-day.available-for-checkout {
+    background-color: #f0f9ff !important;
+    border: 1px solid #7dd3fc !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+  }
+
+  /* Info box positioning - appears above calendar */
+  .flatpickr-calendar {
+    position: absolute !important;
+    z-index: 9999 !important; /* Very high z-index */
+  }
+
+  /* Info box positioning - appears above calendar */
+  #availability-message {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Ensure calendar input is clickable */
+  #calendar {
+    position: relative;
+    z-index: 1;
   }
   
   /* Stili per i badge */
@@ -129,6 +223,20 @@
         
         <div class="flex items-center bg-gray-50 border border-gray-100 rounded-lg px-4 py-2 transition-all hover:shadow-sm">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+          <span class="font-medium">{{ listing.bedrooms }} {% trans "camere" %}</span>
+        </div>
+        
+        <div class="flex items-center bg-gray-50 border border-gray-100 rounded-lg px-4 py-2 transition-all hover:shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+          </svg>
+          <span class="font-medium">{{ listing.bathrooms }} {% trans "bagni" %}</span>
+        </div>
+        
+        <div class="flex items-center bg-gray-50 border border-gray-100 rounded-lg px-4 py-2 transition-all hover:shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
           </svg>
           <span class="font-medium">{{ listing.total_beds }} {% trans "letti" %}</span>
@@ -138,7 +246,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
-          <span class="font-medium">{{ listing.total_sleeps }} {% trans "ospiti" %}</span>
+          <span class="font-medium">{{ listing.max_guests }} {% trans "ospiti" %}</span>
         </div>
         
         {% if listing.outdoor_square_meters %}
@@ -702,19 +810,18 @@
                     <span class="text-base font-normal text-gray-600 ml-1">/ {% trans "notte" %}</span>
                 </p>
                 
-                <div class="mt-4 space-y-3">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <form id="booking-form">
-                            <label for="check-in" class="block text-sm font-medium text-gray-700 mb-1">Check-in</label>
-                            <input type="date" id="check-in" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-rhome-primary focus:border-rhome-primary">
+                <form id="booking-form" class="mt-4 space-y-4">
+                    <div>
+                        <label for="calendar" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Seleziona date" %}</label>
+                        <div id="availability-message" class="hidden mb-2 p-2 rounded-lg text-sm">
+                            <span id="availability-text"></span>
                         </div>
-                        <div>
-                            <label for="check-out" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Check out" %}</label>
-                            <input type="date" id="check-out" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-rhome-primary focus:border-rhome-primary">
-                        </div>
+                        <input id="calendar" type="text" placeholder="{% trans 'Seleziona il periodo di soggiorno' %}" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-rhome-primary focus:border-rhome-primary cursor-pointer" readonly>
                     </div>
-                    
+
+                    <input type="hidden" id="check-in" name="check_in">
+                    <input type="hidden" id="check-out" name="check_out">
+
                     <div>
                         <label for="guests" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Ospiti" %}</label>
                         <select id="guests" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-rhome-primary focus:border-rhome-primary">
@@ -725,36 +832,20 @@
                             {% endfor %}
                         </select>
                     </div>
-                    
-                    <button class="w-full bg-rhome-primary text-white rounded-lg px-4 py-3 mt-4 hover:bg-rhome-dark transition-colors duration-300 flex justify-center items-center font-medium">
+
+                    <div id="price-breakdown" class="hidden mt-4 pt-4 border-t border-gray-200">
+                        <div id="breakdown-content" class="space-y-2"></div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-rhome-primary text-white rounded-lg px-4 py-3 hover:bg-rhome-dark transition-colors duration-300 flex justify-center items-center font-medium">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         {% trans "Prenota ora" %}
                     </button>
                 </form>
-                    <div class="text-center text-sm text-gray-500 mt-2">{% trans "Non ti verrà addebitato nulla in questa fase" %}</div>
-                    
-                    <!-- Price Breakdown -->
-                    <div class="mt-4 pt-4 border-t border-gray-200">
-                        <div class="flex justify-between mb-2">
-                            <span class="text-gray-600">€{{ listing.base_price }} x 5 {% trans "notti" %}</span>
-                            <span class="text-gray-800">€{{ listing.base_price|multiply:5 }}</span>
-                        </div>
-                        <div class="flex justify-between mb-2">
-                            <span class="text-gray-600">{% trans "Pulizie" %}</span>
-                            <span class="text-gray-800">€{{ listing.cleaning_fee }}</span>
-                        </div>
-                        <div class="flex justify-between mb-2">
-                            <span class="text-gray-600">{% trans "Tasse di servizio" %}</span>
-                            <span class="text-gray-800">€{{ listing.service_fee }}</span>
-                        </div>
-                        <div class="flex justify-between font-bold pt-2 border-t border-gray-200 mt-2">
-                            <span>{% trans "Totale" %}</span>
-                            <span class="text-rhome-primary">€{{ total_price }}</span>
-                        </div>
-                    </div>
-                </div>
+                <div class="text-center text-sm text-gray-500 mt-2">{% trans "Non ti verrà addebitato nulla in questa fase" %}</div>
+
             </div>
 
             <!-- Amenities Card -->
@@ -847,7 +938,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
 <!-- GLightbox per le immagini full-screen -->
 <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
-
+<!-- Flatpickr JS per il calendario -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/it.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Tab handling
@@ -940,71 +1033,922 @@ document.addEventListener('DOMContentLoaded', function() {
         autoplayVideos: true
     });
     
-    // Date picker functionality
-    const checkInInput = document.getElementById('check-in');
-    const checkOutInput = document.getElementById('check-out');
-    
-    if (checkInInput && checkOutInput) {
-        // Set min date to today
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
-        const formattedDate = `${yyyy}-${mm}-${dd}`;
-        
-        checkInInput.min = formattedDate;
-        
-        // Update checkout min date when checkin changes
-        checkInInput.addEventListener('change', function() {
-            if (checkInInput.value) {
-                checkOutInput.min = checkInInput.value;
-                
-                // If checkout date is before new checkin date, reset it
-                if (checkOutInput.value && checkOutInput.value < checkInInput.value) {
-                    checkOutInput.value = '';
+    // Debug: verifica caricamento Flatpickr
+    if (!window.flatpickr) {
+        console.error('Flatpickr non è caricato!');
+        return;
+    }
+    console.log('Flatpickr caricato correttamente');
+
+    // Calendario unico ottimizzato per prestazioni
+    let bookingRules = {
+        blockedRanges: [],
+        gapDays: [],
+        minStay: 1,
+        maxStay: 30,
+        windowStart: null,
+        windowEnd: null
+    };
+    let checkinBlockedDatesSet = new Set();
+    let checkoutBlockedDatesSet = new Set();
+    let checkinBlockedWeekdays = new Set();
+    let checkoutBlockedWeekdays = new Set();
+    let turnoverDaysSet = new Set();
+    let realCheckinDatesSet = new Set(); // Real check-in dates (excluding gap days)
+    let mainCalendar = null;
+    const currencyFormatter = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' });
+    const toPythonWeekday = day => (day + 6) % 7;
+    let calendarSelectionState = 'initial'; // 'initial', 'checkin_selected', 'range_complete'
+
+    function buildDisabledDates() {
+        const disableConfig = [];
+
+        bookingRules.blockedRanges.forEach(range => {
+            if (range && range.from && range.to) {
+                disableConfig.push({ from: range.from, to: range.to });
+            }
+        });
+
+        checkinBlockedDatesSet.forEach(dateStr => {
+            disableConfig.push(dateStr);
+        });
+
+        (bookingRules.gapDays || []).forEach(dateStr => {
+            if (!disableConfig.includes(dateStr)) {
+                disableConfig.push(dateStr);
+            }
+        });
+
+        return disableConfig;
+    }
+
+    function formatDate(date, format) {
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+
+        if (format === 'Y-m-d') {
+            return `${year}-${month}-${day}`;
+        }
+        return `${day}/${month}/${year}`;
+    }
+
+    function updateCalendarDayStyles() {
+        if (!mainCalendar || !mainCalendar.calendarContainer) {
+            return;
+        }
+
+        const dayElements = mainCalendar.calendarContainer.querySelectorAll('.flatpickr-day');
+        const selectedDates = mainCalendar.selectedDates;
+
+        dayElements.forEach(dayElem => {
+            const date = dayElem.dateObj;
+            if (!(date instanceof Date)) return;
+
+            const isoDate = formatDate(date, 'Y-m-d');
+            const pythonWeekday = toPythonWeekday(date.getDay());
+            const isDisabled = dayElem.classList.contains('flatpickr-disabled');
+            const isCheckinBlocked = checkinBlockedDatesSet.has(isoDate) || checkinBlockedWeekdays.has(pythonWeekday);
+            const isCheckoutBlocked = checkoutBlockedDatesSet.has(isoDate) || checkoutBlockedWeekdays.has(pythonWeekday);
+            const currentDate = date; // Define currentDate at the beginning
+
+            // Reset dynamic classes
+            dayElem.classList.remove('available-for-checkout', 'no-checkout-rule');
+
+            // Apply styling based on selection state
+            if (selectedDates.length === 0) {
+                // No dates selected - reset to default state
+                // Check if this day is in a blocked range (interior days of bookings only)
+                let isInBlockedRange = false;
+                for (const range of bookingRules.blockedRanges) {
+                    const rangeStart = new Date(range.from);
+                    const rangeEnd = new Date(range.to);
+                    if (currentDate >= rangeStart && currentDate <= rangeEnd) {
+                        isInBlockedRange = true;
+                        break;
+                    }
                 }
+                
+                if (isInBlockedRange) {
+                    // Day is in a blocked range (interior days of bookings) - completely disabled
+                    dayElem.classList.add('flatpickr-disabled');
+                    dayElem.title = 'Data non disponibile (prenotazione esistente)';
+                } else if (isCheckinBlocked && !isCheckoutBlocked) {
+                    dayElem.classList.add('no-checkin-rule');
+                    dayElem.title = 'Check-in non permesso (disponibile per check-out)';
+                } else if (isCheckoutBlocked && !isCheckinBlocked) {
+                    // IMPORTANTE: NON applicare la classe no-checkout-rule qui!
+                    // I giorni con check-out bloccato devono apparire completamente normali
+                    // quando non c'è check-in selezionato
+                    dayElem.title = 'Check-out non permesso';
+                } else if (isDisabled) {
+                    dayElem.title = 'Non disponibile';
+                }
+            } else if (selectedDates.length === 1) {
+                // Check-in selected - disable days that cannot be check-out
+                const checkInDate = selectedDates[0];
+
+                // Only consider days after check-in
+                if (currentDate <= checkInDate) {
+                    // Days before or on check-in are not available for checkout
+                    dayElem.classList.add('flatpickr-disabled');
+                    dayElem.title = 'Check-out deve essere dopo il check-in';
+                    return;
+                }
+
+                // Check if this date would create a conflict with existing bookings
+                let isConflict = false;
+                let conflictMessage = '';
+
+                // Check against blocked ranges (interior days of existing bookings + gap days)
+                for (const range of bookingRules.blockedRanges) {
+                    const rangeStart = new Date(range.from);
+                    const rangeEnd = new Date(range.to);
+                    
+                    // If check-out would fall inside an existing booking or gap
+                    if (currentDate >= rangeStart && currentDate <= rangeEnd) {
+                        isConflict = true;
+                        conflictMessage = 'Data occupata da prenotazione esistente o periodo di gap';
+                        break;
+                    }
+                }
+
+                // Check if there's a blocked range between check-in and this potential check-out
+                if (!isConflict) {
+                    for (const range of bookingRules.blockedRanges) {
+                        const rangeStart = new Date(range.from);
+                        const rangeEnd = new Date(range.to);
+                        
+                        // If there's a blocked range between check-in and potential check-out
+                        if (rangeStart > checkInDate && rangeStart < currentDate) {
+                            isConflict = true;
+                            conflictMessage = 'Periodo non disponibile (prenotazione esistente nel mezzo)';
+                            break;
+                        }
+                    }
+                }
+
+                // IMPORTANTE: Check if check-out would violate gap rules
+                if (!isConflict) {
+                    // Check if this check-out date would be too close to an existing check-in
+                    const gapDays = bookingRules.metadata?.gap_between_bookings || 0;
+                    if (gapDays > 0) {
+                        // Check if any existing check-in would be within gapDays after this potential check-out
+                        // Use realCheckinDatesSet to avoid circular logic with gap days
+                        for (const checkinDateStr of realCheckinDatesSet) {
+                            const checkinDate = new Date(checkinDateStr);
+                            const daysDifference = Math.ceil((checkinDate - date) / (1000 * 60 * 60 * 24));
+                            if (daysDifference >= 0 && daysDifference < gapDays) {
+                                isConflict = true;
+                                conflictMessage = `Check-out non permesso: gap di ${gapDays} giorni richiesto prima del check-in`;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Apply styling based on conflict status
+                if (isConflict) {
+                    dayElem.classList.add('flatpickr-disabled');
+                    dayElem.title = conflictMessage;
+                } else {
+                    // Check if this day would violate gap rules for check-out
+                    let violatesGapRule = false;
+                    const gapDays = bookingRules.metadata?.gap_between_bookings || 0;
+                    if (gapDays > 0) {
+                        // Check if any existing check-in would be within gapDays after this potential check-out
+                        // Use realCheckinDatesSet to avoid circular logic with gap days
+                        for (const checkinDateStr of realCheckinDatesSet) {
+                            const checkinDate = new Date(checkinDateStr);
+                            const daysDifference = Math.ceil((checkinDate - date) / (1000 * 60 * 60 * 24));
+                            if (daysDifference >= 0 && daysDifference < gapDays) {
+                                violatesGapRule = true;
+                                console.log(`Day ${isoDate} violates gap rule: ${daysDifference} days before check-in ${checkinDateStr} (gap required: ${gapDays})`);
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (violatesGapRule) {
+                        // This day violates gap rules - disable it
+                        dayElem.classList.add('flatpickr-disabled');
+                        dayElem.title = `Check-out non permesso: gap di ${gapDays} giorni richiesto prima del check-in`;
+                    } else if (isCheckoutBlocked) {
+                        // Check-out blocked by rules
+                        dayElem.classList.add('flatpickr-disabled');
+                        dayElem.title = 'Check-out non permesso in questa data';
+                    } else {
+                        // Available day for checkout
+                        dayElem.classList.add('available-for-checkout');
+                        // Check if this is actually a real check-in day of another booking
+                        if (realCheckinDatesSet.has(isoDate) && !isCheckoutBlocked) {
+                            dayElem.title = 'Disponibile per check-out (giorno check-in altra prenotazione)';
+                            console.log(`Making ${isoDate} available for checkout (check-in day of other booking)`);
+                        } else {
+                            dayElem.title = 'Disponibile per check-out';
+                        }
+                    }
+                }
+            }
+            // If selectedDates.length === 2, range is complete, keep default styling
+        });
+    }
+
+    function hydrateBookingRules(payload) {
+        const blockedRanges = Array.isArray(payload.blocked_ranges) ? payload.blocked_ranges : [];
+        bookingRules.blockedRanges = blockedRanges.filter(range => range && range.from && range.to);
+
+        const metadata = payload.metadata || {};
+        bookingRules.metadata = metadata; // Save the entire metadata object
+        bookingRules.minStay = metadata.min_stay || 1;
+        bookingRules.maxStay = metadata.max_stay || 30;
+        bookingRules.windowStart = metadata.start || null;
+        bookingRules.windowEnd = metadata.end || null;
+        bookingRules.gapDays = payload.gap_days || [];
+
+        const checkinBlock = payload.checkin_block || {};
+        const checkoutBlock = payload.checkout_block || {};
+
+        checkinBlockedDatesSet = new Set(checkinBlock.dates || []);
+        checkoutBlockedDatesSet = new Set(checkoutBlock.dates || []);
+        checkinBlockedWeekdays = new Set((checkinBlock.weekdays || []).map(Number));
+        checkoutBlockedWeekdays = new Set((checkoutBlock.weekdays || []).map(Number));
+        turnoverDaysSet = new Set(payload.turnover_days || []);
+        
+        // Separate real check-in dates from gap days for gap rule calculations
+        realCheckinDatesSet = new Set(payload.real_checkin_dates || []);
+
+        // Gap days bloccano i check-in: aggiungili all'insieme delle date vietate
+        bookingRules.gapDays.forEach(dateStr => {
+            checkinBlockedDatesSet.add(dateStr);
+        });
+
+        // Aggiorna configurazione disable
+        bookingRules.disableConfig = buildDisabledDates();
+    }
+
+    const calendarLoadStart = performance.now();
+    console.log('🚀🚀🚀 Calendario: avvio caricamento');
+
+    fetch(`{% url 'listings:unavailable_dates' listing.slug %}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Risposta non valida dal server');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('📡📡📡 Dati calendario ricevuti:', data);
+            hydrateBookingRules(data);
+
+            // Passa i dati direttamente per evitare problemi di timing
+            initializeUnifiedCalendar({
+                checkinBlockedDates: checkinBlockedDatesSet,
+                checkinBlockedWeekdays: checkinBlockedWeekdays,
+                checkoutBlockedDates: checkoutBlockedDatesSet,
+                checkoutBlockedWeekdays: checkoutBlockedWeekdays,
+                turnoverDays: turnoverDaysSet
+            });
+
+            // Nascondi eventuale messaggio di errore
+            showAvailabilityMessage('', 'success');
+            const messageDiv = document.getElementById('availability-message');
+            if (messageDiv) {
+                messageDiv.classList.add('hidden');
+            }
+
+            const loadTime = (performance.now() - calendarLoadStart).toFixed(2);
+            console.log(`✅✅✅ Calendario: dati caricati in ${loadTime}ms`);
+        })
+        .catch(error => {
+            console.error('Calendario: errore durante il caricamento', error);
+            initializeUnifiedCalendar();
+            showAvailabilityMessage('Impossibile caricare le disponibilita aggiornate. Riprova piu tardi.', 'warning');
+        });
+
+    function initializeUnifiedCalendar(calendarData = {}) {
+        console.log('🚀🚀🚀 initializeUnifiedCalendar chiamata con:', calendarData);
+        const calendarInput = document.getElementById('calendar');
+        const checkInInput = document.getElementById('check-in');
+        const checkOutInput = document.getElementById('check-out');
+
+        if (!calendarInput) {
+            console.error('❌❌❌ Elemento calendario non trovato!');
+            return;
+        }
+        console.log('✅✅✅ Elemento calendario trovato:', calendarInput);
+
+        if (mainCalendar) {
+            mainCalendar.destroy();
+        }
+
+        const disableConfig = buildDisabledDates();
+
+        try {
+            if (window.flatpickr && window.flatpickr.l10ns && window.flatpickr.l10ns.it) {
+                flatpickr.localize(flatpickr.l10ns.it);
+            }
+
+        console.log('🔧🔧🔧 Inizializzando calendario Flatpickr...');
+        console.log('📊📊📊 Configurazione calendario:', {
+            mode: 'range',
+            dateFormat: 'Y-m-d',
+            locale: 'it',
+            minDate: bookingRules.windowStart || null,
+            maxDate: bookingRules.windowEnd || new Date().fp_incr(365),
+            showMonths: 2,
+            disable: disableConfig
+        });
+        console.log('📊📊📊 disableConfig:', disableConfig);
+        console.log('📊📊📊 bookingRules:', bookingRules);
+        console.log('📊📊📊 bookingRules.windowStart:', bookingRules.windowStart);
+        console.log('📊📊📊 bookingRules.windowEnd:', bookingRules.windowEnd);
+        mainCalendar = flatpickr('#calendar', {
+            mode: 'range',
+            dateFormat: 'Y-m-d',
+            locale: 'it',
+            minDate: bookingRules.windowStart || null,
+            maxDate: bookingRules.windowEnd || new Date().fp_incr(365),
+            showMonths: 2,
+            disable: disableConfig,
+            onDayClick: function(selectedDates, dateStr, instance, dayElem) {
+                // Custom logic for handling day clicks
+                const clickedDate = dayElem.dateObj;
+                const clickedDateStr = formatDate(clickedDate, 'Y-m-d');
+                const clickedWeekday = toPythonWeekday(clickedDate.getDay());
+
+                // If no dates selected yet, or we already have 2 dates (starting new selection)
+                if (selectedDates.length === 0 || selectedDates.length === 2) {
+                    // This is a check-in selection
+                    
+                    // Check if this is a past date (before today)
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    if (clickedDate < today) {
+                        showAvailabilityMessage('Non puoi selezionare date passate', 'error');
+                        instance.clear();
+                        return false; // Prevent selection
+                    }
+                    
+                    // Check if this day is in a blocked range (interior days of bookings only)
+                    let isInBlockedRange = false;
+                    for (const range of bookingRules.blockedRanges) {
+                        const rangeStart = new Date(range.from);
+                        const rangeEnd = new Date(range.to);
+                        if (clickedDate >= rangeStart && clickedDate <= rangeEnd) {
+                            isInBlockedRange = true;
+                            break;
+                        }
+                    }
+                    
+                    if (isInBlockedRange) {
+                        showAvailabilityMessage('Data non disponibile (prenotazione esistente)', 'error');
+                        instance.clear();
+                        return false; // Prevent selection
+                    }
+                    
+                    if (checkinBlockedDatesSet.has(clickedDateStr) || checkinBlockedWeekdays.has(clickedWeekday)) {
+                        showAvailabilityMessage('Check-in non permesso in questa data', 'error');
+                        instance.clear();
+                        return false; // Prevent selection
+                    }
+                } else if (selectedDates.length === 1) {
+                    // This is a check-out selection
+                    const checkInDate = selectedDates[0];
+                    const checkOutDate = clickedDate;
+
+                    // Ensure check-out is after check-in
+                    if (checkOutDate <= checkInDate) {
+                        showAvailabilityMessage('La data di check-out deve essere dopo il check-in', 'error');
+                        return false;
+                    }
+
+                    // Check if this date is disabled due to conflicts
+                    if (dayElem.classList.contains('flatpickr-disabled')) {
+                        const title = dayElem.getAttribute('title') || 'Data non disponibile';
+                        showAvailabilityMessage(title, 'error');
+                        return false;
+                    }
+
+                    // Check-out restrictions only apply if it's actually blocked for check-out
+                    if (checkoutBlockedDatesSet.has(clickedDateStr) || checkoutBlockedWeekdays.has(clickedWeekday)) {
+                        showAvailabilityMessage('Check-out non permesso in questa data', 'error');
+                        return false;
+                    }
+
+                    // IMPORTANTE: Permetti check-out il giorno di check-in di un'altra prenotazione
+                    // Questo è gestito correttamente dal backend, quindi non blocchiamo qui
+                    // Il backend validerà che non ci siano conflitti reali
+                }
+
+                // Allow the selection to proceed
+                return true;
+            },
+            onDayCreate: function (dObj, dStr, fp, dayElem) {
+                const date = dayElem.dateObj;
+                if (!(date instanceof Date)) {
+                    return;
+                }
+
+                dayElem.classList.remove('no-checkin-rule', 'checkout-available', 'no-checkout-rule', 'available-for-selection');
+                dayElem.removeAttribute('title');
+
+                const jsWeekday = date.getDay();
+                const isoDate = fp && typeof fp.formatDate === 'function'
+                    ? fp.formatDate(date, 'Y-m-d')
+                    : formatDate(date, 'Y-m-d');
+                const pythonWeekday = toPythonWeekday(jsWeekday);
+                const isAdjacentMonth = dayElem.classList.contains('prevMonthDay') || dayElem.classList.contains('nextMonthDay');
+
+                if (isAdjacentMonth) {
+                    if (dayElem.style.marginLeft) {
+                        dayElem.style.marginLeft = '';
+                    }
+                } else {
+                    let firstDayOfWeek = 0;
+                    if (typeof fp.config.firstDayOfWeek === 'number') {
+                        firstDayOfWeek = fp.config.firstDayOfWeek;
+                    } else if (fp.l10n && typeof fp.l10n.firstDayOfWeek === 'number') {
+                        firstDayOfWeek = fp.l10n.firstDayOfWeek;
+                    }
+
+                    if (date.getDate() === 1) {
+                        const offset = (jsWeekday - firstDayOfWeek + 7) % 7;
+                        dayElem.style.marginLeft = offset > 0 ? `calc(${offset} * (100% / 7))` : '';
+                    } else if (dayElem.style.marginLeft) {
+                        dayElem.style.marginLeft = '';
+                    }
+                }
+
+                // Check if day is blocked for check-in
+                if (checkinBlockedDatesSet.has(isoDate) || checkinBlockedWeekdays.has(pythonWeekday)) {
+                    dayElem.classList.add('no-checkin-rule');
+                    dayElem.title = 'Check-in non permesso';
+                }
+
+                if (turnoverDaysSet.has(isoDate)) {
+                    dayElem.classList.add('checkout-available');
+                }
+            },
+            onChange(selectedDates) {
+                console.log('📅 onChange chiamata con:', selectedDates);
+                if (selectedDates.length === 2) {
+                    calendarSelectionState = 'range_complete';
+                    const checkIn = selectedDates[0];
+                    const checkOut = selectedDates[1];
+                    const millisecondsPerNight = 1000 * 60 * 60 * 24;
+                    const nights = Math.round((checkOut - checkIn) / millisecondsPerNight);
+
+                    const checkInStr = formatDate(checkIn, 'Y-m-d');
+                    const checkOutStr = formatDate(checkOut, 'Y-m-d');
+                    const checkInWeekday = toPythonWeekday(checkIn.getDay());
+                    const checkOutWeekday = toPythonWeekday(checkOut.getDay());
+
+                    if (!Number.isFinite(nights) || nights <= 0) {
+                        showAvailabilityMessage('Intervallo date non valido', 'error');
+                        this.clear();
+                        calendarSelectionState = 'initial';
+                        hidePriceBreakdown();
+                        return;
+                    }
+
+                    if (bookingRules.minStay && nights < bookingRules.minStay) {
+                        showAvailabilityMessage(`Il soggiorno minimo e' di ${bookingRules.minStay} notti`, 'error');
+                        this.clear();
+                        calendarSelectionState = 'initial';
+                        hidePriceBreakdown();
+                        return;
+                    }
+
+                    if (bookingRules.maxStay && nights > bookingRules.maxStay) {
+                        showAvailabilityMessage(`Il soggiorno massimo consentito e' di ${bookingRules.maxStay} notti`, 'error');
+                        this.clear();
+                        calendarSelectionState = 'initial';
+                        hidePriceBreakdown();
+                        return;
+                    }
+
+                    // Validation is now handled in onDayClick, so we don't need to re-validate here
+
+                    if (checkoutBlockedDatesSet.has(checkOutStr) || checkoutBlockedWeekdays.has(checkOutWeekday)) {
+                        showAvailabilityMessage('Check-out non permesso nella data selezionata', 'error');
+                        this.clear();
+                        calendarSelectionState = 'initial';
+                        hidePriceBreakdown();
+                        return;
+                    }
+
+                    checkInInput.value = checkInStr;
+                    checkOutInput.value = checkOutStr;
+                    calendarInput.value = `${formatDate(checkIn, 'd/m/Y')} - ${formatDate(checkOut, 'd/m/Y')}`;
+
+                    showAvailabilityMessage('Date selezionate correttamente', 'success');
+                    console.log('💰 Chiamando calculatePrice con:', checkInStr, checkOutStr);
+                    calculatePrice(checkInStr, checkOutStr);
+                    updateCalendarDayStyles(); // Update styling after range completion
+                } else if (selectedDates.length === 1) {
+                    calendarSelectionState = 'checkin_selected';
+                    const checkIn = selectedDates[0];
+                    const checkInStr = formatDate(checkIn, 'Y-m-d');
+                    const checkInWeekday = toPythonWeekday(checkIn.getDay());
+
+                    if (checkinBlockedDatesSet.has(checkInStr) || checkinBlockedWeekdays.has(checkInWeekday)) {
+                        showAvailabilityMessage('Check-in non permesso in questa data: seleziona un arrivo differente', 'error');
+                        this.clear();
+                        calendarSelectionState = 'initial';
+                        hidePriceBreakdown();
+                        updateCalendarDayStyles(); // Update styling after clear
+                        return;
+                    }
+
+                    checkInInput.value = checkInStr;
+                    checkOutInput.value = '';
+                    calendarInput.value = `${formatDate(checkIn, 'd/m/Y')} - ...`;
+                    showAvailabilityMessage('Seleziona la data di check-out', 'info');
+                    hidePriceBreakdown();
+                    updateCalendarDayStyles(); // Update styling after check-in selection
+                } else {
+                    calendarSelectionState = 'initial';
+                    checkInInput.value = '';
+                    checkOutInput.value = '';
+                    calendarInput.value = '';
+                    hidePriceBreakdown();
+                    updateCalendarDayStyles(); // Update styling after clear
+                }
+            },
+        });
+        console.log('✅✅✅ Calendario Flatpickr inizializzato:', mainCalendar);
+        console.log('✅✅✅ Calendario configurato correttamente');
+        console.log('✅✅✅ Calendario pronto per l\'uso');
+        } catch (error) {
+            console.error('❌❌❌ Calendario: inizializzazione fallita', error);
+            console.error('❌❌❌ Errore completo:', error.stack);
+            showAvailabilityMessage('Impossibile inizializzare il calendario. Ricarica la pagina o riprova piu tardi.', 'error');
+            return;
+        }
+
+        console.log('checkInInput:', checkInInput);
+        if (checkInInput) {
+            console.log('Adding change listener to checkIn input');
+            checkInInput.addEventListener('change', function() {
+                if (this.value && checkOutInput && checkOutInput.value) {
+                    mainCalendar.setDate([this.value, checkOutInput.value]);
+                } else if (this.value) {
+                    mainCalendar.setDate([this.value]);
+                }
+            });
+        }
+
+        console.log('checkOutInput:', checkOutInput);
+        if (checkOutInput) {
+            console.log('Adding change listener to checkOut input');
+            checkOutInput.addEventListener('change', function() {
+                if (checkInInput && checkInInput.value && this.value) {
+                    mainCalendar.setDate([checkInInput.value, this.value]);
+                }
+            });
+        }
+
+        console.debug('Calendario: inizializzazione completata');
+
+        // Apply initial styling after calendar is fully initialized
+        setTimeout(() => {
+            updateCalendarDayStyles();
+        }, 100);
+
+        // Avvia il controllo periodico per forzare gli stili dei giorni selezionati
+        setInterval(function() {
+            const allDays = document.querySelectorAll('.flatpickr-day');
+            allDays.forEach(day => {
+                const classList = day.classList;
+                if (classList.contains('selected') && classList.contains('flatpickr-disabled')) {
+                    day.classList.remove('flatpickr-disabled');
+                    day.style.setProperty('opacity', '1', 'important');
+                    day.style.setProperty('background-color', '#569ff7', 'important');
+                    day.style.setProperty('color', 'white', 'important');
+                    day.style.setProperty('font-weight', '700', 'important');
+                    day.style.setProperty('text-decoration', 'none', 'important');
+                    day.style.setProperty('border', '2px solid #569ff7', 'important');
+                    day.style.setProperty('box-shadow', '0 0 0 2px #569ff7', 'important');
+                }
+            });
+        }, 100);
+    }
+
+    // Listener per cambio numero ospiti
+    const guestsSelect = document.getElementById('guests');
+    console.log('guestsSelect element:', guestsSelect);
+    if (guestsSelect) {
+        console.log('Adding change listener to guests select');
+        guestsSelect.addEventListener('change', function() {
+            const checkIn = document.getElementById('check-in').value;
+            const checkOut = document.getElementById('check-out').value;
+            if (checkIn && checkOut) {
+                calculatePrice(checkIn, checkOut);
             }
         });
     }
-    
-    // Custom filter for multiply in template
-    // Note: This would normally be a Django template filter, but we're simulating it with JS here
-    // You should create a proper Django template filter in your actual code
+
+    window.checkAvailability = function() {
+        const checkIn = document.getElementById('check-in').value;
+        const checkOut = document.getElementById('check-out').value;
+
+        if (!checkIn || !checkOut) {
+            return;
+        }
+
+        showAvailabilityMessage('Verifica disponibilita in corso...', 'info');
+
+        const searchParams = new URLSearchParams({ check_in: checkIn, check_out: checkOut });
+
+        fetch(`{% url 'listings:check_availability' listing.slug %}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value || '{{ csrf_token }}'
+            },
+            body: searchParams.toString()
+        })
+            .then(async response => {
+                const data = await response.json();
+
+                if (!response.ok || data.error) {
+                    throw new Error(data.error || 'Errore nella verifica disponibilita');
+                }
+
+                if (!data.available) {
+                    throw new Error(data.message || 'Date non disponibili');
+                }
+
+                showAvailabilityMessage(data.message || 'Disponibile per le date selezionate', 'success');
+                calculatePrice(checkIn, checkOut);
+            })
+            .catch(error => {
+                console.error('Verifica disponibilita fallita:', error);
+                showAvailabilityMessage(error.message || 'Date non disponibili', 'error');
+                hidePriceBreakdown();
+            });
+    };
+
+    function calculatePrice(checkIn, checkOut) {
+        console.log('🔍 calculatePrice chiamata con:', { checkIn, checkOut });
+        const guestsField = document.getElementById('guests');
+        const guestsValue = guestsField ? parseInt(guestsField.value, 10) : 1;
+        const guests = Number.isFinite(guestsValue) && guestsValue > 0 ? guestsValue : 1;
+        
+        console.log('📊 Parametri calcolo:', { 
+            listing_id: "{{ listing.id }}", 
+            check_in: checkIn, 
+            check_out: checkOut, 
+            guests: guests 
+        });
+
+        fetch('/api/calculate-price/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                listing_id: "{{ listing.id }}",
+                check_in: checkIn,
+                check_out: checkOut,
+                guests: guests
+            })
+        })
+            .then(async response => {
+                console.log('📡 Risposta API ricevuta:', response.status);
+                const data = await response.json();
+                console.log('💰 Dati prezzo ricevuti:', data);
+
+                if (!response.ok || data.error) {
+                    console.error('❌ Errore API:', data.error);
+                    throw new Error(data.error || 'Impossibile calcolare il prezzo');
+                }
+
+                console.log('✅ Chiamando showPriceBreakdown con:', data);
+                showPriceBreakdown(data);
+            })
+            .catch(error => {
+                console.error('Calcolo prezzo fallito:', error);
+                showAvailabilityMessage(error.message || 'Errore nel calcolo del prezzo', 'error');
+                hidePriceBreakdown();
+            });
+    }
+
+    function showAvailabilityMessage(message, type) {
+        const messageDiv = document.getElementById('availability-message');
+        const textElement = document.getElementById('availability-text');
+
+        if (!messageDiv || !textElement) {
+            return;
+        }
+
+        if (!message) {
+            messageDiv.className = 'hidden';
+            textElement.textContent = '';
+            return;
+        }
+
+        textElement.textContent = message;
+        messageDiv.className = 'mt-2 p-2 rounded-lg';
+
+        if (type === 'success') {
+            messageDiv.classList.add('bg-green-100', 'text-green-800');
+        } else if (type === 'error') {
+            messageDiv.classList.add('bg-red-100', 'text-red-800');
+        } else if (type === 'warning') {
+            messageDiv.classList.add('bg-yellow-100', 'text-yellow-800');
+        } else {
+            messageDiv.classList.add('bg-blue-100', 'text-blue-800');
+        }
+
+        messageDiv.classList.remove('hidden');
+    }
+
+    function showPriceBreakdown(data) {
+        console.log('🎯 showPriceBreakdown chiamata con:', data);
+        const breakdownDiv = document.getElementById('price-breakdown');
+        const contentDiv = document.getElementById('breakdown-content');
+
+        if (!breakdownDiv || !contentDiv) {
+            console.error('❌ Elementi DOM non trovati:', { breakdownDiv, contentDiv });
+            return;
+        }
+
+        console.log('📋 Elementi DOM trovati:', { breakdownDiv, contentDiv });
+        let html = '';
+
+        // Mostra prezzo medio per notte × numero notti
+        if (data.nights && data.average_price_per_night !== undefined) {
+            const nights = data.nights;
+            const avgPrice = currencyFormatter.format(data.average_price_per_night);
+            const subtotal = currencyFormatter.format(data.subtotal || 0);
+            
+            html += `
+                <div class="flex justify-between mb-2">
+                    <span class="text-gray-600">${avgPrice} × ${nights} ${nights === 1 ? 'notte' : 'notti'}</span>
+                    <span class="text-gray-800">${subtotal}</span>
+                </div>
+            `;
+        }
+
+        if (data.extras) {
+            if (data.extras.cleaning > 0) {
+                const cleaningPrice = currencyFormatter.format(data.extras.cleaning);
+                html += `
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-600">Pulizie</span>
+                        <span class="text-gray-800">${cleaningPrice}</span>
+                    </div>
+                `;
+            }
+
+            if (data.extras.extra_guests > 0) {
+                const extraGuestsPrice = currencyFormatter.format(data.extras.extra_guests);
+                html += `
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-600">Ospiti extra</span>
+                        <span class="text-gray-800">${extraGuestsPrice}</span>
+                    </div>
+                `;
+            }
+        }
+
+        const totalPrice = currencyFormatter.format(data.total || 0);
+        html += `
+            <div class="flex justify-between font-bold pt-2 border-t border-gray-200 mt-2">
+                <span>Totale</span>
+                <span class="text-rhome-primary">${totalPrice}</span>
+            </div>
+        `;
+
+        contentDiv.innerHTML = html.trim();
+        breakdownDiv.classList.remove('hidden');
+        console.log('🎨 HTML generato:', html);
+        console.log('✅ Breakdown prezzo mostrato');
+    }
+
+    function hidePriceBreakdown() {
+        const breakdownDiv = document.getElementById('price-breakdown');
+        if (breakdownDiv) {
+            breakdownDiv.classList.add('hidden');
+        }
+    }
+
+    const bookingForm = document.getElementById('booking-form');
+    console.log('bookingForm element:', bookingForm);
+    if (bookingForm) {
+        console.log('Adding submit listener to booking form');
+        bookingForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const checkIn = document.getElementById('check-in').value;
+            const checkOut = document.getElementById('check-out').value;
+            const guestsValue = parseInt(document.getElementById('guests').value, 10);
+            const guests = Number.isFinite(guestsValue) && guestsValue > 0 ? guestsValue : 1;
+
+            // Verifica che le date siano selezionate
+            if (!checkIn || !checkOut) {
+                showAvailabilityMessage('{% trans "Seleziona le date di check-in e check-out" %}', 'error');
+                return;
+            }
+
+            // Verifica che l'utente sia autenticato
+            {% if user.is_authenticated %}
+            const listingId = {{ listing.id }};
+            const submitButton = bookingForm.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+            
+            // Disabilita il pulsante
+            submitButton.disabled = true;
+            submitButton.textContent = '{% trans "Prenotazione in corso..." %}';
+
+            // Prepara i dati per la prenotazione
+            const bookingData = {
+                listing_id: listingId,
+                check_in: checkIn,
+                check_out: checkOut,
+                num_guests: guests,
+                num_adults: guests,
+                num_children: 0,
+                special_requests: '',
+                guest_email: '{{ user.email }}'
+            };
+
+            // Ottieni il CSRF token
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            const csrftoken = getCookie('csrftoken');
+
+            // Invia la richiesta per creare la prenotazione
+            fetch('/prenotazioni/create/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify(bookingData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Mostra messaggio di successo
+                    showAvailabilityMessage('{% trans "Prenotazione creata con successo!" %}', 'success');
+                    
+                    // Reindirizza alla dashboard dopo 2 secondi
+                    setTimeout(() => {
+                        window.location.href = '/accounts/dashboard/';
+                    }, 2000);
+                } else {
+                    // Mostra errore
+                    showAvailabilityMessage(data.error || '{% trans "Errore nella creazione della prenotazione" %}', 'error');
+                    submitButton.disabled = false;
+                    submitButton.textContent = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Errore:', error);
+                showAvailabilityMessage('{% trans "Errore di connessione. Riprova più tardi." %}', 'error');
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+            });
+            {% else %}
+            // Utente non autenticato - reindirizza al login
+            showAvailabilityMessage('{% trans "Devi essere autenticato per prenotare. Reindirizzamento al login..." %}', 'warning');
+            setTimeout(() => {
+                window.location.href = '/accounts/login/?next=' + encodeURIComponent(window.location.pathname);
+            }, 2000);
+            {% endif %}
+        });
+    }
+
+    // Helper legacy per moltiplicazioni inline
     window.multiply = function(a, b) {
         return a * b;
     };
+
 });
 
 </script>
-<script>
-    document.getElementById('booking-form').addEventListener('submit', function (e) {
-      e.preventDefault(); // Previene l'invio normale
-  
-      const checkIn = document.getElementById('check-in').value;
-      const checkOut = document.getElementById('check-out').value;
-      const guests = parseInt(document.getElementById('guests').value);
-      
-      const adults = guests; // puoi adattare se vuoi dividere in adulti/bambini
-      const children = 0;
-      const rooms = 1; // puoi renderlo dinamico se serve
-  
-      // guests_rooms = "2,0;" ad esempio
-      const guestsRooms = `${adults},${children};`;
-  
-      // Costruisci la URL
-      const url = new URL('https://maggimilano-new.kross.travel/book/step1');
-      url.searchParams.set('adults', adults);
-      url.searchParams.set('children', children);
-      url.searchParams.set('rooms', rooms);
-      url.searchParams.set('guests', guests);
-      url.searchParams.set('n_guests', guests);
-      url.searchParams.set('guests_rooms', guestsRooms);
-      url.searchParams.set('kross_lang', 'it');
-      url.searchParams.set('from', checkIn);
-      url.searchParams.set('to', checkOut);
-  
-      // Vai alla URL
-      window.location.href = url.toString();
-    });
-  </script>
 {% endblock %}
+
+
+
+
+
+
+

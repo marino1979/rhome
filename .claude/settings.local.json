@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python manage.py shell:*)",
+      "Bash(python manage.py runserver:*)",
+      "Bash(curl:*)",
+      "Bash(python manage.py:*)",
+      "Bash(python:*)",
+      "Bash(echo:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

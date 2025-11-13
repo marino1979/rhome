@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-8 mb-8">
+    <div class="bg-white rounded-lg shadow-md p-8">
+        <h1 class="text-2xl font-bold mb-6 text-center">Completa la registrazione</h1>
+        
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-6">
+                Completa Registrazione
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

@@ -34,6 +34,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'django.contrib.sites',  # Richiesto da allauth - deve essere PRIMA di modeltranslation
     'modeltranslation',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -41,7 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'listings.apps.ListingsConfig',  # aggiungi questa riga,
+    'listings.apps.ListingsConfig',
     'amenities',
     'beds',
     'rooms.apps.RoomsConfig',
@@ -50,7 +51,14 @@ INSTALLED_APPS = [
     'calendar_rules',
     'rest_framework',
     'translations',
- 
+    'bookings.apps.BookingsConfig',
+    'users.apps.UsersConfig',
+    # Django Allauth per social login
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.facebook',
+    'allauth.socialaccount.providers.google',
 ]
 
 MIDDLEWARE = [
@@ -60,6 +68,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'allauth.account.middleware.AccountMiddleware',  # Richiesto da django-allauth
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -70,7 +79,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
          'DIRS':[os.path.join(BASE_DIR, 'templates')],
-        'APP_DIRS': True,
+        'APP_DIRS': True,  # Ripristinato - necessario per template Django standard
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -78,7 +87,6 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
-             'debug': True,  # Disabilita la cache dei template
         },
     },
 ]
@@ -133,6 +141,10 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Charset configuration
+DEFAULT_CHARSET = 'utf-8'
+FILE_CHARSET = 'utf-8'
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
@@ -165,7 +177,137 @@ LOCALE_PATHS = [
     os.path.join(BASE_DIR, 'locale'),
 ]
 
+# Modeltranslation: Configurazione per evitare errori nell'admin
+# Disabilita la traduzione automatica - solo i modelli esplicitamente registrati verranno tradotti
+MODELTRANSLATION_AUTO_POPULATE = False
+MODELTRANSLATION_FALLBACK_LANGUAGES = ('it',)
+
+# Escludi esplicitamente le app di sistema dalla traduzione
+MODELTRANSLATION_EXCLUDED_APPS = [
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'django.contrib.sites',
+    'django.contrib.auth',
+    'django.contrib.admin',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+]
+
+# Django Allauth Configuration
+SITE_ID = 1
+
+# Authentication Backends
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# Allauth Settings
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email'  # Permette login con username o email
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'optional'  # 'mandatory', 'optional', o 'none'
+ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_USERNAME_MIN_LENGTH = 3
+ACCOUNT_SIGNUP_EMAIL_ENTER_TWICE = False
+ACCOUNT_SESSION_REMEMBER = True
+ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
+ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300  # 5 minuti
+
+LOGIN_REDIRECT_URL = '/accounts/dashboard/'
+LOGOUT_REDIRECT_URL = '/'
+
+# Social Account Settings
+SOCIALACCOUNT_LOGIN_ON_GET = True  # Permette login social con GET
+SOCIALACCOUNT_AUTO_SIGNUP = True  # Crea automaticamente l'account al login social
+
+# Social Account Providers
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'OAUTH_PKCE_ENABLED': True,
+    },
+    'facebook': {
+        'METHOD': 'oauth2',
+        'SCOPE': ['email', 'public_profile'],
+        'AUTH_PARAMS': {'auth_type': 'reauthenticate'},
+        'INIT_PARAMS': {'cookie': True},
+        'FIELDS': [
+            'id',
+            'first_name',
+            'last_name',
+            'middle_name',
+            'name',
+            'name_format',
+            'picture',
+            'short_name',
+            'email'
+        ],
+        'EXCHANGE_TOKEN': True,
+        'LOCALE_FUNC': lambda request: 'it_IT',
+        'VERIFIED_EMAIL': False,
+        'VERSION': 'v18.0',
+    }
+}
+
 
 
 # Impostazioni per la sessione
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+# Configurazione logging per debug calendario
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+        'calendar_debug': {
+            'format': '\033[1;32m[CALENDAR DEBUG]\033[0m {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'calendar_console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'calendar_debug',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': 'calendar_debug.log',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'calendar_debug': {
+            'handlers': ['calendar_console', 'file'],
+            'level': 'INFO',
+            'propagate': False,  # Evita duplicazione
+        },
+        'django': {
+            'handlers': ['console'],
+            'level': 'WARNING',  # Riduci il rumore di Django
+            'propagate': False,
+        },
+    },
+}
+
+LOGIN_REDIRECT_URL = '/accounts/dashboard/'
+LOGOUT_REDIRECT_URL = '/'

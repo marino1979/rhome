@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ listing.title }} - Rhome Book</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .listing-header {
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .listing-title {
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        .listing-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .booking-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .price-summary {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+        .amenities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .amenity-tag {
+            background: #007bff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="listing-header">
+        <h1 class="listing-title">{{ listing.title }}</h1>
+        <p><strong>Indirizzo:</strong> {{ listing.address }}, {{ listing.city }} ({{ listing.zone }})</p>
+        <p><strong>Ospiti:</strong> fino a {{ listing.max_guests }} | <strong>Camere:</strong> {{ listing.bedrooms }} | <strong>Bagni:</strong> {{ listing.bathrooms }}</p>
+    </div>
+
+    <div class="listing-info">
+        <div class="listing-details">
+            <h3>Descrizione</h3>
+            <p>{{ listing.description }}</p>
+
+            <h3>Servizi Inclusi</h3>
+            <div class="amenities">
+                {% for amenity in amenities %}
+                    <span class="amenity-tag">{{ amenity.name }}</span>
+                {% endfor %}
+            </div>
+
+            <h3>Sistemazione Letti</h3>
+            {% for bed_type, quantity in beds_summary.items %}
+                <p>{{ quantity }} {{ bed_type }}{% if quantity > 1 %}i{% endif %}</p>
+            {% endfor %}
+
+            <h3>Regole della Casa</h3>
+            <ul>
+                <li><strong>Check-in:</strong> dalle {{ listing.checkin_from }} alle {{ listing.checkin_to }}</li>
+                <li><strong>Check-out:</strong> entro le {{ listing.checkout_time }}</li>
+                <li><strong>Feste:</strong> {% if listing.allow_parties %}Consentite{% else %}Non consentite{% endif %}</li>
+                <li><strong>Fumo:</strong> {% if listing.allow_smoking %}Consentito{% else %}Non consentito{% endif %}</li>
+            </ul>
+        </div>
+
+        <div class="booking-section">
+            <div class="booking-form">
+                <h3>Prenota ora</h3>
+                <p><strong>Prezzo base:</strong> €{{ listing.base_price }} / notte</p>
+
+                <form id="booking-form">
+                    <div class="form-group">
+                        <label for="check-in">Check-in:</label>
+                        <input type="date" id="check-in" name="check_in" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="check-out">Check-out:</label>
+                        <input type="date" id="check-out" name="check_out" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="guests">Numero ospiti:</label>
+                        <select id="guests" name="num_guests" required>
+                            {% for i in "123456789"|make_list %}
+                                {% if forloop.counter <= listing.max_guests %}
+                                    <option value="{{ forloop.counter }}">{{ forloop.counter }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <button type="button" class="btn" onclick="checkAvailability()">Verifica Disponibilità</button>
+
+                    <div id="price-summary" class="price-summary" style="display: none;">
+                        <h4>Riepilogo Prezzo</h4>
+                        <div id="price-details"></div>
+                        <button type="button" class="btn" onclick="createBooking()" style="width: 100%; margin-top: 10px;">Prenota Ora</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPricing = null;
+
+        function checkAvailability() {
+            const checkIn = document.getElementById('check-in').value;
+            const checkOut = document.getElementById('check-out').value;
+            const numGuests = document.getElementById('guests').value;
+
+            if (!checkIn || !checkOut) {
+                alert('Seleziona le date di check-in e check-out');
+                return;
+            }
+
+            const data = {
+                listing_id: {{ listing.id }},
+                check_in: checkIn,
+                check_out: checkOut,
+                num_guests: parseInt(numGuests)
+            };
+
+            fetch('/prenotazioni/api/check-availability/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.available) {
+                    showPricingSummary(data.pricing);
+                } else {
+                    alert(data.error || 'Date non disponibili');
+                    document.getElementById('price-summary').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Errore nella verifica disponibilità');
+            });
+        }
+
+        function showPricingSummary(pricing) {
+            currentPricing = pricing;
+            const summaryDiv = document.getElementById('price-details');
+
+            summaryDiv.innerHTML = `
+                <p><strong>€${pricing.base_price_per_night}</strong> x ${pricing.total_nights} notti = €${pricing.subtotal}</p>
+                <p>Pulizie: €${pricing.cleaning_fee}</p>
+                ${pricing.extra_guest_fee > 0 ? `<p>Ospiti extra: €${pricing.extra_guest_fee}</p>` : ''}
+                <hr>
+                <p><strong>Totale: €${pricing.total_amount}</strong></p>
+            `;
+
+            document.getElementById('price-summary').style.display = 'block';
+        }
+
+        function createBooking() {
+            if (!currentPricing) {
+                alert('Verifica prima la disponibilità');
+                return;
+            }
+
+            const checkIn = document.getElementById('check-in').value;
+            const checkOut = document.getElementById('check-out').value;
+            const numGuests = document.getElementById('guests').value;
+
+            const data = {
+                listing_id: {{ listing.id }},
+                check_in: checkIn,
+                check_out: checkOut,
+                num_guests: parseInt(numGuests),
+                num_adults: parseInt(numGuests), // Semplificato per ora
+                num_children: 0
+            };
+
+            fetch('/prenotazioni/create/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Prenotazione creata con successo!');
+                    window.location.href = `/prenotazioni/booking/${data.booking_id}/`;
+                } else {
+                    alert(data.error || 'Errore nella creazione della prenotazione');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Devi essere loggato per prenotare');
+            });
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Imposta date minime
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('check-in').min = today;
+
+            document.getElementById('check-in').addEventListener('change', function() {
+                const checkInDate = new Date(this.value);
+                checkInDate.setDate(checkInDate.getDate() + 1);
+                document.getElementById('check-out').min = checkInDate.toISOString().split('T')[0];
+            });
+        });
+    </script>
+</body>
+</html>

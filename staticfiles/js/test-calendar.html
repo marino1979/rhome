@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Calendario Modulare</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    
+    <style>
+        .text-rhome-primary { color: #0056b3; }
+        .bg-rhome-primary { background-color: #0056b3; }
+        
+        .flatpickr-calendar .flatpickr-disabled {
+            text-decoration: line-through !important;
+            opacity: 0.5 !important;
+            background-color: #f5f5f5 !important;
+        }
+        
+        .flatpickr-calendar .no-checkin-rule {
+            font-weight: 300 !important;
+            cursor: not-allowed !important;
+        }
+        
+        .flatpickr-calendar .no-checkin-rule.available-for-checkout {
+            font-weight: 700 !important;
+            cursor: pointer !important;
+        }
+        
+        .flatpickr-calendar .turnover-day {
+            background-color: #e3f2fd !important;
+            border: 1px solid #2196f3 !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">Test Calendario Modulare</h1>
+        
+        <!-- Dati di test -->
+        <div id="listing-data" 
+             data-listing-id="123" 
+             data-listing-slug="test-listing"
+             data-min-stay="2"
+             data-max-stay="30"
+             data-gap-days="1"
+             style="display: none;">
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Test Calendar -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Calendario Test</h2>
+                
+                <form id="booking-form" class="space-y-4">
+                    <!-- Calendario -->
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Seleziona date
+                        </label>
+                        <input type="text" 
+                               id="calendar" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Seleziona il periodo di soggiorno"
+                               readonly>
+                    </div>
+                    
+                    <!-- Input nascosti -->
+                    <input type="hidden" id="check-in" name="check_in">
+                    <input type="hidden" id="check-out" name="check_out">
+                    
+                    <!-- Numero ospiti -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Ospiti
+                        </label>
+                        <select id="guests" name="guests" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="1">1 ospite</option>
+                            <option value="2">2 ospiti</option>
+                            <option value="3">3 ospiti</option>
+                            <option value="4">4 ospiti</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Messaggio disponibilità -->
+                    <div id="availability-message" class="hidden">
+                        <div id="availability-text" class="text-sm"></div>
+                    </div>
+                    
+                    <!-- Breakdown prezzo -->
+                    <div id="price-breakdown" class="hidden">
+                        <div class="border-t pt-4">
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span>Prezzo base</span>
+                                    <span id="base-price">€0</span>
+                                </div>
+                                <div class="flex justify-between font-semibold border-t pt-2">
+                                    <span>Totale</span>
+                                    <span id="total-price">€0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" 
+                            class="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled>
+                        Test Prenotazione
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Debug Info -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Debug Info</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="font-medium text-gray-700">Stato Calendario:</h3>
+                        <pre id="calendar-state" class="bg-gray-100 p-2 rounded text-xs overflow-auto"></pre>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-medium text-gray-700">Log Eventi:</h3>
+                        <div id="event-log" class="bg-gray-100 p-2 rounded text-xs max-h-40 overflow-auto"></div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-medium text-gray-700">Azioni:</h3>
+                        <div class="space-y-2">
+                            <button id="test-load" class="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700">
+                                Test Caricamento
+                            </button>
+                            <button id="test-error" class="w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700">
+                                Test Errore
+                            </button>
+                            <button id="test-reset" class="w-full bg-gray-600 text-white py-2 px-4 rounded hover:bg-gray-700">
+                                Reset Calendario
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/it.js"></script>
+    
+    <!-- Moduli core -->
+    <script src="js/config.js"></script>
+    <script src="js/utils/DateUtils.js"></script>
+    <script src="js/utils/ErrorHandler.js"></script>
+    <script src="js/modules/StateManager.js"></script>
+    <script src="js/modules/APIClient.js"></script>
+    <script src="js/modules/SingleCalendarManager.js"></script>
+    <script src="js/listing-detail.js"></script>
+    
+    <script>
+        // Mock API per test
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options) {
+            console.log('Mock API call:', url, options);
+            
+            if (url.includes('unavailable-dates')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({
+                        blocked_ranges: [
+                            { from: '2024-12-25', to: '2024-12-26' },
+                            { from: '2024-12-31', to: '2025-01-02' }
+                        ],
+                        checkin_block: {
+                            dates: ['2024-12-24'],
+                            weekdays: [0] // Domenica
+                        },
+                        checkout_block: {
+                            dates: [],
+                            weekdays: [1] // Lunedì
+                        },
+                        turnover_days: ['2024-12-20', '2024-12-28'],
+                        real_checkin_dates: ['2024-12-15', '2024-12-22'],
+                        metadata: {
+                            min_stay: 2,
+                            max_stay: 30,
+                            gap_between_bookings: 1
+                        }
+                    })
+                });
+            }
+            
+            if (url.includes('calculate-price')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({
+                        total_price: 150.00,
+                        base_price: 120.00,
+                        taxes: 30.00,
+                        nights: 2,
+                        daily_prices: [
+                            { date: '2024-12-20', price: 60.00, note: 'Prezzo base' },
+                            { date: '2024-12-21', price: 60.00, note: 'Prezzo base' }
+                        ]
+                    })
+                });
+            }
+            
+            return originalFetch.apply(this, arguments);
+        };
+        
+        // Log degli eventi
+        const eventLog = document.getElementById('event-log');
+        function logEvent(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            eventLog.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            eventLog.scrollTop = eventLog.scrollHeight;
+        }
+        
+        // Aggiorna stato calendario
+        function updateCalendarState() {
+            const stateElement = document.getElementById('calendar-state');
+            if (window.calendarManager && window.calendarManager.stateManager) {
+                const state = window.calendarManager.stateManager.state;
+                stateElement.textContent = JSON.stringify(state, null, 2);
+            } else {
+                stateElement.textContent = 'Calendario non inizializzato';
+            }
+        }
+        
+        // Event listeners per test
+        document.addEventListener('DOMContentLoaded', function() {
+            logEvent('DOM caricato');
+            
+            // Test buttons
+            document.getElementById('test-load').addEventListener('click', function() {
+                logEvent('Test caricamento avviato');
+                if (window.calendarManager) {
+                    window.calendarManager.initialize().then(() => {
+                        logEvent('Test caricamento completato');
+                        updateCalendarState();
+                    }).catch(error => {
+                        logEvent('Errore test caricamento: ' + error.message);
+                    });
+                } else {
+                    logEvent('Calendario non disponibile');
+                }
+            });
+            
+            document.getElementById('test-error').addEventListener('click', function() {
+                logEvent('Test errore avviato');
+                if (window.calendarManager && window.calendarManager.errorHandler) {
+                    const error = new Error('Test error');
+                    window.calendarManager.errorHandler.handle(error, { context: 'test' });
+                    logEvent('Test errore completato');
+                } else {
+                    logEvent('ErrorHandler non disponibile');
+                }
+            });
+            
+            document.getElementById('test-reset').addEventListener('click', function() {
+                logEvent('Reset calendario avviato');
+                if (window.calendarManager) {
+                    window.calendarManager.destroy();
+                    logEvent('Calendario distrutto');
+                    updateCalendarState();
+                } else {
+                    logEvent('Calendario non disponibile per reset');
+                }
+            });
+            
+            // Aggiorna stato ogni secondo
+            setInterval(updateCalendarState, 1000);
+            
+            logEvent('Test setup completato');
+        });
+        
+        // Intercetta errori globali
+        window.addEventListener('error', function(event) {
+            logEvent('Errore globale: ' + event.error.message);
+        });
+        
+        window.addEventListener('unhandledrejection', function(event) {
+            logEvent('Promise rifiutata: ' + event.reason);
+        });
+    </script>
+</body>
+</html>
+
+

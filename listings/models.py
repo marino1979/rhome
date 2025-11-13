@@ -152,11 +152,16 @@ class Listing(models.Model):
         # Prima salva l'oggetto
          super().save(*args, **kwargs)
     
-    # Aggiorna i totali solo se l'oggetto esiste già
-        if self.pk:
-            self.total_beds = self.count_total_beds()
-            self.total_sleeps = self.count_total_sleeps()
-            super().save(*args, **kwargs)
+    # I campi total_beds, total_sleeps e max_guests vengono gestiti manualmente
+    # dall'admin e non vengono più calcolati automaticamente dalle camere
+    # Se vuoi calcolarli automaticamente, decommenta le righe qui sotto:
+    # if self.pk:
+    #     self.total_beds = self.count_total_beds()
+    #     self.total_sleeps = self.count_total_sleeps()
+    #     super().save(*args, **kwargs)
+    
+    # Salva normalmente
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -164,3 +169,56 @@ class Listing(models.Model):
     class Meta:
         verbose_name = 'Annuncio'
         verbose_name_plural = 'Annunci'
+
+
+class ListingGroup(models.Model):
+    """
+    Gruppo di appartamenti che possono essere prenotati insieme
+    """
+    name = models.CharField(
+        max_length=200, 
+        verbose_name='Nome del gruppo',
+        help_text='Es. "Appartamenti Centro", "Suite Familiari"'
+    )
+    description = models.TextField(
+        blank=True,
+        verbose_name='Descrizione',
+        help_text='Descrizione del gruppo di appartamenti'
+    )
+    listings = models.ManyToManyField(
+        'Listing',
+        verbose_name='Appartamenti',
+        help_text='Seleziona gli appartamenti che possono essere prenotati insieme'
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name='Attivo',
+        help_text='Se disattivo, questo gruppo non apparirà nelle ricerche combinate'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.listings.count()} appartamenti)"
+
+    @property
+    def total_capacity(self):
+        """Capacità totale del gruppo (somma di tutti gli appartamenti)"""
+        return sum(listing.max_guests for listing in self.listings.all())
+
+    @property
+    def total_bedrooms(self):
+        """Totale camere da letto del gruppo"""
+        return sum(listing.bedrooms for listing in self.listings.all())
+
+    @property
+    def total_bathrooms(self):
+        """Totale bagni del gruppo"""
+        from decimal import Decimal
+        total = sum(float(listing.bathrooms) for listing in self.listings.all())
+        return Decimal(str(total)).quantize(Decimal('0.1'))
+
+    class Meta:
+        verbose_name = 'Gruppo di Appartamenti'
+        verbose_name_plural = 'Gruppi di Appartamenti'
+        ordering = ['name']

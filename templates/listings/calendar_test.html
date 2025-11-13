@@ -1,0 +1,522 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}Test Calendario - {{ listing.title }} - Rhome Book{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+  .test-section {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .test-section h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e5e7eb;
+  }
+  .data-display {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-top: 0.5rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  .badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  .badge-success {
+    background-color: #d1fae5;
+    color: #065f46;
+  }
+  .badge-error {
+    background-color: #fee2e2;
+    color: #991b1b;
+  }
+  .badge-warning {
+    background-color: #fef3c7;
+    color: #92400e;
+  }
+  .badge-info {
+    background-color: #dbeafe;
+    color: #1e40af;
+  }
+  .calendar-container {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">🧪 Test Calendario Frontend</h1>
+                <p class="text-gray-600 mt-2">{{ listing.title }} - {{ listing.city }}</p>
+            </div>
+            <a href="{% url 'listings:calendar_test' %}" 
+               class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors">
+                ← Torna alla lista
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Colonna sinistra: Calendario interattivo -->
+        <div class="lg:col-span-1">
+            <div class="test-section">
+                <h3>📅 Calendario Interattivo</h3>
+                <p class="text-sm text-gray-600 mb-4">
+                    Questo è lo stesso calendario usato nella pagina di dettaglio dell'annuncio.
+                    Prova a selezionare date per vedere come reagisce alle indisponibilità.
+                </p>
+                
+                <div class="calendar-container">
+                    <div class="mb-4">
+                        <label for="test-calendar" class="block text-sm font-medium text-gray-700 mb-2">
+                            Seleziona date
+                        </label>
+                        <input id="test-calendar" 
+                               type="text" 
+                               placeholder="Seleziona il periodo di soggiorno" 
+                               class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
+                    </div>
+                    
+                    <div id="test-availability-message" class="hidden mb-2 p-2 rounded-lg text-sm"></div>
+                    
+                    <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <h4 class="font-semibold text-blue-900 mb-2">Informazioni selezione:</h4>
+                        <div id="test-selection-info" class="text-sm text-blue-800">
+                            <p>Nessuna data selezionata</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Colonna destra: Dati di disponibilità -->
+        <div class="lg:col-span-1">
+            <!-- Riepilogo -->
+            <div class="test-section">
+                <h3>📊 Riepilogo Disponibilità</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <span class="text-sm text-gray-600">Periodo analizzato:</span>
+                        <p class="font-semibold">{{ start_date|date:"d/m/Y" }} - {{ end_date|date:"d/m/Y" }}</p>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-600">Giorni totali:</span>
+                        <p class="font-semibold">{{ unavailable_data.metadata.window_days|default:"N/A" }}</p>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-600">Soggiorno minimo:</span>
+                        <p class="font-semibold">{{ unavailable_data.metadata.min_stay|default:"1" }} notte/i</p>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-600">Gap tra prenotazioni:</span>
+                        <p class="font-semibold">{{ unavailable_data.metadata.gap_between_bookings|default:"0" }} giorni</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prenotazioni esistenti -->
+            <div class="test-section">
+                <h3>📋 Prenotazioni Esistenti</h3>
+                {% if bookings %}
+                <div class="space-y-2">
+                    {% for booking in bookings %}
+                    <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                        <div>
+                            <span class="font-medium">{{ booking.check_in_date|date:"d/m/Y" }} → {{ booking.check_out_date|date:"d/m/Y" }}</span>
+                            <span class="text-sm text-gray-600 ml-2">({{ booking.status }})</span>
+                        </div>
+                        <span class="badge badge-{{ booking.status }}">
+                            {{ booking.get_status_display }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-gray-500">Nessuna prenotazione esistente</p>
+                {% endif %}
+            </div>
+
+            <!-- Chiusure -->
+            <div class="test-section">
+                <h3>🚫 Chiusure</h3>
+                {% if closures %}
+                <div class="space-y-2">
+                    {% for closure in closures %}
+                    <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                        <div>
+                            <span class="font-medium">{{ closure.start_date|date:"d/m/Y" }} → {{ closure.end_date|date:"d/m/Y" }}</span>
+                            {% if closure.reason %}
+                            <span class="text-sm text-gray-600 ml-2">({{ closure.reason }})</span>
+                            {% endif %}
+                        </div>
+                        {% if closure.is_external_booking %}
+                        <span class="badge badge-warning">iCal</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-gray-500">Nessuna chiusura configurata</p>
+                {% endif %}
+            </div>
+
+            <!-- Regole Check-in/Check-out -->
+            <div class="test-section">
+                <h3>⚙️ Regole Check-in/Check-out</h3>
+                {% if checkinout_rules %}
+                <div class="space-y-2">
+                    {% for rule in checkinout_rules %}
+                    <div class="p-2 bg-gray-50 rounded">
+                        <span class="font-medium">{{ rule.get_rule_type_display }}</span>
+                        <span class="text-sm text-gray-600 ml-2">
+                            {% if rule.recurrence_type == 'specific_date' %}
+                            - {{ rule.specific_date|date:"d/m/Y" }}
+                            {% else %}
+                            - Ogni {{ rule.get_day_of_week_display|default:"N/A" }}
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-gray-500">Nessuna regola configurata</p>
+                {% endif %}
+            </div>
+
+            <!-- Range Bloccati -->
+            <div class="test-section">
+                <h3>🚫 Range Bloccati</h3>
+                {% if unavailable_data.blocked_ranges %}
+                <div class="space-y-2">
+                    {% for range in unavailable_data.blocked_ranges %}
+                    <div class="p-2 bg-red-50 border border-red-200 rounded">
+                        <span class="font-medium text-red-900">
+                            {{ range.from }} → {{ range.to }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-gray-500">Nessun range bloccato</p>
+                {% endif %}
+            </div>
+
+            <!-- Gap Days -->
+            <div class="test-section">
+                <h3>⏸️ Gap Days</h3>
+                {% if unavailable_data.gap_days %}
+                <p class="text-sm text-gray-600 mb-2">
+                    {{ unavailable_data.gap_days|length }} giorni di gap trovati
+                </p>
+                <div class="max-h-32 overflow-y-auto">
+                    <div class="flex flex-wrap gap-1">
+                        {% for gap_day in unavailable_data.gap_days|slice:":50" %}
+                        <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">{{ gap_day }}</span>
+                        {% endfor %}
+                        {% if unavailable_data.gap_days|length > 50 %}
+                        <span class="text-xs text-gray-500">... e altri {{ unavailable_data.gap_days|length|add:"-50" }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-gray-500">Nessun gap day configurato</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Dati JSON completi -->
+    <div class="test-section mt-6">
+        <h3>🔍 Dati Completi (JSON)</h3>
+        <p class="text-sm text-gray-600 mb-2">
+            Tutti i dati di disponibilità restituiti dall'API:
+        </p>
+        <div class="data-display" id="json-data">
+            <pre id="json-pre">Caricamento...</pre>
+        </div>
+        <button onclick="copyJsonData()" 
+                class="mt-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+            📋 Copia JSON
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/it.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configurazione del calendario di test
+    let bookingRules = {
+        blockedRanges: [],
+        gapDays: [],
+        minStay: 1,
+        maxStay: 30,
+        windowStart: null,
+        windowEnd: null
+    };
+    let checkinBlockedDatesSet = new Set();
+    let checkoutBlockedDatesSet = new Set();
+    let checkinBlockedWeekdays = new Set();
+    let checkoutBlockedWeekdays = new Set();
+    let realCheckinDatesSet = new Set();
+    let gapDaysSet = new Set();
+    
+    // Carica i dati dall'API
+    fetch('{% url "listings:calendar_test_api" listing.slug %}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const payload = data.data;
+                
+                // Popola i dati
+                bookingRules.blockedRanges = payload.blocked_ranges || [];
+                bookingRules.minStay = payload.metadata?.min_stay || 1;
+                bookingRules.maxStay = payload.metadata?.max_stay || 30;
+                bookingRules.windowStart = payload.metadata?.start || null;
+                bookingRules.windowEnd = payload.metadata?.end || null;
+                bookingRules.gapDays = payload.gap_days || [];
+                
+                const checkinBlock = payload.checkin_blocked_rules || {};
+                const checkoutBlock = payload.checkout_blocked_rules || {};
+                
+                checkinBlockedDatesSet = new Set(checkinBlock.dates || []);
+                checkoutBlockedDatesSet = new Set(checkoutBlock.dates || []);
+                checkinBlockedWeekdays = new Set((checkinBlock.weekdays || []).map(Number));
+                checkoutBlockedWeekdays = new Set((checkoutBlock.weekdays || []).map(Number));
+                turnoverDaysSet = new Set(payload.turnover_days || []);
+                gapDaysSet = new Set(payload.gap_days || []);
+
+                // Separate real check-in dates from gap days for gap rule calculations
+                realCheckinDatesSet = new Set(payload.real_checkin_dates || []);
+
+                // I gap days bloccano i check-in: aggiungili all'insieme
+                gapDaysSet.forEach(dateStr => {
+                    checkinBlockedDatesSet.add(dateStr);
+                });
+                
+                // Inizializza il calendario
+                initializeTestCalendar();
+                
+                // Aggiorna il JSON display
+                const jsonPre = document.getElementById('json-pre');
+                if (jsonPre) {
+                    jsonPre.textContent = JSON.stringify(data.data, null, 2);
+                }
+            } else {
+                showTestMessage('Errore nel caricamento dei dati: ' + (data.error || 'Errore sconosciuto'), 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Errore:', error);
+            showTestMessage('Errore di connessione: ' + error.message, 'error');
+        });
+    
+    function initializeTestCalendar() {
+        const calendarInput = document.getElementById('test-calendar');
+        if (!calendarInput) return;
+        
+        // Build disabled dates
+        const disableConfig = [];
+        
+        // Aggiungi range bloccati
+        bookingRules.blockedRanges.forEach(range => {
+            if (range.from && range.to) {
+                disableConfig.push({
+                    from: range.from,
+                    to: range.to
+                });
+            }
+        });
+        
+        // Aggiungi i giorni bloccati per check-in (inclusi i gap days)
+        checkinBlockedDatesSet.forEach(dateStr => {
+            // Converti la stringa data in oggetto Date per formattazione
+            const dateObj = new Date(dateStr);
+            const isoDate = dateObj.toISOString().split('T')[0];
+            disableConfig.push(isoDate);
+        });
+
+        // Assicurati che i gap days siano inseriti nella configurazione
+        gapDaysSet.forEach(dateStr => {
+            const dateObj = new Date(dateStr);
+            const isoDate = dateObj.toISOString().split('T')[0];
+            if (!disableConfig.includes(isoDate)) {
+                disableConfig.push(isoDate);
+            }
+        });
+        
+        // Inizializza Flatpickr
+        if (window.flatpickr && window.flatpickr.l10ns && window.flatpickr.l10ns.it) {
+            flatpickr.localize(flatpickr.l10ns.it);
+        }
+        
+        const calendar = flatpickr(calendarInput, {
+            mode: 'range',
+            dateFormat: 'Y-m-d',
+            locale: 'it',
+            minDate: bookingRules.windowStart || null,
+            maxDate: bookingRules.windowEnd || new Date().fp_incr(365),
+            showMonths: 2,
+            disable: disableConfig,
+            onChange: function(selectedDates, dateStr, instance) {
+                updateSelectionInfo(selectedDates, dateStr);
+            },
+            onDayCreate: function(dObj, dStr, fp, dayElem) {
+                const date = dayElem.dateObj;
+                if (!(date instanceof Date)) return;
+                
+                const isoDate = fp.formatDate(date, 'Y-m-d');
+                const pythonWeekday = (date.getDay() + 6) % 7;
+                
+                // Applica stili per giorni bloccati
+                if (checkinBlockedDatesSet.has(isoDate) || checkinBlockedWeekdays.has(pythonWeekday)) {
+                    dayElem.classList.add('no-checkin-rule');
+                    dayElem.title = 'Check-in non permesso';
+                }
+                
+                // Controlla se è in un range bloccato
+                let isInBlockedRange = false;
+                for (const range of bookingRules.blockedRanges) {
+                    const rangeStart = new Date(range.from);
+                    const rangeEnd = new Date(range.to);
+                    if (date >= rangeStart && date <= rangeEnd) {
+                        isInBlockedRange = true;
+                        break;
+                    }
+                }
+                
+                if (isInBlockedRange) {
+                    dayElem.classList.add('flatpickr-disabled');
+                    dayElem.style.textDecoration = 'line-through';
+                    dayElem.style.opacity = '0.5';
+                }
+            }
+        });
+    }
+    
+    function updateSelectionInfo(selectedDates, dateStr) {
+        const infoDiv = document.getElementById('test-selection-info');
+        if (!infoDiv) return;
+        
+        if (selectedDates.length === 0) {
+            infoDiv.innerHTML = '<p class="text-gray-500">Nessuna data selezionata</p>';
+            return;
+        }
+        
+        if (selectedDates.length === 1) {
+            const checkIn = selectedDates[0];
+            const checkInStr = formatDate(checkIn, 'Y-m-d');
+            const checkInWeekday = (checkIn.getDay() + 6) % 7;
+            
+            let html = '<div class="space-y-2">';
+            html += `<p><strong>Check-in selezionato:</strong> ${formatDate(checkIn, 'd/m/Y')}</p>`;
+            
+            // Verifica se il check-in è bloccato
+            if (checkinBlockedDatesSet.has(checkInStr) || checkinBlockedWeekdays.has(checkInWeekday)) {
+                html += '<p class="text-red-600">⚠️ Check-in non permesso in questa data!</p>';
+            }
+            
+            html += '<p class="text-blue-600">Seleziona la data di check-out...</p>';
+            html += '</div>';
+            infoDiv.innerHTML = html;
+        } else if (selectedDates.length === 2) {
+            const checkIn = selectedDates[0];
+            const checkOut = selectedDates[1];
+            const nights = Math.round((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+            
+            let html = '<div class="space-y-2">';
+            html += `<p><strong>Check-in:</strong> ${formatDate(checkIn, 'd/m/Y')}</p>`;
+            html += `<p><strong>Check-out:</strong> ${formatDate(checkOut, 'd/m/Y')}</p>`;
+            html += `<p><strong>Notti:</strong> ${nights}</p>`;
+            
+            // Validazioni
+            if (nights < bookingRules.minStay) {
+                html += `<p class="text-red-600">❌ Soggiorno minimo: ${bookingRules.minStay} notte/i</p>`;
+            } else if (nights > bookingRules.maxStay) {
+                html += `<p class="text-red-600">❌ Soggiorno massimo: ${bookingRules.maxStay} notte/i</p>`;
+            } else {
+                html += '<p class="text-green-600">✅ Periodo valido!</p>';
+            }
+            
+            html += '</div>';
+            infoDiv.innerHTML = html;
+        }
+    }
+    
+    function formatDate(date, format) {
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        
+        if (format === 'Y-m-d') {
+            return `${year}-${month}-${day}`;
+        }
+        return `${day}/${month}/${year}`;
+    }
+    
+    function showTestMessage(message, type) {
+        const messageDiv = document.getElementById('test-availability-message');
+        if (!messageDiv) return;
+        
+        messageDiv.textContent = message;
+        messageDiv.className = 'mb-2 p-2 rounded-lg text-sm';
+        
+        if (type === 'success') {
+            messageDiv.classList.add('bg-green-100', 'text-green-800');
+        } else if (type === 'error') {
+            messageDiv.classList.add('bg-red-100', 'text-red-800');
+        } else if (type === 'warning') {
+            messageDiv.classList.add('bg-yellow-100', 'text-yellow-800');
+        } else {
+            messageDiv.classList.add('bg-blue-100', 'text-blue-800');
+        }
+        
+        messageDiv.classList.remove('hidden');
+    }
+    
+    function copyJsonData() {
+        const jsonPre = document.getElementById('json-pre');
+        const jsonData = jsonPre ? jsonPre.textContent : '';
+        navigator.clipboard.writeText(jsonData).then(() => {
+            showTestMessage('JSON copiato negli appunti!', 'success');
+            setTimeout(() => {
+                document.getElementById('test-availability-message').classList.add('hidden');
+            }, 2000);
+        }).catch(err => {
+            showTestMessage('Errore nella copia: ' + err.message, 'error');
+        });
+    }
+    
+    window.copyJsonData = copyJsonData;
+});
+</script>
+{% endblock %}
+

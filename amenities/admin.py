@@ -2,15 +2,16 @@ from django.contrib import admin
 from django.utils.html import format_html
 from .models import Amenity, AmenityCategory
 from .widgets import IconSelectWidget
-from modeltranslation.admin import TabbedTranslationAdmin
+# Temporaneamente disabilitato per risolvere errore di compatibilità
+# from modeltranslation.admin import TabbedTranslationAdmin
 @admin.register(AmenityCategory)
-class AmenityCategoryAdmin(TabbedTranslationAdmin):
+class AmenityCategoryAdmin(admin.ModelAdmin):
     list_display = ['name', 'order']
     search_fields = ['name']
     ordering = ['order', 'name']
 
 @admin.register(Amenity)
-class AmenityAdmin(TabbedTranslationAdmin):
+class AmenityAdmin(admin.ModelAdmin):
     list_display = ['amenity_name_with_icon', 'category', 'is_popular', 'order']
     list_filter = ['category', 'is_popular']
     search_fields = ['name', 'description']

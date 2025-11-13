@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Mie Prenotazioni - Rhome Book</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .booking-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .booking-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .booking-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .booking-title {
+            color: #007bff;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .status-badge {
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-confirmed { background: #28a745; color: white; }
+        .status-pending { background: #ffc107; color: black; }
+        .status-cancelled { background: #dc3545; color: white; }
+        .status-completed { background: #6c757d; color: white; }
+        .booking-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .info-item {
+            text-align: center;
+        }
+        .info-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            font-weight: bold;
+        }
+        .booking-actions {
+            text-align: right;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Le Mie Prenotazioni</h1>
+        <p>Benvenuto, {{ user.get_full_name|default:user.username }}!</p>
+    </div>
+
+    {% if bookings %}
+        {% for booking in bookings %}
+        <div class="booking-card">
+            <div class="booking-header">
+                <div class="booking-title">{{ booking.listing.title }}</div>
+                <span class="status-badge status-{{ booking.status }}">{{ booking.get_status_display }}</span>
+            </div>
+
+            <div class="booking-info">
+                <div class="info-item">
+                    <div class="info-label">Check-in</div>
+                    <div class="info-value">{{ booking.check_in_date|date:"d/m/Y" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Check-out</div>
+                    <div class="info-value">{{ booking.check_out_date|date:"d/m/Y" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Ospiti</div>
+                    <div class="info-value">{{ booking.num_guests }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Totale</div>
+                    <div class="info-value">€{{ booking.total_amount }}</div>
+                </div>
+            </div>
+
+            <div class="booking-actions">
+                <a href="{% url 'bookings:booking_detail' booking.id %}" class="btn">Vedi Dettagli</a>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <h3>Nessuna prenotazione trovata</h3>
+            <p>Non hai ancora effettuato prenotazioni.</p>
+            <a href="/appartamenti/" class="btn">Esplora gli Appartamenti</a>
+        </div>
+    {% endif %}
+</body>
+</html>

@@ -1,7 +1,9 @@
 # calendar_rules/admin.py
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import ClosureRule, CheckInOutRule, PriceRule
+from django.urls import reverse
+from django.utils.safestring import mark_safe
+from .models import ClosureRule, CheckInOutRule, PriceRule, ExternalCalendar
 from .forms import PriceRuleForm
 from django.contrib import messages  # Questo è l'import corretto
 from datetime import timedelta, date  # aggiungiamo l'import di timedelta
@@ -43,99 +45,126 @@ class CheckInOutRuleAdmin(admin.ModelAdmin):
             return f"Data: {obj.specific_date}"
         else:
             days = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica']
-            return f"Ogni {days[obj.day_of_week]}"
+            return f"Giorno: {days[obj.day_of_week]}"
     get_restriction_display.short_description = 'Restrizione'
-
-    class Media:
-        js = ('admin/js/calendar_rules.js',)  # Per gestire la visualizzazione condizionale dei campi
 
 @admin.register(PriceRule)
 class PriceRuleAdmin(admin.ModelAdmin):
     form = PriceRuleForm
-    list_display = ['listing', 'start_date', 'end_date', 'get_price_display', 'min_nights']
-    list_filter = ['listing']
+    list_display = ['listing', 'start_date', 'end_date', 'price', 'min_nights']
+    list_filter = ['listing', 'start_date']
     search_fields = ['listing__title']
+    date_hierarchy = 'start_date'
+    
+    fieldsets = (
+        ('Informazioni Base', {
+            'fields': ('listing',)
+        }),
+        ('Periodo', {
+            'fields': (('start_date', 'end_date'),),
+            'description': 'Definisci il periodo di validità della regola'
+        }),
+        ('Prezzo', {
+            'fields': ('price',),
+            'description': 'Prezzo per notte per questo periodo'
+        }),
+        ('Regole', {
+            'fields': ('min_nights',),
+            'classes': ('collapse',),
+            'description': 'Soggiorno minimo per questo periodo'
+        }),
+    )
 
-    def save_model(self, request, obj, form, change):
-        try:
-            # Verifica sovrapposizioni esatte
-            existing_exact = PriceRule.objects.filter(
-                listing=obj.listing,
-                start_date=obj.start_date,
-                end_date=obj.end_date
-            )
-            if obj.pk:
-                existing_exact = existing_exact.exclude(pk=obj.pk)
-
-            if existing_exact.exists() and not form.cleaned_data.get('confirm_override'):
-                messages.warning(
-                    request,
-                    'Esiste già una regola per questo periodo. '
-                    'Spunta "Sovrascrivi regole esistenti" per procedere.'
-                )
-                return
-
-            # Verifica sovrapposizioni parziali
-            overlapping = PriceRule.objects.filter(
-                listing=obj.listing,
-                start_date__lte=obj.end_date,
-                end_date__gte=obj.start_date
-            )
-            if obj.pk:
-                overlapping = overlapping.exclude(pk=obj.pk)
-
-            if overlapping.exists():
-                if form.cleaned_data.get('confirm_override'):
-                    self.handle_overlapping_rules(obj, overlapping)
-                    messages.success(
-                        request,
-                        'Regola salvata. Le regole sovrapposte sono state aggiornate.'
-                    )
-                else:
-                    overlap_msg = "Questa regola si sovrappone con:\n"
-                    for rule in overlapping:
-                        overlap_msg += f"• {rule.start_date} - {rule.end_date}: €{rule.price}\n"
-                    overlap_msg += "\nSpunta 'Sovrascrivi regole esistenti' per procedere."
-                    messages.warning(request, overlap_msg)
-                    return
-
-            super().save_model(request, obj, form, change)
-
-        except Exception as e:
-            messages.error(request, f"Errore nel salvare la regola: {str(e)}")
-
-    def handle_overlapping_rules(self, new_rule, overlapping_rules):
-        """Gestisce le regole sovrapposte"""
-        for old_rule in overlapping_rules:
-            # Se la vecchia regola inizia prima
-            if old_rule.start_date < new_rule.start_date:
-                old_rule.end_date = new_rule.start_date - timedelta(days=1)
-                old_rule.save()
-                
-            # Se la vecchia regola finisce dopo
-            if old_rule.end_date > new_rule.end_date:
-                PriceRule.objects.create(
-                    listing=old_rule.listing,
-                    start_date=new_rule.end_date + timedelta(days=1),
-                    end_date=old_rule.end_date,
-                    price=old_rule.price,
-                    min_nights=old_rule.min_nights
-                )
-            
-            # Se la vecchia regola è completamente contenuta
-            if (old_rule.start_date >= new_rule.start_date and 
-                old_rule.end_date <= new_rule.end_date):
-                old_rule.delete()
-
-    def get_price_display(self, obj):
-        base_price = obj.listing.base_price
-        difference = obj.price - base_price
-        color = 'green' if difference > 0 else 'red' if difference < 0 else 'black'
+@admin.register(ExternalCalendar)
+class ExternalCalendarAdmin(admin.ModelAdmin):
+    list_display = [
+        'name', 'listing', 'provider', 'is_active', 
+        'last_sync_status_display', 'last_sync'
+    ]
+    list_filter = ['provider', 'is_active', 'last_sync_status', 'listing']
+    search_fields = ['name', 'listing__title', 'ical_url']
+    readonly_fields = ['last_sync', 'last_sync_status', 'last_sync_error', 'created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Informazioni Base', {
+            'fields': ('listing', 'name', 'provider')
+        }),
+        ('Configurazione iCal', {
+            'fields': ('ical_url', 'is_active', 'sync_interval_minutes')
+        }),
+        ('Stato Sincronizzazione', {
+            'fields': ('last_sync', 'last_sync_status', 'last_sync_error'),
+            'classes': ('collapse',)
+        }),
+        ('Metadati', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    actions = ['sync_selected_calendars']
+    
+    def last_sync_status_display(self, obj):
+        """Mostra lo stato della sincronizzazione con colori"""
+        colors = {
+            'success': 'green',
+            'error': 'red',
+            'pending': 'orange',
+        }
+        color = colors.get(obj.last_sync_status, 'gray')
+        status_display = obj.get_last_sync_status_display()
         return format_html(
-            '€{} <span style="color: {};">({}€ {})</span>',
-            obj.price,
+            '<span style="color: {}; font-weight: bold;">{}</span>',
             color,
-            abs(difference),
-            '+' if difference > 0 else '-'
+            status_display
         )
-    get_price_display.short_description = 'Prezzo (differenza)'
+    last_sync_status_display.short_description = 'Stato'
+    
+    def sync_selected_calendars(self, request, queryset):
+        """Azione per sincronizzare i calendari selezionati"""
+        from calendar_rules.services.ical_sync import ICalSyncService
+        
+        synced = 0
+        errors = 0
+        
+        for calendar in queryset:
+            if not calendar.is_active:
+                self.message_user(
+                    request,
+                    f'Calendario {calendar.name} non è attivo, saltato.',
+                    level=messages.WARNING
+                )
+                continue
+            
+            service = ICalSyncService(calendar)
+            success, error = service.sync()
+            
+            if success:
+                synced += 1
+                self.message_user(
+                    request,
+                    f'Calendario {calendar.name} sincronizzato con successo.',
+                    level=messages.SUCCESS
+                )
+            else:
+                errors += 1
+                self.message_user(
+                    request,
+                    f'Errore sincronizzazione {calendar.name}: {error}',
+                    level=messages.ERROR
+                )
+        
+        if synced > 0:
+            self.message_user(
+                request,
+                f'{synced} calendario/i sincronizzato/i con successo.',
+                level=messages.SUCCESS
+            )
+        if errors > 0:
+            self.message_user(
+                request,
+                f'{errors} errore/i durante la sincronizzazione.',
+                level=messages.ERROR
+            )
+    
+    sync_selected_calendars.short_description = 'Sincronizza calendari selezionati'

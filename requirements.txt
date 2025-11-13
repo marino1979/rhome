@@ -1,0 +1,35 @@
+# Django Core
+Django>=5.1.4,<5.2.0
+
+# Django REST Framework
+djangorestframework>=3.14.0
+
+# Internationalization
+django-modeltranslation>=0.18.12
+
+# Authentication & OAuth
+django-allauth>=0.57.0  # Per login social (Facebook, Google, ecc.)
+requests>=2.31.0  # Richiesto da django-allauth per provider social
+PyJWT>=2.8.0  # Richiesto da django-allauth per JWT
+cryptography>=41.0.0  # Richiesto da django-allauth per provider Facebook
+
+# Database (SQLite è incluso in Python, ma può essere sostituito con PostgreSQL)
+# psycopg2-binary>=2.9.9  # Per PostgreSQL (decommentare se necessario)
+
+# File handling (già incluso in Django, ma utile per validazione)
+Pillow>=10.0.0  # Per gestione immagini
+
+# Testing (opzionale ma consigliato)
+pytest>=7.4.0
+pytest-django>=4.7.0
+
+# Development tools (opzionali)
+python-decouple>=3.8  # Per gestione variabili d'ambiente
+django-debug-toolbar>=4.2.0  # Per debug in sviluppo
+
+# Date/Time utilities (già incluse in Python, ma alcune app potrebbero richiederle)
+python-dateutil>=2.8.2
+
+# iCal parsing and synchronization
+icalendar>=5.0.0
+

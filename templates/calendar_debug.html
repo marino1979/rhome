@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Calendario - Listing</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #34495e;
+            background: #ecf0f1;
+            padding: 10px;
+            border-left: 4px solid #3498db;
+            margin-top: 30px;
+        }
+        
+        h3 {
+            color: #2c3e50;
+            margin-top: 20px;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .success-box {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        
+        .error-box {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .date-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 5px;
+            margin: 10px 0;
+        }
+        
+        .date-item {
+            background: #e74c3c;
+            color: white;
+            padding: 5px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            text-align: center;
+        }
+        
+        .date-item.checkin {
+            background: #e74c3c;
+        }
+        
+        .date-item.checkout {
+            background: #9b59b6;
+        }
+        
+        .date-item.gap {
+            background: #f39c12;
+        }
+        
+        .date-item.turnover {
+            background: #27ae60;
+        }
+        
+        .date-item.interior {
+            background: #34495e;
+        }
+        
+        .booking-card {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .booking-header {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .gap-analysis {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .rule-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 5px 0;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .controls {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .controls input, .controls button {
+            margin: 5px;
+            padding: 8px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+        }
+        
+        .controls button {
+            background: #3498db;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .controls button:hover {
+            background: #2980b9;
+        }
+        
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: #3498db;
+            color: white;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug Calendario - Listing <span id="listing-id">Loading...</span></h1>
+        
+        <div class="controls">
+            <label>Giorni da analizzare:</label>
+            <input type="number" id="days-input" value="60" min="1" max="365">
+            
+            <label>Data inizio (YYYY-MM-DD):</label>
+            <input type="date" id="start-date-input">
+            
+            <button onclick="loadDebugData()">🔄 Aggiorna Debug</button>
+        </div>
+        
+        <div id="loading" class="loading">
+            <h3>Caricamento dati di debug...</h3>
+        </div>
+        
+        <div id="debug-content" style="display: none;">
+            <!-- Il contenuto verrà popolato dinamicamente -->
+        </div>
+    </div>
+
+    <script>
+        let currentListingId = null;
+        
+        // Ottieni l'ID del listing dall'URL
+        function getListingIdFromUrl() {
+            const path = window.location.pathname;
+            const matches = path.match(/\/debug-page\/(\d+)\//);
+            return matches ? matches[1] : null;
+        }
+        
+        // Carica i dati di debug
+        async function loadDebugData() {
+            const listingId = getListingIdFromUrl();
+            if (!listingId) {
+                showError('ID listing non trovato nell\'URL');
+                return;
+            }
+            
+            currentListingId = listingId;
+            document.getElementById('listing-id').textContent = listingId;
+            
+            const days = document.getElementById('days-input').value;
+            const startDate = document.getElementById('start-date-input').value;
+            
+            const params = new URLSearchParams({
+                days: days
+            });
+            
+            if (startDate) {
+                params.append('start_date', startDate);
+            }
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('debug-content').style.display = 'none';
+            
+            try {
+                const response = await fetch(`/api/debug/${listingId}/?${params}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayDebugData(data);
+                } else {
+                    showError(data.error || 'Errore durante il caricamento dei dati');
+                }
+            } catch (error) {
+                showError('Errore di rete: ' + error.message);
+            }
+        }
+        
+        // Mostra i dati di debug
+        function displayDebugData(data) {
+            const content = document.getElementById('debug-content');
+            
+            content.innerHTML = `
+                <!-- Info Listing -->
+                <div class="info-box success-box">
+                    <h3>🏠 Informazioni Listing</h3>
+                    <p><strong>ID:</strong> ${data.listing_info.id}</p>
+                    <p><strong>Titolo:</strong> ${data.listing_info.title || 'N/A'}</p>
+                    <p><strong>Gap tra prenotazioni:</strong> ${data.listing_info.gap_between_bookings} giorni</p>
+                </div>
+                
+                <!-- Periodo Analizzato -->
+                <div class="info-box">
+                    <h3>📅 Periodo Analizzato</h3>
+                    <p><strong>Da:</strong> ${data.period_info.start_date}</p>
+                    <p><strong>A:</strong> ${data.period_info.end_date}</p>
+                    <p><strong>Giorni totali:</strong> ${data.period_info.total_days}</p>
+                </div>
+                
+                <!-- Statistiche Riepilogative -->
+                <h2>📊 Statistiche Riepilogative</h2>
+                <div class="summary-stats">
+                    <div class="stat-card">
+                        <div class="stat-number">${data.summary.total_blocked_ranges}</div>
+                        <div class="stat-label">Range Bloccati</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${data.summary.total_checkin_dates}</div>
+                        <div class="stat-label">Check-in Dates</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${data.summary.total_checkout_dates}</div>
+                        <div class="stat-label">Check-out Dates</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${data.summary.total_gap_days}</div>
+                        <div class="stat-label">Gap Days</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${data.summary.total_checkin_blocked_rules}</div>
+                        <div class="stat-label">Check-in Bloccati (Regole)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${data.summary.total_checkin_blocked_gap}</div>
+                        <div class="stat-label">Check-in Bloccati (Gap)</div>
+                    </div>
+                </div>
+                
+                <!-- Risultati Finali - NUOVA STRUTTURA -->
+                ${generateFinalResults(data.results)}
+                
+                <!-- Sezioni di Analisi Dettagliata (Opzionali - Espandi per vedere) -->
+                <details style="margin-top: 30px;">
+                    <summary><h2 style="display: inline; cursor: pointer;">📋 Analisi Dettagliata Prenotazioni (Vecchia Logica - Espandi)</h2></summary>
+                    ${generateBookingsAnalysis(data.detailed_analysis.bookings_analysis)}
+                    ${generateGapDaysAnalysis(data.detailed_analysis.gap_days_analysis)}
+                    ${generateRulesAnalysis(data.detailed_analysis.rules_analysis)}
+                </details>
+                
+                <!-- Dati Raw -->
+                <details>
+                    <summary><h2>🔧 Dati Raw (Espandi per dettagli tecnici)</h2></summary>
+                    <pre style="background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto;">${JSON.stringify(data.raw_data, null, 2)}</pre>
+                </details>
+            `;
+            
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('debug-content').style.display = 'block';
+        }
+        
+        // Genera l'analisi delle prenotazioni
+        function generateBookingsAnalysis(bookings) {
+            if (bookings.length === 0) {
+                return `
+                    <h2>📋 Analisi Prenotazioni</h2>
+                    <div class="info-box warning-box">
+                        <p><strong>Nessuna prenotazione trovata nel periodo analizzato.</strong></p>
+                    </div>
+                `;
+            }
+            
+            let html = '<h2>📋 Analisi Prenotazioni</h2>';
+            
+            bookings.forEach(booking => {
+                html += `
+                    <div class="booking-card">
+                        <div class="booking-header">Prenotazione ${booking.booking_number}</div>
+                        <p><strong>Check-in:</strong> ${booking.check_in || 'N/A'}</p>
+                        <p><strong>Check-out:</strong> ${booking.check_out || 'N/A'}</p>
+                        <p><strong>Durata:</strong> ${booking.duration_days} giorni</p>
+                        
+                        ${booking.blocks_interior_days.length > 0 ? `
+                            <h4>🚫 Giorni Interni Bloccati (${booking.blocks_interior_days.length}):</h4>
+                            <div class="date-list">
+                                ${booking.blocks_interior_days.map(date => `<div class="date-item interior">${date}</div>`).join('')}
+                            </div>
+                        ` : ''}
+                        
+                        ${booking.blocks_gap_days_before.length > 0 ? `
+                            <h4>⏰ Gap Days Prima Check-in (${booking.blocks_gap_days_before.length}):</h4>
+                            <div class="date-list">
+                                ${booking.blocks_gap_days_before.map(date => `<div class="date-item gap">${date}</div>`).join('')}
+                            </div>
+                        ` : ''}
+                        
+                        ${booking.blocks_gap_days_after.length > 0 ? `
+                            <h4>⏰ Gap Days Dopo Check-out (${booking.blocks_gap_days_after.length}):</h4>
+                            <div class="date-list">
+                                ${booking.blocks_gap_days_after.map(date => `<div class="date-item gap">${date}</div>`).join('')}
+                            </div>
+                        ` : ''}
+                        
+                        ${booking.blocks_checkin_date.length > 0 ? `
+                            <h4>🚫 Check-in Bloccato:</h4>
+                            <div class="date-list">
+                                ${booking.blocks_checkin_date.map(date => `<div class="date-item checkin">${date}</div>`).join('')}
+                            </div>
+                        ` : ''}
+                        
+                        ${booking.provides_turnover_day ? `
+                            <h4>🔄 Turnover Day (Check-out disponibile per nuovi check-in):</h4>
+                            <div class="date-list">
+                                <div class="date-item turnover">${booking.provides_turnover_day}</div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+            
+            return html;
+        }
+        
+        // Genera l'analisi dei gap days
+        function generateGapDaysAnalysis(gapAnalysis) {
+            let html = '<h2>⏰ Analisi Gap Days</h2>';
+            
+            html += `
+                <div class="gap-analysis">
+                    <h3>${gapAnalysis.message}</h3>
+                    <p><strong>Gap configurato:</strong> ${gapAnalysis.gap_days_configured} giorni</p>
+                    <p><strong>Totale giorni bloccati dai gap:</strong> ${gapAnalysis.total_gap_days_blocked}</p>
+                </div>
+            `;
+            
+            if (gapAnalysis.gap_days_details.length > 0) {
+                html += '<h3>Dettaglio Gap Days per Prenotazione:</h3>';
+                
+                gapAnalysis.gap_days_details.forEach(detail => {
+                    html += `
+                        <div class="booking-card">
+                            <div class="booking-header">Prenotazione ${detail.booking_number}</div>
+                            <p><strong>Check-in:</strong> ${detail.check_in}</p>
+                            <p><strong>Check-out:</strong> ${detail.check_out}</p>
+                            <p><strong>Totale gap days per questa prenotazione:</strong> ${detail.total_gap_days_for_booking}</p>
+                            
+                            ${detail.gap_days_before.length > 0 ? `
+                                <h4>Gap prima check-in (${detail.gap_days_before.length} giorni):</h4>
+                                <div class="date-list">
+                                    ${detail.gap_days_before.map(date => `<div class="date-item gap">${date}</div>`).join('')}
+                                </div>
+                            ` : ''}
+                            
+                            ${detail.gap_days_after.length > 0 ? `
+                                <h4>Gap dopo check-out (${detail.gap_days_after.length} giorni):</h4>
+                                <div class="date-list">
+                                    ${detail.gap_days_after.map(date => `<div class="date-item gap">${date}</div>`).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+            }
+            
+            return html;
+        }
+        
+        // Genera l'analisi delle regole
+        function generateRulesAnalysis(rulesAnalysis) {
+            let html = '<h2>📋 Analisi Regole Check-in/out</h2>';
+            
+            if (rulesAnalysis.checkin_rules.length > 0) {
+                html += '<h3>Regole Check-in:</h3>';
+                rulesAnalysis.checkin_rules.forEach(rule => {
+                    html += `
+                        <div class="rule-item">
+                            <p><strong>${rule.description}</strong></p>
+                            <p><strong>Tipo:</strong> ${rule.recurrence_type}</p>
+                            ${rule.blocks_dates.length > 0 ? `<p><strong>Date bloccate:</strong> ${rule.blocks_dates.join(', ')}</p>` : ''}
+                            ${rule.blocks_weekdays.length > 0 ? `<p><strong>Giorni settimana bloccati:</strong> ${rule.blocks_weekdays.map(d => ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'][d]).join(', ')}</p>` : ''}
+                        </div>
+                    `;
+                });
+            }
+            
+            if (rulesAnalysis.checkout_rules.length > 0) {
+                html += '<h3>Regole Check-out:</h3>';
+                rulesAnalysis.checkout_rules.forEach(rule => {
+                    html += `
+                        <div class="rule-item">
+                            <p><strong>${rule.description}</strong></p>
+                            <p><strong>Tipo:</strong> ${rule.recurrence_type}</p>
+                            ${rule.blocks_dates.length > 0 ? `<p><strong>Date bloccate:</strong> ${rule.blocks_dates.join(', ')}</p>` : ''}
+                            ${rule.blocks_weekdays.length > 0 ? `<p><strong>Giorni settimana bloccati:</strong> ${rule.blocks_weekdays.map(d => ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'][d]).join(', ')}</p>` : ''}
+                        </div>
+                    `;
+                });
+            }
+            
+            if (rulesAnalysis.checkin_rules.length === 0 && rulesAnalysis.checkout_rules.length === 0) {
+                html += '<div class="info-box warning-box"><p>Nessuna regola di check-in/out trovata.</p></div>';
+            }
+            
+            return html;
+        }
+        
+        // Genera i risultati finali con la NUOVA STRUTTURA
+        function generateFinalResults(results) {
+            return `
+                <h2>🎯 Risultati Finali (Nuova Struttura Separata)</h2>
+                
+                <h3>1️⃣ Range Bloccati - Giorni Occupati (${results.blocked_ranges.length}):</h3>
+                ${results.blocked_ranges.length > 0 ? `
+                    <div class="info-box">
+                        ${results.blocked_ranges.map(range => `
+                            <p><strong>${range.from} → ${range.to}</strong> - ${range.reason}</p>
+                        `).join('')}
+                    </div>
+                ` : '<div class="info-box success-box"><p>Nessun range bloccato.</p></div>'}
+                
+                <h3>2️⃣ Check-in Dates - Date di Arrivo (${results.checkin_dates.length}):</h3>
+                ${results.checkin_dates.length > 0 ? `
+                    <div class="date-list">
+                        ${results.checkin_dates.map(item => `<div class="date-item checkin" title="${item.reason}">${item.date}</div>`).join('')}
+                    </div>
+                ` : '<div class="info-box warning-box"><p>Nessuna data di check-in.</p></div>'}
+                
+                <h3>3️⃣ Check-out Dates - Date di Partenza (${results.checkout_dates.length}):</h3>
+                ${results.checkout_dates.length > 0 ? `
+                    <div class="date-list">
+                        ${results.checkout_dates.map(item => `<div class="date-item checkout" title="${item.reason}">${item.date}</div>`).join('')}
+                    </div>
+                ` : '<div class="info-box warning-box"><p>Nessuna data di check-out.</p></div>'}
+                
+                <h3>4️⃣ Gap Days - Giorni di Pulizia/Preparazione (${results.gap_days.length}):</h3>
+                ${results.gap_days.length > 0 ? `
+                    <div class="date-list">
+                        ${results.gap_days.map(item => `<div class="date-item gap" title="${item.reason}">${item.date}</div>`).join('')}
+                    </div>
+                ` : '<div class="info-box success-box"><p>Nessun gap day configurato.</p></div>'}
+                
+                <h3>5️⃣ Check-in Bloccati da Regole (${results.checkin_blocked_rules.dates.length} date + ${results.checkin_blocked_rules.weekdays.length} giorni settimana):</h3>
+                ${results.checkin_blocked_rules.dates.length > 0 ? `
+                    <div class="date-list">
+                        ${results.checkin_blocked_rules.dates.map(item => `<div class="date-item checkin" title="${item.reason}">${item.date}</div>`).join('')}
+                    </div>
+                ` : ''}
+                ${results.checkin_blocked_rules.weekdays_names.length > 0 ? `
+                    <p><strong>Giorni settimana bloccati per check-in:</strong> ${results.checkin_blocked_rules.weekdays_names.join(', ')}</p>
+                ` : ''}
+                ${results.checkin_blocked_rules.dates.length === 0 && results.checkin_blocked_rules.weekdays.length === 0 ? '<div class="info-box success-box"><p>Nessuna regola di blocco check-in.</p></div>' : ''}
+                
+                <h3>6️⃣ Check-out Bloccati da Regole (${results.checkout_blocked_rules.dates.length} date + ${results.checkout_blocked_rules.weekdays.length} giorni settimana):</h3>
+                ${results.checkout_blocked_rules.dates.length > 0 ? `
+                    <div class="date-list">
+                        ${results.checkout_blocked_rules.dates.map(item => `<div class="date-item checkout" title="${item.reason}">${item.date}</div>`).join('')}
+                    </div>
+                ` : ''}
+                ${results.checkout_blocked_rules.weekdays_names.length > 0 ? `
+                    <p><strong>Giorni settimana bloccati per check-out:</strong> ${results.checkout_blocked_rules.weekdays_names.join(', ')}</p>
+                ` : ''}
+                ${results.checkout_blocked_rules.dates.length === 0 && results.checkout_blocked_rules.weekdays.length === 0 ? '<div class="info-box success-box"><p>Nessuna regola di blocco check-out.</p></div>' : ''}
+                
+                <h3>7️⃣ Check-in Bloccati da Gap + Min Nights (${results.checkin_blocked_gap.length}):</h3>
+                ${results.checkin_blocked_gap.length > 0 ? `
+                    <div class="info-box warning-box">
+                        <p><strong>Questi giorni sono bloccati per check-in a causa della combinazione di gap days e durata minima del soggiorno.</strong></p>
+                    </div>
+                    <div class="date-list">
+                        ${results.checkin_blocked_gap.map(item => `<div class="date-item gap" title="${item.reason}">${item.date}</div>`).join('')}
+                    </div>
+                ` : '<div class="info-box success-box"><p>Nessun blocco da gap + min nights.</p></div>'}
+            `;
+        }
+        
+        // Mostra errore
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('debug-content').innerHTML = `
+                <div class="info-box error-box">
+                    <h3>❌ Errore</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+            document.getElementById('debug-content').style.display = 'block';
+        }
+        
+        // Inizializza la pagina
+        document.addEventListener('DOMContentLoaded', function() {
+            // Imposta la data di oggi come default
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('start-date-input').value = today;
+            
+            // Carica i dati
+            loadDebugData();
+        });
+    </script>
+</body>
+</html>

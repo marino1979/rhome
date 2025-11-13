@@ -2,6 +2,86 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load listing_filters %}
+
+{% block extra_css %}
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+    /* Stili calendario Flatpickr */
+    .flatpickr-calendar .dayContainer {
+        justify-content: flex-start !important;
+    }
+
+    .flatpickr-calendar .flatpickr-day {
+        flex: 0 0 14.2857% !important;
+        max-width: 14.2857% !important;
+    }
+
+    .flatpickr-calendar .flatpickr-disabled {
+        text-decoration: line-through !important;
+        font-weight: 300 !important;
+        cursor: not-allowed !important;
+        opacity: 0.5 !important;
+        background-color: #f5f5f5 !important;
+    }
+
+    /* Regola specifica per giorni selezionati con flatpickr-disabled */
+    .flatpickr-calendar .flatpickr-day.selected.flatpickr-disabled,
+    .flatpickr-calendar .flatpickr-day.flatpickr-disabled.selected,
+    .flatpickr-calendar .flatpickr-day.startRange.flatpickr-disabled,
+    .flatpickr-calendar .flatpickr-day.flatpickr-disabled.startRange {
+        opacity: 1 !important;
+        background-color: #569ff7 !important;
+        color: white !important;
+        font-weight: 700 !important;
+        text-decoration: none !important;
+        border: 2px solid #569ff7 !important;
+        box-shadow: 0 0 0 2px #569ff7 !important;
+    }
+
+
+
+    .flatpickr-calendar .no-checkin-rule {
+        font-weight: 300 !important;
+        cursor: not-allowed !important;
+    }
+
+    .flatpickr-calendar .no-checkin-rule.available-for-checkout {
+        font-weight: 700 !important;
+        cursor: pointer !important;
+    }
+
+    .flatpickr-calendar .checkout-available {
+        background-color: #f0f9ff !important;
+        border: 1px solid #7dd3fc !important;
+    }
+
+    .flatpickr-calendar .flatpickr-day:not(.flatpickr-disabled):not(.no-checkin-rule):not(.no-checkout-rule) {
+        font-weight: 700 !important;
+    }
+
+    .flatpickr-calendar .no-checkout-rule {
+        font-weight: 300 !important;
+        cursor: not-allowed !important;
+    }
+
+    .flatpickr-calendar {
+        position: absolute !important;
+        z-index: 9999 !important;
+    }
+
+    #availability-message {
+        position: relative;
+        z-index: 1;
+    }
+
+    #calendar {
+        position: relative;
+        z-index: 1;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
   
 
@@ -32,6 +112,61 @@
           {% endblocktrans %}
                
       </div>
+
+      <!-- Box Ricerca Combinata -->
+      <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl shadow-sm p-6 mb-10 max-w-4xl mx-auto">
+        <div class="text-center mb-6">
+          <h3 class="text-xl font-bold text-gray-900 mb-2">🏠 Ricerca Disponibilità Combinata</h3>
+          <p class="text-gray-600 text-sm">Trova la combinazione perfetta di appartamenti per il tuo gruppo</p>
+          <p class="text-gray-500 text-xs mt-2">
+            <i class="fas fa-info-circle mr-1"></i>
+            Le combinazioni sono predefinite dall'host per garantire la migliore esperienza
+          </p>
+        </div>
+        
+        <form id="combinedSearchForm" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label for="calendar" class="block text-sm font-medium text-gray-700 mb-1">Seleziona Date</label>
+            <div id="availability-message" class="hidden mb-2 p-2 rounded-lg text-sm">
+              <span id="availability-text"></span>
+            </div>
+            <input id="calendar" type="text" placeholder="Seleziona il periodo di soggiorno" 
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer" readonly>
+          </div>
+          
+          <input type="hidden" id="check_in" name="check_in">
+          <input type="hidden" id="check_out" name="check_out">
+          
+          <div>
+            <label for="total_guests" class="block text-sm font-medium text-gray-700 mb-1">Ospiti</label>
+            <input type="number" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" id="total_guests" name="total_guests" min="1" max="7" value="4" required>
+          </div>
+          
+          <div class="flex items-end">
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center" id="searchButton" disabled>
+              <i class="fas fa-search mr-2"></i>
+              Cerca
+            </button>
+          </div>
+        </form>
+        
+        <!-- Risultati ricerca (nascosto inizialmente) -->
+        <div id="searchResults" class="mt-6 hidden">
+          <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <h4 class="font-semibold text-gray-900 mb-3">Combinazioni disponibili</h4>
+            <div id="combinationsList"></div>
+          </div>
+        </div>
+        
+        <!-- Loading spinner -->
+        <div id="loadingSpinner" class="hidden text-center mt-6">
+          <div class="inline-flex items-center px-4 py-2 bg-blue-100 rounded-lg">
+            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
+            <span class="text-blue-600 font-medium">Ricerca combinazioni...</span>
+          </div>
+        </div>
+      </div>
+
 
       <!-- Griglia appartamenti -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -96,3 +231,478 @@
 
 
     {% endblock %}
+
+{% block extra_js %}
+<!-- Flatpickr JS per il calendario -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/it.js"></script>
+<script>
+// Funzione principale
+function initApp() {
+    // Debug: verifica caricamento Flatpickr
+    if (!window.flatpickr) {
+        console.error('Flatpickr non è caricato!');
+        return;
+    }
+
+    const searchForm = document.getElementById('combinedSearchForm');
+    const searchResults = document.getElementById('searchResults');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    
+    // Verifica che gli elementi esistano
+    if (!searchForm || !searchResults || !loadingSpinner) {
+        console.error('Elementi del form non trovati!');
+        return;
+    }
+    const combinationsList = document.getElementById('combinationsList');
+    const searchButton = document.getElementById('searchButton');
+    
+    // Variabili calendario
+    let checkinBlockedDatesSet = new Set();
+    let checkoutBlockedDatesSet = new Set();
+    let checkinBlockedWeekdays = new Set();
+    let checkoutBlockedWeekdays = new Set();
+    let turnoverDaysSet = new Set();
+    let mainCalendar = null;
+    let calendarSelectionState = 'initial';
+
+    const toPythonWeekday = day => (day + 6) % 7;
+
+    function formatDate(date, format) {
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        
+        if (format === 'Y-m-d') {
+            return `${year}-${month}-${day}`;
+        }
+        return `${day}/${month}/${year}`;
+    }
+
+    function showAvailabilityMessage(message, type = 'info') {
+        const messageDiv = document.getElementById('availability-message');
+        const messageText = document.getElementById('availability-text');
+        
+        if (!messageDiv || !messageText) return;
+        
+        messageText.textContent = message;
+        messageDiv.className = `mb-2 p-2 rounded-lg text-sm ${type === 'error' ? 'bg-red-100 text-red-700' : type === 'warning' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'}`;
+        messageDiv.classList.remove('hidden');
+    }
+
+    function hideAvailabilityMessage() {
+        const messageDiv = document.getElementById('availability-message');
+        if (messageDiv) {
+            messageDiv.classList.add('hidden');
+        }
+    }
+
+    // Carica dati calendario da tutti gli appartamenti (in background)
+    function loadCalendarData() {
+        console.debug('Calendario: avvio caricamento dati in background');
+
+        Promise.all([
+            fetch('/appartamenti/maggi-milano-appartamento-verde/unavailable-dates/'),
+            fetch('/appartamenti/maggi-milano-appartamento-blu/unavailable-dates/'),
+            fetch('/appartamenti/maggi-milano-appartamento-nero/unavailable-dates/')
+        ])
+        .then(responses => Promise.all(responses.map(r => r.json())))
+        .then(dataList => {
+            const combinedData = {
+                occupied_dates: [],
+                closed_dates: [],
+                checkin_blocked_dates: [],
+                checkout_blocked_dates: [],
+                checkin_blocked_weekdays: [],
+                checkout_blocked_weekdays: [],
+                turnover_dates: []
+            };
+
+            dataList.forEach(data => {
+                // Processa blocked_ranges per convertire in date individuali
+                if (data.blocked_ranges) {
+                    data.blocked_ranges.forEach(range => {
+                        const startDate = new Date(range.from);
+                        const endDate = new Date(range.to);
+                        const currentDate = new Date(startDate);
+                        
+                        while (currentDate <= endDate) {
+                            combinedData.occupied_dates.push(currentDate.toISOString().split('T')[0]);
+                            currentDate.setDate(currentDate.getDate() + 1);
+                        }
+                    });
+                }
+                
+                // Processa i dati esistenti
+                combinedData.occupied_dates.push(...(data.occupied_dates || []));
+                combinedData.closed_dates.push(...(data.closed_dates || []));
+                combinedData.checkin_blocked_dates.push(...(data.checkin_blocked_dates || []));
+                combinedData.checkout_blocked_dates.push(...(data.checkout_blocked_dates || []));
+                combinedData.checkin_blocked_weekdays.push(...(data.checkin_blocked_weekdays || []));
+                combinedData.checkout_blocked_weekdays.push(...(data.checkout_blocked_weekdays || []));
+                combinedData.turnover_dates.push(...(data.turnover_dates || []));
+            });
+
+            Object.keys(combinedData).forEach(key => {
+                combinedData[key] = [...new Set(combinedData[key])];
+            });
+
+            // Usa le date occupate per bloccare il calendario
+            const allBlockedDates = [...combinedData.occupied_dates, ...combinedData.closed_dates];
+            checkinBlockedDatesSet = new Set(allBlockedDates);
+            checkoutBlockedDatesSet = new Set(combinedData.checkout_blocked_dates);
+            checkinBlockedWeekdays = new Set(combinedData.checkin_blocked_weekdays);
+            checkoutBlockedWeekdays = new Set(combinedData.checkout_blocked_weekdays);
+            turnoverDaysSet = new Set(combinedData.turnover_dates);
+
+            console.debug('Calendario: dati caricati e aggiornati');
+            
+            if (mainCalendar) {
+                mainCalendar.set('disable', getDisableConfig());
+            }
+        })
+        .catch(error => {
+            console.error('Calendario: errore durante il caricamento', error);
+            // Non mostrare messaggio di errore all'utente per il caricamento in background
+            // Il calendario funziona comunque senza i dati di disponibilità
+        });
+    }
+
+    function initializeCalendar() {
+        const calendarInput = document.getElementById('calendar');
+        const checkInInput = document.getElementById('check_in');
+        const checkOutInput = document.getElementById('check_out');
+
+        if (!calendarInput) {
+            console.error('Elemento calendario non trovato!');
+            return;
+        }
+
+        try {
+            mainCalendar = flatpickr(calendarInput, {
+                locale: "it",
+                mode: "range",
+                minDate: "today",
+                dateFormat: "d/m/Y",
+                clickOpens: true,
+                allowInput: false,
+                onReady: function(selectedDates, dateStr, instance) {
+                    // Forza gli stili quando il calendario è pronto
+                    setTimeout(forceSelectedDayStyles, 100);
+                },
+                onOpen: function(selectedDates, dateStr, instance) {
+                    setTimeout(forceSelectedDayStyles, 100);
+                },
+                onChange: function(selectedDates, dateStr, instance) {
+                    
+                    if (selectedDates.length === 2) {
+                        calendarSelectionState = 'range_complete';
+                        const checkIn = selectedDates[0];
+                        const checkOut = selectedDates[1];
+                        const checkInStr = formatDate(checkIn, 'Y-m-d');
+                        const checkOutStr = formatDate(checkOut, 'Y-m-d');
+
+                        checkInInput.value = checkInStr;
+                        checkOutInput.value = checkOutStr;
+                        calendarInput.value = `${formatDate(checkIn, 'd/m/Y')} - ${formatDate(checkOut, 'd/m/Y')}`;
+                        
+                        showAvailabilityMessage('Date selezionate correttamente. Cerca le combinazioni disponibili.', 'info');
+                        searchButton.disabled = false;
+                        
+                        setTimeout(() => {
+                            performSearch();
+                        }, 500);
+                    } else if (selectedDates.length === 1) {
+                        calendarSelectionState = 'checkin_selected';
+                        const checkIn = selectedDates[0];
+                        const checkInStr = formatDate(checkIn, 'Y-m-d');
+
+                        checkInInput.value = checkInStr;
+                        checkOutInput.value = '';
+                        calendarInput.value = `${formatDate(checkIn, 'd/m/Y')} - ...`;
+                        showAvailabilityMessage('Seleziona la data di check-out', 'info');
+                        searchButton.disabled = true;
+                        // Forza gli stili dopo la selezione
+                        setTimeout(forceSelectedDayStyles, 50);
+                    } else {
+                        calendarSelectionState = 'initial';
+                        checkInInput.value = '';
+                        checkOutInput.value = '';
+                        calendarInput.value = '';
+                        hideAvailabilityMessage();
+                        searchButton.disabled = true;
+                    }
+                },
+                onDayCreate: function(dObj, dStr, fp, dayElem) {
+                    // Aggiungi un listener per quando viene creato un giorno
+                    dayElem.addEventListener('click', function() {
+                        setTimeout(forceSelectedDayStyles, 10);
+                    });
+                },
+                onOpen: function(selectedDates, dateStr, instance) {
+                    console.log('Calendario aperto!');
+                },
+                onClose: function(selectedDates, dateStr, instance) {
+                    // Calendario chiuso
+                }
+            });
+            
+            // Forza gli stili ogni 100ms per assicurarsi che vengano applicati
+            setInterval(forceSelectedDayStyles, 100);
+            
+        } catch (error) {
+            console.error('Calendario: inizializzazione fallita', error);
+            showAvailabilityMessage('Impossibile inizializzare il calendario. Ricarica la pagina o riprova più tardi.', 'error');
+            return;
+        }
+    }
+
+    function getDisableConfig() {
+        const disableConfig = [];
+        
+        // Aggiungi tutte le date occupate
+        [...checkinBlockedDatesSet, ...checkoutBlockedDatesSet].forEach(date => {
+            disableConfig.push(date);
+        });
+
+        return disableConfig;
+    }
+
+    // Event listeners
+    searchForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        performSearch();
+    });
+
+    function performSearch() {
+        const checkIn = document.getElementById('check_in').value;
+        const checkOut = document.getElementById('check_out').value;
+        const totalGuests = parseInt(document.getElementById('total_guests').value);
+
+        if (!checkIn || !checkOut) {
+            showAvailabilityMessage('Seleziona le date di check-in e check-out', 'error');
+            return;
+        }
+
+        const data = {
+            check_in: checkIn,
+            check_out: checkOut,
+            total_guests: totalGuests
+        };
+        
+        searchResults.classList.add('hidden');
+        loadingSpinner.classList.remove('hidden');
+        searchButton.disabled = true;
+        
+        fetch('/prenotazioni/api/combined-availability/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            loadingSpinner.classList.add('hidden');
+            searchButton.disabled = false;
+            
+            if (data.success) {
+                displayResults(data);
+            } else {
+                displayError(data.error || 'Errore durante la ricerca');
+            }
+        })
+        .catch(error => {
+            loadingSpinner.classList.add('hidden');
+            searchButton.disabled = false;
+            displayError('Errore di connessione');
+            console.error('Error:', error);
+        });
+    }
+    
+    // Funzione per generare il testo della composizione
+    function getCompositionText(combo) {
+        if (!combo.combination || combo.combination.length === 0) {
+            return 'Composizione non disponibile';
+        }
+        
+        const listingNames = combo.combination.map(item => {
+            // Estrae solo la parte finale del nome (es. "Verde" da "Maggi Milano Appartamento Verde")
+            const fullName = item.listing.title;
+            const parts = fullName.split(' ');
+            return parts[parts.length - 1]; // Ultima parola (colore)
+        });
+        
+        if (listingNames.length === 1) {
+            return listingNames[0];
+        } else if (listingNames.length === 2) {
+            return `${listingNames[0]} + ${listingNames[1]}`;
+        } else {
+            return `${listingNames.slice(0, -1).join(', ')} + ${listingNames[listingNames.length - 1]}`;
+        }
+    }
+    
+    function displayResults(data) {
+        if (data.combinations.length === 0) {
+            combinationsList.innerHTML = `
+                <div class="text-center py-6 text-gray-500">
+                    <i class="fas fa-calendar-times text-3xl mb-3"></i>
+                    <p class="font-medium">Nessuna combinazione disponibile</p>
+                    <p class="text-sm">Prova con date diverse o un numero di ospiti inferiore.</p>
+                </div>
+            `;
+        } else {
+            let html = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            `;
+            
+            data.combinations.forEach((combo, index) => {
+                const nights = data.nights;
+                const pricePerNight = (combo.total_price / nights).toFixed(2);
+                
+                html += `
+                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex-1">
+                                <h5 class="font-semibold text-gray-900">${combo.group_name || `Opzione ${index + 1}`}</h5>
+                                <p class="text-xs text-gray-500 mt-1">${getCompositionText(combo)}</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-lg font-bold text-blue-600">€${combo.total_price.toFixed(2)}</div>
+                                <div class="text-sm text-gray-500">€${pricePerNight}/notte</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <span class="inline-flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm font-medium">
+                                <i class="fas fa-users mr-1"></i>
+                                ${data.total_guests} ospiti
+                            </span>
+                            <span class="inline-flex items-center bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-medium ml-2">
+                                <i class="fas fa-door-open mr-1"></i>
+                                ${combo.total_bedrooms} camere
+                            </span>
+                            <span class="inline-flex items-center bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-sm font-medium ml-2">
+                                <i class="fas fa-bath mr-1"></i>
+                                ${combo.total_bathrooms} bagni
+                            </span>
+                            <span class="text-gray-500 text-sm ml-2">${nights} notti</span>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            ${combo.combination.map(item => `
+                                <div class="flex justify-between items-center bg-gray-50 px-3 py-2 rounded">
+                                    <div class="flex-1">
+                                        <div class="font-medium text-sm">${item.listing.title}</div>
+                                        <div class="text-xs text-gray-500 mt-1">
+                                            <span class="inline-flex items-center mr-3">
+                                                <i class="fas fa-users mr-1"></i>
+                                                ${item.guests} ospiti
+                                                ${item.extra_guests > 0 ? `<span class="text-orange-600 ml-1">(+${item.extra_guests} extra)</span>` : ''}
+                                            </span>
+                                            <span class="inline-flex items-center mr-3">
+                                                <i class="fas fa-door-open mr-1"></i>
+                                                ${item.listing.bedrooms || 1} camera${(item.listing.bedrooms || 1) !== 1 ? 'e' : ''}
+                                            </span>
+                                            <span class="inline-flex items-center">
+                                                <i class="fas fa-bath mr-1"></i>
+                                                1 bagno
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="text-sm font-medium text-right">€${item.price.toFixed(2)}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div class="mt-3 pt-3 border-t border-gray-200 flex justify-between text-sm text-gray-600">
+                            <span>Pulizie: €${combo.total_cleaning_fee.toFixed(2)}</span>
+                            <span class="font-medium">Totale: €${combo.total_price.toFixed(2)}</span>
+                        </div>
+                        
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            combinationsList.innerHTML = html;
+        }
+        
+        searchResults.classList.remove('hidden');
+    }
+    
+    function displayError(message) {
+        combinationsList.innerHTML = `
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-triangle text-red-500 mr-3"></i>
+                    <div>
+                        <h4 class="font-medium text-red-800">Errore</h4>
+                        <p class="text-red-600 text-sm">${message}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        searchResults.classList.remove('hidden');
+    }
+    
+
+
+    // Funzione per forzare gli stili dei giorni selezionati
+    function forceSelectedDayStyles() {
+        const allDays = document.querySelectorAll('.flatpickr-day');
+        
+        allDays.forEach(day => {
+            const classList = day.classList;
+            if (classList.contains('selected') && classList.contains('flatpickr-disabled')) {
+                // Rimuovi la classe flatpickr-disabled per i giorni selezionati
+                day.classList.remove('flatpickr-disabled');
+                // Applica stili inline per assicurarsi che sia visibile
+                day.style.setProperty('opacity', '1', 'important');
+                day.style.setProperty('background-color', '#569ff7', 'important');
+                day.style.setProperty('color', 'white', 'important');
+                day.style.setProperty('font-weight', '700', 'important');
+                day.style.setProperty('text-decoration', 'none', 'important');
+                day.style.setProperty('border', '2px solid #569ff7', 'important');
+                day.style.setProperty('box-shadow', '0 0 0 2px #569ff7', 'important');
+            }
+        });
+    }
+
+    // Observer per monitorare i cambiamenti nel calendario
+    function observeCalendarChanges() {
+        const calendarContainer = document.querySelector('.flatpickr-calendar');
+        if (calendarContainer) {
+            const observer = new MutationObserver(() => {
+                forceSelectedDayStyles();
+            });
+            observer.observe(calendarContainer, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['class']
+            });
+        }
+    }
+
+    // Inizializza calendario
+    initializeCalendar();
+    
+    // Carica dati in background
+    loadCalendarData();
+    
+    // Osserva i cambiamenti nel calendario
+    setTimeout(observeCalendarChanges, 1000);
+}
+
+// Chiama la funzione quando il DOM è pronto
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    // DOM già caricato
+    initApp();
+}
+</script>
+{% endblock %}

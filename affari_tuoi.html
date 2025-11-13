@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎁 Affari Tuoi - Gioco Completo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: auto;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 10px;
+        }
+
+        .game-info {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .prizes-section {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .prizes-title {
+            text-align: center;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .prizes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .prize-item {
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .prize-item.blue {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+        }
+
+        .prize-item.red {
+            background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+        }
+
+        .prize-item.black {
+            background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
+            color: #ffd700;
+            border: 2px solid #ffd700;
+        }
+
+        .prize-item.eliminated {
+            opacity: 0.3;
+            text-decoration: line-through;
+            transform: scale(0.95);
+        }
+
+        .packages-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            padding: 20px;
+        }
+
+        .package {
+            aspect-ratio: 1;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .package.normal {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #333;
+        }
+
+        .package.player {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .package.opened {
+            background: linear-gradient(135deg, #888 0%, #aaa 100%);
+            color: white;
+            transform: scale(1.1);
+            opacity: 0.9;
+            cursor: default;
+        }
+
+        .package.black {
+            background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
+            color: #ffd700;
+            border: 3px solid #ffd700;
+        }
+
+        .package:hover:not(.opened) {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes explode {
+            0% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.3) rotate(180deg); }
+            100% { transform: scale(1) rotate(360deg); }
+        }
+
+        @keyframes rotate360 {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .package.exploding {
+            animation: explode 1s ease-in-out;
+        }
+
+        .package.rotating {
+            animation: rotate360 1s ease-in-out;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 3px solid rgba(255,255,255,0.3);
+        }
+
+        .modal h2 {
+            margin-bottom: 20px;
+            font-size: 2em;
+            color: #ffd700;
+        }
+
+        .modal p {
+            margin: 15px 0;
+            font-size: 1.2em;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .btn-accept {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .btn-refuse {
+            background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .black-package-modal {
+            background: linear-gradient(135deg, #000 0%, #333 100%);
+            border: 3px solid #ffd700;
+        }
+
+        .black-package-modal h2 {
+            color: #ffd700;
+            font-size: 2.5em;
+        }
+
+        .package-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .selectable-package {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #333;
+            border: 3px solid transparent;
+        }
+
+        .selectable-package:hover {
+            transform: scale(1.1);
+            border-color: #ffd700;
+            box-shadow: 0 4px 15px rgba(255,215,0,0.5);
+        }
+
+        .final-screen {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .final-screen h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            color: #ffd700;
+        }
+
+        .final-screen h2 {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+        }
+
+        .comparison {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .comparison-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 15px 0;
+            font-size: 1.3em;
+        }
+
+        .comparison-item .label {
+            font-weight: bold;
+        }
+
+        .comparison-item .value {
+            color: #ffd700;
+        }
+
+        .difference {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .difference.positive {
+            background: rgba(40, 167, 69, 0.3);
+            color: #28a745;
+        }
+
+        .difference.negative {
+            background: rgba(220, 53, 69, 0.3);
+            color: #dc3545;
+        }
+
+        .new-game-btn {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.3em;
+            margin-top: 30px;
+        }
+
+        .game-status {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2em;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .packages-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .modal-content {
+                margin: 5% auto;
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .packages-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .package {
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎁 AFFARI TUOI 🎁</h1>
+        <div class="game-info">
+            <div id="gameStatus">Scegli il tuo pacco per iniziare!</div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- Premi Blu -->
+        <div class="prizes-section">
+            <div class="prizes-title">🏆 Premi Blu</div>
+            <div class="prizes-list" id="bluePrizes">
+                <!-- Popolato dinamicamente -->
+            </div>
+        </div>
+
+        <!-- Griglia Pacchi -->
+        <div class="packages-grid" id="packagesGrid">
+            <!-- Popolato dinamicamente -->
+        </div>
+
+        <!-- Premi Rossi -->
+        <div class="prizes-section">
+            <div class="prizes-title">💎 Premi Rossi</div>
+            <div class="prizes-list" id="redPrizes">
+                <!-- Popolato dinamicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modali -->
+    <div id="offerModal" class="modal">
+        <div class="modal-content">
+            <h2>💰 Offerta del Dottore</h2>
+            <p id="offerText"></p>
+            <div class="modal-buttons">
+                <button class="btn btn-accept" onclick="acceptOffer()">ACCETTA</button>
+                <button class="btn btn-refuse" onclick="refuseOffer()">RIFIUTA</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="blackPackageModal" class="modal">
+        <div class="modal-content black-package-modal">
+            <h2 id="blackPackageTitle">🖤 PACCO NERO 🖤</h2>
+            <p id="blackPackageText"></p>
+            <div class="modal-buttons">
+                <button class="btn btn-accept" onclick="revealBlackPackage()">RIVELA VALORE</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="packageSwapModal" class="modal">
+        <div class="modal-content">
+            <h2>🔄 Cambio Pacco</h2>
+            <p>Vuoi cambiare il tuo pacco con uno di questi?</p>
+            <div class="package-selection" id="packageSelection">
+                <!-- Popolato dinamicamente -->
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-accept" onclick="confirmPackageSwap()">SCEGLI QUESTO</button>
+                <button class="btn btn-refuse" onclick="refusePackageSwap()">MANTIENI IL MIO</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="finalModal" class="modal">
+        <div class="modal-content">
+            <div id="finalScreen">
+                <!-- Popolato dinamicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variabili di gioco
+        let gameState = {
+            packages: [],
+            playerPackage: null,
+            openedPackages: 0,
+            bluePrizes: [0, 1, 5, 10, 20, 50, 75, 100, 200, 500],
+            redPrizes: [10000, 15000, 20000, 30000, 50000, 75000, 100000, 200000, 300000],
+            blackPackagePosition: null,
+            blackPackageValue: null,
+            gameEnded: false,
+            currentOffer: null,
+            swapMode: false,
+            selectedSwapPackage: null
+        };
+
+        // Inizializza il gioco
+        function initGame() {
+            resetGameState();
+            distributePrizes();
+            createPackages();
+            updatePrizeLists();
+            updateGameStatus("Scegli il tuo pacco per iniziare!");
+        }
+
+        function resetGameState() {
+            gameState = {
+                packages: [],
+                playerPackage: null,
+                openedPackages: 0,
+                bluePrizes: [0, 1, 5, 10, 20, 50, 75, 100, 200, 500],
+                redPrizes: [10000, 15000, 20000, 30000, 50000, 75000, 100000, 200000, 300000],
+                blackPackagePosition: null,
+                blackPackageValue: null,
+                gameEnded: false,
+                currentOffer: null,
+                swapMode: false,
+                selectedSwapPackage: null
+            };
+        }
+
+        function distributePrizes() {
+            // Combina tutti i valori
+            const allValues = [...gameState.bluePrizes, ...gameState.redPrizes];
+            
+            // Mescola l'array
+            for (let i = allValues.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [allValues[i], allValues[j]] = [allValues[j], allValues[i]];
+            }
+
+            // Scegli una posizione casuale per il pacco nero (1-20)
+            gameState.blackPackagePosition = Math.floor(Math.random() * 20) + 1;
+            
+            // Scegli un valore casuale per il pacco nero
+            const randomIndex = Math.floor(Math.random() * allValues.length);
+            gameState.blackPackageValue = allValues[randomIndex];
+
+            // Distribuisci i valori nei pacchi
+            for (let i = 0; i < 20; i++) {
+                if (i + 1 === gameState.blackPackagePosition) {
+                    gameState.packages.push({
+                        id: i + 1,
+                        value: 'NERO',
+                        actualValue: gameState.blackPackageValue,
+                        isPlayer: false,
+                        isOpened: false
+                    });
+                } else {
+                    gameState.packages.push({
+                        id: i + 1,
+                        value: allValues[i >= gameState.blackPackagePosition ? i : i],
+                        actualValue: allValues[i >= gameState.blackPackagePosition ? i : i],
+                        isPlayer: false,
+                        isOpened: false
+                    });
+                }
+            }
+        }
+
+        function createPackages() {
+            const grid = document.getElementById('packagesGrid');
+            grid.innerHTML = '';
+
+            gameState.packages.forEach((pkg, index) => {
+                const packageElement = document.createElement('div');
+                packageElement.className = 'package normal';
+                packageElement.textContent = pkg.id;
+                packageElement.onclick = () => selectPackage(index);
+                grid.appendChild(packageElement);
+            });
+        }
+
+        function selectPackage(index) {
+            if (gameState.playerPackage !== null || gameState.packages[index].isOpened) return;
+
+            gameState.playerPackage = index;
+            gameState.packages[index].isPlayer = true;
+
+            const packageElement = document.querySelectorAll('.package')[index];
+            packageElement.className = 'package player';
+            packageElement.textContent = `★ ${gameState.packages[index].id} ★`;
+
+            updateGameStatus(`Hai scelto il pacco ${gameState.packages[index].id}! Ora apri gli altri pacchi.`);
+        }
+
+        function openPackage(index) {
+            if (gameState.playerPackage === null || gameState.packages[index].isOpened || gameState.packages[index].isPlayer) return;
+
+            const pkg = gameState.packages[index];
+            const packageElement = document.querySelectorAll('.package')[index];
+            
+            packageElement.classList.add('exploding');
+            
+            setTimeout(() => {
+                packageElement.className = 'package opened';
+                packageElement.textContent = formattaEuro(pkg.actualValue);
+                
+                pkg.isOpened = true;
+                gameState.openedPackages++;
+                
+                // Gestione pacco nero
+                if (pkg.value === 'NERO') {
+                    handleBlackPackage(pkg);
+                } else {
+                    eliminatePrize(pkg.actualValue);
+                    checkForOffer();
+                }
+                
+                updateGameStatus(`Hai aperto il pacco ${pkg.id} con ${formattaEuro(pkg.actualValue)}!`);
+            }, 1000);
+        }
+
+        function handleBlackPackage(pkg) {
+            setTimeout(() => {
+                document.getElementById('blackPackageTitle').textContent = '🖤 PACCO NERO 🖤';
+                document.getElementById('blackPackageText').textContent = 'Hai trovato il pacco nero! Clicca per rivelare il suo valore nascosto.';
+                document.getElementById('blackPackageModal').style.display = 'block';
+                
+                // Elimina il pacco nero dalla lista premi
+                eliminatePrize('NERO');
+            }, 1500);
+        }
+
+        function revealBlackPackage() {
+            const pkg = gameState.packages.find(p => p.value === 'NERO' && p.isOpened);
+            
+            document.getElementById('blackPackageTitle').textContent = '🖤 VALORE RIVELATO 🖤';
+            document.getElementById('blackPackageText').textContent = `Il pacco nero contiene: ${formattaEuro(pkg.actualValue)}`;
+            
+            setTimeout(() => {
+                document.getElementById('blackPackageModal').style.display = 'none';
+                
+                // Elimina il valore rivelato dalla lista premi
+                eliminatePrize(pkg.actualValue);
+                checkForOffer();
+            }, 2000);
+        }
+
+        function eliminatePrize(value) {
+            const blueList = document.getElementById('bluePrizes');
+            const redList = document.getElementById('redPrizes');
+            
+            // Trova e elimina il primo elemento con questo valore
+            let eliminated = false;
+            
+            if (value === 'NERO') {
+                const blackItems = redList.querySelectorAll('.prize-item.black');
+                if (blackItems.length > 0) {
+                    blackItems[0].classList.add('eliminated');
+                    eliminated = true;
+                }
+            } else {
+                // Cerca nei premi blu
+                const blueItems = blueList.querySelectorAll('.prize-item');
+                for (let item of blueItems) {
+                    if (item.textContent.includes(formattaEuro(value)) && !item.classList.contains('eliminated')) {
+                        item.classList.add('eliminated');
+                        eliminated = true;
+                        break;
+                    }
+                }
+                
+                // Se non trovato nei blu, cerca nei rossi
+                if (!eliminated) {
+                    const redItems = redList.querySelectorAll('.prize-item');
+                    for (let item of redItems) {
+                        if (item.textContent.includes(formattaEuro(value)) && !item.classList.contains('eliminated')) {
+                            item.classList.add('eliminated');
+                            eliminated = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        function checkForOffer() {
+            const offerTurns = [4, 8, 12, 15, 18];
+            
+            if (offerTurns.includes(gameState.openedPackages)) {
+                // Controlla se è un turno di cambio pacco
+                if ((gameState.openedPackages === 8 || gameState.openedPackages === 15) && Math.random() < 0.4) {
+                    offerPackageSwap();
+                } else {
+                    makeOffer();
+                }
+            }
+        }
+
+        function makeOffer() {
+            const remainingValues = getRemainingValues();
+            const average = remainingValues.reduce((sum, val) => sum + val, 0) / remainingValues.length;
+            
+            let factor;
+            if (gameState.openedPackages <= 4) factor = 0.4;
+            else if (gameState.openedPackages <= 8) factor = 0.6;
+            else if (gameState.openedPackages <= 12) factor = 0.75;
+            else factor = 0.85;
+            
+            const baseOffer = average * factor;
+            const offer1 = baseOffer * 0.85;
+            const offer2 = baseOffer * 1.15;
+            
+            // Scegli casualmente una delle due offerte
+            gameState.currentOffer = Math.random() < 0.5 ? offer1 : offer2;
+            
+            document.getElementById('offerText').textContent = `Il Dottore ti offre ${formattaEuro(gameState.currentOffer)} per il tuo pacco. Cosa decidi?`;
+            document.getElementById('offerModal').style.display = 'block';
+        }
+
+        function offerPackageSwap() {
+            gameState.swapMode = true;
+            const remainingPackages = getRemainingPackages();
+            
+            const selectionDiv = document.getElementById('packageSelection');
+            selectionDiv.innerHTML = '';
+            
+            remainingPackages.forEach(index => {
+                const pkg = gameState.packages[index];
+                const packageDiv = document.createElement('div');
+                packageDiv.className = 'selectable-package';
+                packageDiv.textContent = pkg.id;
+                packageDiv.onclick = () => selectSwapPackage(index);
+                selectionDiv.appendChild(packageDiv);
+            });
+            
+            document.getElementById('packageSwapModal').style.display = 'block';
+        }
+
+        function selectSwapPackage(index) {
+            // Rimuovi selezione precedente
+            document.querySelectorAll('.selectable-package').forEach(el => {
+                el.style.border = '3px solid transparent';
+            });
+            
+            // Seleziona nuovo pacco
+            document.querySelectorAll('.selectable-package')[gameState.packages.findIndex(p => p.id === gameState.packages[index].id && !p.isOpened && !p.isPlayer)] - remainingPackages.indexOf(index)
+                .style.border = '3px solid #ffd700';
+            
+            gameState.selectedSwapPackage = index;
+        }
+
+        function confirmPackageSwap() {
+            if (gameState.selectedSwapPackage === null) return;
+            
+            const oldPlayerIndex = gameState.playerPackage;
+            const newPlayerIndex = gameState.selectedSwapPackage;
+            
+            // Reset vecchio pacco giocatore
+            const oldElement = document.querySelectorAll('.package')[oldPlayerIndex];
+            oldElement.className = 'package normal';
+            oldElement.textContent = gameState.packages[oldPlayerIndex].id;
+            gameState.packages[oldPlayerIndex].isPlayer = false;
+            
+            // Set nuovo pacco giocatore
+            const newElement = document.querySelectorAll('.package')[newPlayerIndex];
+            newElement.className = 'package player';
+            newElement.textContent = `★ ${gameState.packages[newPlayerIndex].id} ★`;
+            gameState.packages[newPlayerIndex].isPlayer = true;
+            gameState.playerPackage = newPlayerIndex;
+            
+            document.getElementById('packageSwapModal').style.display = 'none';
+            updateGameStatus(`Hai cambiato con il pacco ${gameState.packages[newPlayerIndex].id}! Continua ad aprire.`);
+            
+            gameState.swapMode = false;
+            gameState.selectedSwapPackage = null;
+        }
+
+        function refusePackageSwap() {
+            document.getElementById('packageSwapModal').style.display = 'none';
+            updateGameStatus('Hai rifiutato il cambio pacco. Continua ad aprire!');
+            gameState.swapMode = false;
+        }
+
+        function acceptOffer() {
+            document.getElementById('offerModal').style.display = 'none';
+            showFinalScreen(true);
+        }
+
+        function refuseOffer() {
+            document.getElementById('offerModal').style.display = 'none';
+            
+            if (gameState.openedPackages >= 18) {
+                showFinalScreen(false);
+            } else {
+                updateGameStatus('Hai rifiutato l\'offerta. Continua ad aprire i pacchi!');
+            }
+        }
+
+        function showFinalScreen(acceptedOffer) {
+            const playerPkg = gameState.packages[gameState.playerPackage];
+            const finalScreen = document.getElementById('finalScreen');
+            
+            let html = '';
+            
+            if (acceptedOffer) {
+                html += '<h1>🎉 CONGRATULAZIONI! 🎉</h1>';
+                html += `<h2>Hai accettato l'offerta di ${formattaEuro(gameState.currentOffer)}</h2>`;
+                
+                html += '<div class="comparison">';
+                html += '<div class="comparison-item"><span class="label">Offerta Accettata:</span><span class="value">' + formattaEuro(gameState.currentOffer) + '</span></div>';
+                html += '<div class="comparison-item"><span class="label">Valore del Pacco:</span><span class="value">' + formattaEuro(playerPkg.actualValue) + '</span></div>';
+                
+                const difference = gameState.currentOffer - playerPkg.actualValue;
+                const diffClass = difference >= 0 ? 'positive' : 'negative';
+                const diffText = difference >= 0 ? '+' : '';
+                
+                html += `<div class="difference ${diffClass}">Differenza: ${diffText}${formattaEuro(difference)}</div>`;
+                html += '</div>';
+                
+                if (difference >= 0) {
+                    html += '<p style="font-size: 1.3em; color: #28a745;">✅ Ottima scelta! Hai guadagnato più di quanto valeva il pacco!</p>';
+                } else {
+                    html += '<p style="font-size: 1.3em; color: #dc3545;">❌ Purtroppo hai perso potenziali guadagni...</p>';
+                }
+            } else {
+                if (playerPkg.value === 'NERO') {
+                    html += '<h1>🖤 HAI TENUTO IL PACCO NERO! 🖤</h1>';
+                    html += `<h2>Il tuo pacco conteneva: ${formattaEuro(playerPkg.actualValue)}</h2>`;
+                    html += '<p style="font-size: 1.3em; color: #ffd700;">🎰 Che fortuna! Hai tenuto il misterioso pacco nero!</p>';
+                } else {
+                    html += '<h1>🏆 GIOCO COMPLETATO! 🏆</h1>';
+                    html += `<h2>Il tuo pacco conteneva: ${formattaEuro(playerPkg.actualValue)}</h2>`;
+                }
+            }
+            
+            html += '<button class="btn new-game-btn" onclick="initGame()">🎮 NUOVA PARTITA</button>';
+            
+            finalScreen.innerHTML = html;
+            document.getElementById('finalModal').style.display = 'block';
+        }
+
+        function getRemainingValues() {
+            const remaining = [];
+            gameState.packages.forEach(pkg => {
+                if (!pkg.isOpened && pkg.value !== 'NERO') {
+                    remaining.push(pkg.actualValue);
+                }
+            });
+            
+            // Aggiungi il valore del pacco del giocatore
+            if (gameState.playerPackage !== null) {
+                const playerPkg = gameState.packages[gameState.playerPackage];
+                if (playerPkg.value !== 'NERO') {
+                    remaining.push(playerPkg.actualValue);
+                }
+            }
+            
+            return remaining;
+        }
+
+        function getRemainingPackages() {
+            const remaining = [];
+            gameState.packages.forEach((pkg, index) => {
+                if (!pkg.isOpened && !pkg.isPlayer) {
+                    remaining.push(index);
+                }
+            });
+            return remaining;
+        }
+
+        function formattaEuro(valore) {
+            if (valore === 'NERO') return 'NERO';
+            if (typeof valore !== 'number') return '€0';
+            
+            if (valore >= 1000) {
+                return '€' + (valore / 1000).toFixed(valore % 1000 === 0 ? 0 : 1) + 'k';
+            }
+            return '€' + valore;
+        }
+
+        function updatePrizeLists() {
+            const blueList = document.getElementById('bluePrizes');
+            const redList = document.getElementById('redPrizes');
+            
+            // Ordina i premi
+            const sortedBlue = [...gameState.bluePrizes].sort((a, b) => a - b);
+            const sortedRed = [...gameState.redPrizes].sort((a, b) => a - b);
+            
+            blueList.innerHTML = '';
+            sortedBlue.forEach(prize => {
+                const div = document.createElement('div');
+                div.className = 'prize-item blue';
+                div.textContent = formattaEuro(prize);
+                blueList.appendChild(div);
+            });
+            
+            redList.innerHTML = '';
+            
+            // Aggiungi il pacco nero in alto
+            const blackDiv = document.createElement('div');
+            blackDiv.className = 'prize-item black';
+            blackDiv.textContent = '🖤 PACCO NERO';
+            redList.appendChild(blackDiv);
+            
+            // Aggiungi i premi rossi
+            sortedRed.forEach(prize => {
+                const div = document.createElement('div');
+                div.className = 'prize-item red';
+                div.textContent = formattaEuro(prize);
+                redList.appendChild(div);
+            });
+        }
+
+        function updateGameStatus(message) {
+            document.getElementById('gameStatus').textContent = message;
+        }
+
+        // Event listeners per i pacchi
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('package') && !e.target.classList.contains('player')) {
+                const index = Array.from(e.target.parentNode.children).indexOf(e.target);
+                if (gameState.playerPackage === null) {
+                    selectPackage(index);
+                } else if (!gameState.packages[index].isOpened && !gameState.packages[index].isPlayer) {
+                    openPackage(index);
+                }
+            }
+        });
+
+        // Inizializza il gioco quando la pagina è caricata
+        window.onload = initGame;
+    </script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Messaggi - Prenotazione #{{ booking.id }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Messaggi</h1>
+                <p class="mt-2 text-gray-600">
+                    Prenotazione #{{ booking.id }} - {{ booking.listing.title }}
+                </p>
+            </div>
+            <a href="{% url 'account:dashboard' %}" class="text-blue-600 hover:text-blue-800">
+                ← Torna alla Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Info prenotazione -->
+    <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+                <span class="text-gray-500">Check-in:</span>
+                <p class="font-semibold">{{ booking.check_in_date|date:"d/m/Y" }}</p>
+            </div>
+            <div>
+                <span class="text-gray-500">Check-out:</span>
+                <p class="font-semibold">{{ booking.check_out_date|date:"d/m/Y" }}</p>
+            </div>
+            <div>
+                <span class="text-gray-500">Ospiti:</span>
+                <p class="font-semibold">{{ booking.num_guests }}</p>
+            </div>
+            <div>
+                <span class="text-gray-500">Stato:</span>
+                <p class="font-semibold">
+                    <span class="px-2 py-1 rounded text-xs
+                        {% if booking.status == 'confirmed' %}bg-green-100 text-green-800
+                        {% elif booking.status == 'pending' %}bg-yellow-100 text-yellow-800
+                        {% elif booking.status == 'cancelled' %}bg-red-100 text-red-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ booking.get_status_display }}
+                    </span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Area messaggi -->
+    <div class="bg-white rounded-lg shadow-md mb-6" style="height: 500px; display: flex; flex-direction: column;">
+        <!-- Lista messaggi -->
+        <div id="messages-container" class="flex-1 overflow-y-auto p-4 space-y-4">
+            {% if messages %}
+                {% for message in messages %}
+                <div class="flex {% if message.sender == request.user %}justify-end{% else %}justify-start{% endif %}">
+                    <div class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg
+                        {% if message.sender == request.user %}
+                            bg-blue-600 text-white
+                        {% else %}
+                            bg-gray-200 text-gray-900
+                        {% endif %}">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-semibold">
+                                {% if message.sender == request.user %}
+                                    Tu
+                                {% else %}
+                                    {{ message.sender.get_full_name|default:message.sender.username }}
+                                {% endif %}
+                            </span>
+                            <span class="text-xs opacity-75 ml-2">
+                                {{ message.created_at|date:"d/m/Y H:i" }}
+                            </span>
+                        </div>
+                        <p class="text-sm whitespace-pre-wrap">{{ message.message }}</p>
+                        {% if not message.is_read and message.recipient == request.user %}
+                            <span class="text-xs opacity-75 mt-1 block">Nuovo</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center text-gray-500 py-8">
+                    <p>Nessun messaggio ancora. Inizia la conversazione!</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Form invio messaggio -->
+        <div class="border-t p-4">
+            <form id="message-form" class="flex gap-2">
+                {% csrf_token %}
+                <input 
+                    type="text" 
+                    id="message-input" 
+                    name="message"
+                    placeholder="Scrivi un messaggio..."
+                    class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                >
+                <button 
+                    type="submit"
+                    class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                    Invia
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const messageForm = document.getElementById('message-form');
+    const messageInput = document.getElementById('message-input');
+    const messagesContainer = document.getElementById('messages-container');
+    const bookingId = {{ booking.id }};
+
+    // Scroll automatico all'ultimo messaggio
+    function scrollToBottom() {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+    scrollToBottom();
+
+    // Invia messaggio
+    messageForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const messageText = messageInput.value.trim();
+        if (!messageText) return;
+
+        // Disabilita il form
+        const submitButton = messageForm.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.textContent = 'Invio...';
+
+        // Invia il messaggio
+        fetch(`/prenotazioni/booking/${bookingId}/send-message/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                message: messageText
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Aggiungi il messaggio alla lista
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'flex justify-end';
+                messageDiv.innerHTML = `
+                    <div class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg bg-blue-600 text-white">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-semibold">Tu</span>
+                            <span class="text-xs opacity-75 ml-2">${new Date().toLocaleString('it-IT')}</span>
+                        </div>
+                        <p class="text-sm whitespace-pre-wrap">${messageText}</p>
+                    </div>
+                `;
+                messagesContainer.appendChild(messageDiv);
+                scrollToBottom();
+                
+                // Pulisci l'input
+                messageInput.value = '';
+            } else {
+                alert('Errore: ' + (data.error || 'Impossibile inviare il messaggio'));
+            }
+        })
+        .catch(error => {
+            console.error('Errore:', error);
+            alert('Errore di connessione. Riprova più tardi.');
+        })
+        .finally(() => {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Invia';
+            messageInput.focus();
+        });
+    });
+
+    // Auto-refresh ogni 5 secondi per nuovi messaggi
+    setInterval(function() {
+        fetch(`/prenotazioni/booking/${bookingId}/messages/`)
+            .then(response => response.text())
+            .then(html => {
+                // Estrai solo la sezione messaggi dal nuovo HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newMessagesContainer = doc.getElementById('messages-container');
+                if (newMessagesContainer) {
+                    const currentMessageCount = messagesContainer.querySelectorAll('.flex').length;
+                    const newMessageCount = newMessagesContainer.querySelectorAll('.flex').length;
+                    if (newMessageCount > currentMessageCount) {
+                        // Ricarica la pagina per vedere i nuovi messaggi
+                        location.reload();
+                    }
+                }
+            })
+            .catch(error => console.error('Errore refresh:', error));
+    }, 5000);
+});
+</script>
+{% endblock %}
+

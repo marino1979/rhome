@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+{% load static %}
+{% load socialaccount %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-8 mb-8">
+    <div class="bg-white rounded-lg shadow-md p-8">
+        <h1 class="text-2xl font-bold mb-6 text-center">Crea il tuo account</h1>
+        
+        {% if form.non_field_errors %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+        
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            
+            <div>
+                <label for="id_username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ form.username.errors }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label for="id_first_name" class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ form.first_name.errors }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label for="id_last_name" class="block text-sm font-medium text-gray-700 mb-1">Cognome</label>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ form.last_name.errors }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label for="id_email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ form.email.errors }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label for="id_phone" class="block text-sm font-medium text-gray-700 mb-1">Numero di telefono</label>
+                {{ form.phone }}
+                {% if form.phone.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ form.phone.errors }}</p>
+                {% endif %}
+                {% if form.phone.help_text %}
+                <p class="text-gray-500 text-xs mt-1">{{ form.phone.help_text }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label for="id_password1" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                {{ form.password1 }}
+                {% if form.password1.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ form.password1.errors }}</p>
+                {% endif %}
+                <div id="password-help" class="mt-2 text-xs text-gray-600 space-y-1">
+                    <p class="font-semibold">La password deve contenere:</p>
+                    <ul class="list-disc list-inside space-y-1 ml-2">
+                        <li id="pw-length" class="text-gray-500">Almeno 8 caratteri</li>
+                        <li id="pw-common" class="text-gray-500">Non essere una password comune</li>
+                        <li id="pw-numeric" class="text-gray-500">Non essere completamente numerica</li>
+                        <li id="pw-similar" class="text-gray-500">Non essere troppo simile allo username</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div>
+                <label for="id_password2" class="block text-sm font-medium text-gray-700 mb-1">Conferma Password</label>
+                {{ form.password2 }}
+                {% if form.password2.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ form.password2.errors }}</p>
+                {% endif %}
+                <div id="password-match" class="mt-2 text-xs hidden"></div>
+            </div>
+            
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-6">
+                Registrati
+            </button>
+        </form>
+
+        {% get_providers as socialaccount_providers %}
+        {% if socialaccount_providers %}
+        <div class="mt-6">
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-300"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-white text-gray-500">Oppure</span>
+                </div>
+            </div>
+
+            <div class="mt-6 grid grid-cols-2 gap-3">
+                {% for provider in socialaccount_providers %}
+                {% if provider.id == 'google' %}
+                <a href="{% provider_login_url 'google' %}" class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Google
+                </a>
+                {% elif provider.id == 'facebook' %}
+                <a href="{% provider_login_url 'facebook' %}" class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    <svg class="w-5 h-5 mr-2" fill="#1877F2" viewBox="0 0 24 24">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                    Facebook
+                </a>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        </div>
+        
+        <p class="mt-6 text-center text-sm text-gray-600">
+            Hai già un account? <a href="{% url 'login' %}" class="text-blue-600 hover:text-blue-800">Accedi</a>
+        </p>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const password1 = document.getElementById('id_password1');
+    const password2 = document.getElementById('id_password2');
+    const username = document.getElementById('id_username');
+    
+    // Validazione password in tempo reale
+    if (password1) {
+        password1.addEventListener('input', function() {
+            const value = this.value;
+            const pwLength = document.getElementById('pw-length');
+            const pwCommon = document.getElementById('pw-common');
+            const pwNumeric = document.getElementById('pw-numeric');
+            const pwSimilar = document.getElementById('pw-similar');
+            
+            // Lunghezza minima
+            if (value.length >= 8) {
+                pwLength.classList.remove('text-gray-500');
+                pwLength.classList.add('text-green-600');
+                pwLength.innerHTML = '✓ Almeno 8 caratteri';
+            } else {
+                pwLength.classList.remove('text-green-600');
+                pwLength.classList.add('text-gray-500');
+                pwLength.innerHTML = 'Almeno 8 caratteri';
+            }
+            
+            // Non completamente numerica
+            if (value && !/^\d+$/.test(value)) {
+                pwNumeric.classList.remove('text-gray-500');
+                pwNumeric.classList.add('text-green-600');
+                pwNumeric.innerHTML = '✓ Non completamente numerica';
+            } else if (value) {
+                pwNumeric.classList.remove('text-green-600');
+                pwNumeric.classList.add('text-red-500');
+                pwNumeric.innerHTML = 'Non può essere completamente numerica';
+            } else {
+                pwNumeric.classList.remove('text-red-500', 'text-green-600');
+                pwNumeric.classList.add('text-gray-500');
+                pwNumeric.innerHTML = 'Non essere completamente numerica';
+            }
+            
+            // Non troppo simile allo username
+            if (username && username.value) {
+                const usernameLower = username.value.toLowerCase();
+                const passwordLower = value.toLowerCase();
+                if (value && !passwordLower.includes(usernameLower) && !usernameLower.includes(passwordLower)) {
+                    pwSimilar.classList.remove('text-gray-500');
+                    pwSimilar.classList.add('text-green-600');
+                    pwSimilar.innerHTML = '✓ Diversa dallo username';
+                } else if (value) {
+                    pwSimilar.classList.remove('text-green-600');
+                    pwSimilar.classList.add('text-red-500');
+                    pwSimilar.innerHTML = 'Troppo simile allo username';
+                } else {
+                    pwSimilar.classList.remove('text-red-500', 'text-green-600');
+                    pwSimilar.classList.add('text-gray-500');
+                    pwSimilar.innerHTML = 'Non essere troppo simile allo username';
+                }
+            }
+        });
+    }
+    
+    // Validazione corrispondenza password
+    if (password1 && password2) {
+        function checkPasswordMatch() {
+            const matchDiv = document.getElementById('password-match');
+            if (password2.value) {
+                matchDiv.classList.remove('hidden');
+                if (password1.value === password2.value) {
+                    matchDiv.classList.remove('text-red-600');
+                    matchDiv.classList.add('text-green-600');
+                    matchDiv.innerHTML = '✓ Le password corrispondono';
+                } else {
+                    matchDiv.classList.remove('text-green-600');
+                    matchDiv.classList.add('text-red-600');
+                    matchDiv.innerHTML = '✗ Le password non corrispondono';
+                }
+            } else {
+                matchDiv.classList.add('hidden');
+            }
+        }
+        
+        password1.addEventListener('input', checkPasswordMatch);
+        password2.addEventListener('input', checkPasswordMatch);
+    }
+    
+    // Validazione email in tempo reale
+    const emailField = document.getElementById('id_email');
+    if (emailField) {
+        emailField.addEventListener('blur', function() {
+            const email = this.value;
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            
+            if (email && !emailPattern.test(email)) {
+                this.classList.add('border-red-500');
+                this.classList.remove('border-gray-300');
+            } else {
+                this.classList.remove('border-red-500');
+                this.classList.add('border-gray-300');
+            }
+        });
+    }
+});
+</script>
+
+<style>
+    #id_username, #id_first_name, #id_last_name, #id_email, #id_phone, #id_password1, #id_password2 {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        box-sizing: border-box;
+    }
+    
+    #id_username:focus, #id_first_name:focus, #id_last_name:focus, 
+    #id_email:focus, #id_phone:focus, #id_password1:focus, #id_password2:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+</style>
+{% endblock %}

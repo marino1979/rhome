@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prenotazione #{{ booking.id }} - Rhome Book</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .booking-header {
+            background: #007bff;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-confirmed { background: #28a745; color: white; }
+        .status-pending { background: #ffc107; color: black; }
+        .status-cancelled { background: #dc3545; color: white; }
+        .booking-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .detail-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .btn {
+            background: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #c82333;
+        }
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .total-price {
+            font-weight: bold;
+            font-size: 18px;
+            border-top: 2px solid #007bff;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="booking-header">
+        <h1>Prenotazione #{{ booking.id }}</h1>
+        <p><strong>{{ booking.listing.title }}</strong></p>
+        <span class="status-badge status-{{ booking.status }}">{{ booking.get_status_display }}</span>
+        <span class="status-badge status-{{ booking.payment_status }}">{{ booking.get_payment_status_display }}</span>
+    </div>
+
+    <div class="booking-details">
+        <div class="detail-section">
+            <h3>Dettagli Soggiorno</h3>
+            <p><strong>Check-in:</strong> {{ booking.check_in_date }}</p>
+            <p><strong>Check-out:</strong> {{ booking.check_out_date }}</p>
+            <p><strong>Notti:</strong> {{ booking.total_nights }}</p>
+            <p><strong>Ospiti:</strong> {{ booking.num_guests }} ({{ booking.num_adults }} adulti, {{ booking.num_children }} bambini)</p>
+
+            {% if booking.check_in_code %}
+                <p><strong>Codice Accesso:</strong> <span style="font-size: 18px; color: #007bff; font-weight: bold;">{{ booking.check_in_code }}</span></p>
+            {% endif %}
+
+            {% if booking.special_requests %}
+                <p><strong>Richieste Speciali:</strong></p>
+                <p>{{ booking.special_requests }}</p>
+            {% endif %}
+        </div>
+
+        <div class="detail-section">
+            <h3>Riepilogo Prezzi</h3>
+            <div class="price-row">
+                <span>€{{ booking.base_price_per_night }} x {{ booking.total_nights }} notti</span>
+                <span>€{{ booking.subtotal }}</span>
+            </div>
+
+            {% if booking.cleaning_fee > 0 %}
+            <div class="price-row">
+                <span>Pulizie</span>
+                <span>€{{ booking.cleaning_fee }}</span>
+            </div>
+            {% endif %}
+
+            {% if booking.extra_guest_fee > 0 %}
+            <div class="price-row">
+                <span>Ospiti extra</span>
+                <span>€{{ booking.extra_guest_fee }}</span>
+            </div>
+            {% endif %}
+
+            <div class="price-row total-price">
+                <span>Totale</span>
+                <span>€{{ booking.total_amount }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-section">
+        <h3>Contatti</h3>
+        <p><strong>Email:</strong> {{ booking.guest_email|default:booking.guest.email }}</p>
+        {% if booking.guest_phone %}
+            <p><strong>Telefono:</strong> {{ booking.guest_phone }}</p>
+        {% endif %}
+        <p><strong>Prenotazione effettuata:</strong> {{ booking.created_at }}</p>
+    </div>
+
+    {% if payments %}
+    <div class="detail-section">
+        <h3>Pagamenti</h3>
+        {% for payment in payments %}
+            <div class="price-row">
+                <span>{{ payment.get_payment_type_display }} - {{ payment.payment_date|date:"d/m/Y H:i" }}</span>
+                <span>€{{ payment.amount }}</span>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if can_cancel %}
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="{% url 'bookings:cancel_booking' booking.id %}" class="btn">Cancella Prenotazione</a>
+    </div>
+    {% endif %}
+
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="{% url 'bookings:booking_list' %}" style="color: #007bff;">← Torna alle Mie Prenotazioni</a>
+    </div>
+</body>
+</html>

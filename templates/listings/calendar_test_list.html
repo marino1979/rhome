@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}Test Calendario - Rhome Book{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+        <h1 class="text-3xl font-bold text-gray-900 mb-6">🧪 Test Calendario Frontend</h1>
+        <p class="text-gray-600 mb-6">
+            Seleziona un annuncio per testare il comportamento del calendario con le varie indisponibilità.
+        </p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for listing in listings %}
+            <a href="{% url 'listings:calendar_test_detail' listing.slug %}" 
+               class="block bg-gray-50 border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <h3 class="font-semibold text-lg text-gray-900 mb-2">{{ listing.title }}</h3>
+                <p class="text-gray-600 text-sm mb-2">{{ listing.city }} - {{ listing.zone }}</p>
+                <div class="flex items-center text-sm text-gray-500">
+                    <span class="mr-4">{{ listing.bedrooms }} camere</span>
+                    <span class="mr-4">{{ listing.max_guests }} ospiti</span>
+                    <span>€{{ listing.base_price }}/notte</span>
+                </div>
+            </a>
+            {% empty %}
+            <div class="col-span-full text-center py-8 text-gray-500">
+                <p>Nessun annuncio attivo disponibile per il test.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

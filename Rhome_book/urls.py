@@ -26,16 +26,23 @@ def contatti(request):
 urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
 ]
+def home(request):
+    return render(request, 'listings/listing_list.html')
+
 urlpatterns += [
+    path('', home, name='home'),
     path('admin/', admin.site.urls),
     path('appartamenti/', include('listings.urls')),
     path('icons/', include('icons.urls')),
-    path('api/', include('calendar_rules.urls')),  # per le API
+    path('api/', include('calendar_rules.urls')),  # per le API - include /api/calculate-price/
     path('calendar/', include('calendar_rules.urls')),  # per le viste web
     path('i18n/', include('django.conf.urls.i18n')),
     path('chi-siamo/', chi_siamo, name='about_us'),
     path('contatti/', contatti, name='contacts'),
-    
+    path('prenotazioni/', include('bookings.urls')),
+    path('accounts/', include('users.urls')),
+    path('accounts/', include('allauth.urls')),  # Django Allauth URLs (deve essere prima di django.contrib.auth.urls)
+    path('accounts/', include('django.contrib.auth.urls')),
 ]
 
 # Aggiungi questa parte per servire i file media in sviluppo

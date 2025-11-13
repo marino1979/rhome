@@ -167,11 +167,12 @@
             
             <!-- Menu principale (desktop) -->
             <div class="main-menu">
+                <a href="/appartamenti/" class="menu-item {% if request.resolver_match.url_name == 'apartment_list' %}active{% endif %}">
+                    {% trans "Appartamenti" %}
+                </a>
                 <a href="/chi-siamo/" class="menu-item {% if request.resolver_match.url_name == 'chi-siamo' %}active{% endif %}">
                     {% trans "Chi siamo" %}
                 </a>
-              
-                
                 <a href="/contatti/" class="menu-item {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">
                     {% trans "Contatti" %}
                 </a>
@@ -233,12 +234,21 @@
                 </div>
                 
                 <!-- Login / Registrazione -->
-                <a href="" class="login-button">
+                {% if user.is_authenticated %}
+                <a href="{% url 'account:dashboard' %}" class="login-button">
+                    {% trans "Dashboard" %}
+                </a>
+                <a href="{% url 'account:logout' %}" class="register-button logout-btn">
+                    {% trans "Esci" %}
+                </a>
+                {% else %}
+                <a href="{% url 'login' %}" class="login-button">
                     {% trans "Accedi" %}
                 </a>
-                <a href="" class="register-button">
+                <a href="{% url 'account:register' %}" class="register-button">
                     {% trans "Registrati" %}
                 </a>
+                {% endif %}
             </div>
             
             <!-- Menu mobile (hamburger) -->
@@ -256,7 +266,6 @@
             <a href="/appartamenti/" class="mobile-menu-item {% if request.resolver_match.url_name == 'apartment_list' %}active{% endif %}">
                 {% trans "Appartamenti" %}
             </a>
-          
             <a href="/chi-siamo/" class="mobile-menu-item {% if request.resolver_match.url_name == 'about_us' %}active{% endif %}">
                 {% trans "Chi Siamo" %}
             </a>
@@ -264,12 +273,21 @@
                 {% trans "Contatti" %}
             </a>
             <div class="pt-4 pb-3 border-t border-gray-700">
-                <a href="" class="mobile-menu-item">
+                {% if user.is_authenticated %}
+                <a href="{% url 'account:dashboard' %}" class="mobile-menu-item">
+                    {% trans "Dashboard" %}
+                </a>
+                <a href="{% url 'account:logout' %}" class="mobile-menu-item bg-opacity-20 bg-white">
+                    {% trans "Esci" %}
+                </a>
+                {% else %}
+                <a href="{% url 'login' %}" class="mobile-menu-item">
                     {% trans "Accedi" %}
                 </a>
-                <a href="" class="mobile-menu-item bg-opacity-20 bg-white">
+                <a href="{% url 'account:register' %}" class="mobile-menu-item bg-opacity-20 bg-white">
                     {% trans "Registrati" %}
                 </a>
+                {% endif %}
             </div>
         </div>
     </nav>

@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ listing.title }} - Rhome{% endblock %}
+
+{% block extra_css %}
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<!-- Splide CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css">
+<!-- GLightbox CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css">
+
+<style>
+  /* Stili per il calendario modulare */
+  .calendar-container {
+    position: relative;
+  }
+  
+  .calendar-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+  
+  .error-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 16px;
+    border-radius: 4px;
+    color: white;
+    font-weight: 500;
+    z-index: 10000;
+    max-width: 300px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  
+  .error-high { background-color: #dc3545; }
+  .error-medium { background-color: #fd7e14; }
+  .error-low { background-color: #6c757d; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Dati nascosti per JavaScript -->
+    <div id="listing-data" 
+         data-listing-id="{{ listing.id }}" 
+         data-listing-slug="{{ listing.slug }}"
+         data-min-stay="{{ listing.min_stay|default:1 }}"
+         data-max-stay="{{ listing.max_stay|default:30 }}"
+         data-gap-days="{{ listing.gap_between_bookings|default:0 }}"
+         style="display: none;">
+    </div>
+    
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ listing.title }}</h1>
+        <div class="flex items-center text-gray-600">
+            <span class="mr-4">📍 {{ listing.address }}</span>
+            <span class="mr-4">👥 {{ listing.max_guests }} ospiti</span>
+            <span class="mr-4">🛏️ {{ listing.bedrooms }} camere</span>
+            <span>🛁 {{ listing.bathrooms }} bagni</span>
+        </div>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Contenuto principale -->
+        <div class="lg:col-span-2">
+            <!-- Galleria immagini -->
+            <div class="mb-8">
+                <div id="main-gallery" class="splide">
+                    <div class="splide__track">
+                        <ul class="splide__list">
+                            {% for image in listing.images.all %}
+                            <li class="splide__slide">
+                                <img src="{{ image.image.url }}" 
+                                     alt="{{ image.caption|default:listing.title }}"
+                                     class="w-full h-64 object-cover rounded-lg">
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Descrizione -->
+            <div class="mb-8">
+                <h2 class="text-2xl font-semibold mb-4">Descrizione</h2>
+                <div class="prose max-w-none">
+                    {{ listing.description|linebreaks }}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar prenotazione -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-lg shadow-lg p-6 sticky top-4">
+                <div class="text-center mb-6">
+                    <div class="text-3xl font-bold text-gray-900">
+                        €{{ listing.base_price|floatformat:0 }}
+                    </div>
+                    <div class="text-gray-600">per notte</div>
+                </div>
+                
+                <!-- Form prenotazione -->
+                <form id="booking-form" class="space-y-4">
+                    {% csrf_token %}
+                    
+                    <!-- Calendario -->
+                    <div class="calendar-container">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Seleziona date
+                        </label>
+                        <input type="text" 
+                               id="calendar" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Seleziona date di check-in e check-out"
+                               readonly>
+                        
+                        <!-- Loading indicator -->
+                        <div id="calendar-loading" class="calendar-loading" style="display: none;">
+                            <div class="text-center">
+                                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                                <div class="text-sm text-gray-600">Caricamento calendario...</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Input nascosti per check-in e check-out -->
+                    <input type="hidden" id="check-in" name="check_in">
+                    <input type="hidden" id="check-out" name="check_out">
+                    
+                    <!-- Numero ospiti -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Ospiti
+                        </label>
+                        <select id="guests" name="guests" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            {% for i in "123456789"|make_list %}
+                            <option value="{{ i }}">{{ i }} {% if i == "1" %}ospite{% else %}ospiti{% endif %}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Messaggio disponibilità -->
+                    <div id="availability-message" class="hidden">
+                        <div id="availability-text" class="text-sm"></div>
+                    </div>
+                    
+                    <!-- Breakdown prezzo -->
+                    <div id="price-breakdown" class="hidden">
+                        <div class="border-t pt-4">
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span>Prezzo base</span>
+                                    <span id="base-price">€0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Tasse</span>
+                                    <span id="taxes">€0</span>
+                                </div>
+                                <div class="flex justify-between font-semibold border-t pt-2">
+                                    <span>Totale</span>
+                                    <span id="total-price">€0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pulsante prenotazione -->
+                    <button type="submit" 
+                            class="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled>
+                        Prenota ora
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Dipendenze esterne -->
+<script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/it.js"></script>
+
+<!-- Moduli core -->
+<script src="{% static 'js/config.js' %}"></script>
+<script src="{% static 'js/utils/DateUtils.js' %}"></script>
+<script src="{% static 'js/utils/ErrorHandler.js' %}"></script>
+<script src="{% static 'js/modules/StateManager.js' %}"></script>
+<script src="{% static 'js/modules/APIClient.js' %}"></script>
+<script src="{% static 'js/modules/SingleCalendarManager.js' %}"></script>
+
+<!-- Entry point -->
+<script src="{% static 'js/listing-detail.js' %}"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inizializza galleria immagini
+    if (document.querySelector('#main-gallery')) {
+        new Splide('#main-gallery', {
+            type: 'slide',
+            perPage: 1,
+            perMove: 1,
+            gap: '1rem',
+            pagination: false,
+            arrows: true,
+        }).mount();
+    }
+    
+    // Inizializza lightbox
+    const lightbox = GLightbox({
+        touchNavigation: true,
+        loop: true,
+        autoplayVideos: true
+    });
+    
+    // Gestione form prenotazione
+    const bookingForm = document.getElementById('booking-form');
+    if (bookingForm) {
+        bookingForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const checkIn = document.getElementById('check-in').value;
+            const checkOut = document.getElementById('check-out').value;
+            const guests = document.getElementById('guests').value;
+            
+            if (!checkIn || !checkOut) {
+                alert('Seleziona le date di check-in e check-out');
+                return;
+            }
+            
+            // Redirect al sistema di prenotazione esterno
+            const url = new URL('https://maggimilano-new.kross.travel/book/step1');
+            url.searchParams.set('from', checkIn);
+            url.searchParams.set('to', checkOut);
+            url.searchParams.set('guests', guests);
+            url.searchParams.set('adults', guests);
+            url.searchParams.set('children', '0');
+            url.searchParams.set('rooms', '1');
+            
+            window.location.href = url.toString();
+        });
+    }
+});
+</script>
+{% endblock %}
+
+

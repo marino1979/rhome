@@ -1,0 +1,408 @@
+/**
+ * Calendar Styles - Stili personalizzati per il calendario
+ * 
+ * CSS personalizzato per migliorare l'aspetto e l'usabilità
+ * del calendario di prenotazione.
+ */
+
+/* Stili base per Flatpickr */
+.flatpickr-calendar {
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid #e5e7eb !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+.flatpickr-months {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    border-radius: 12px 12px 0 0 !important;
+    padding: 1rem !important;
+}
+
+.flatpickr-month {
+    color: white !important;
+}
+
+.flatpickr-current-month {
+    color: white !important;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    border-radius: 6px !important;
+    padding: 0.25rem 0.5rem !important;
+}
+
+.flatpickr-current-month .numInputWrapper {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+    border-radius: 6px !important;
+    padding: 0.25rem 0.5rem !important;
+}
+
+.flatpickr-prev-month,
+.flatpickr-next-month {
+    color: white !important;
+    border-radius: 6px !important;
+    padding: 0.5rem !important;
+    transition: background-color 0.2s ease !important;
+}
+
+.flatpickr-prev-month:hover,
+.flatpickr-next-month:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Stili per i giorni */
+.flatpickr-day {
+    border-radius: 8px !important;
+    margin: 1px !important;
+    transition: all 0.2s ease !important;
+    font-weight: 500 !important;
+    position: relative !important;
+}
+
+.flatpickr-day:hover:not(.flatpickr-disabled) {
+    background: #f3f4f6 !important;
+    transform: scale(1.05) !important;
+}
+
+.flatpickr-day.selected {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3) !important;
+}
+
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+.flatpickr-day.inRange {
+    background: #dbeafe !important;
+    color: #1e40af !important;
+    font-weight: 500 !important;
+}
+
+/* Stili per giorni bloccati */
+.flatpickr-day.flatpickr-disabled {
+    background: #f9fafb !important;
+    color: #9ca3af !important;
+    cursor: not-allowed !important;
+    opacity: 0.6 !important;
+}
+
+.flatpickr-day.flatpickr-disabled:hover {
+    background: #f9fafb !important;
+    transform: none !important;
+}
+
+/* Stili personalizzati per regole */
+.flatpickr-day.no-checkin-rule {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+    color: #92400e !important;
+    font-weight: 500 !important;
+    position: relative !important;
+}
+
+.flatpickr-day.no-checkin-rule:after {
+    content: '🚫' !important;
+    position: absolute !important;
+    top: 2px !important;
+    right: 2px !important;
+    font-size: 10px !important;
+}
+
+.flatpickr-day.no-checkin-rule:hover {
+    background: linear-gradient(135deg, #fde68a 0%, #f59e0b 100%) !important;
+    transform: scale(1.05) !important;
+}
+
+.flatpickr-day.no-checkout-rule {
+    background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%) !important;
+    color: #991b1b !important;
+    font-weight: 500 !important;
+    position: relative !important;
+}
+
+.flatpickr-day.no-checkout-rule:after {
+    content: '⛔' !important;
+    position: absolute !important;
+    top: 2px !important;
+    right: 2px !important;
+    font-size: 10px !important;
+}
+
+.flatpickr-day.no-checkout-rule:hover {
+    background: linear-gradient(135deg, #fca5a5 0%, #ef4444 100%) !important;
+    transform: scale(1.05) !important;
+}
+
+.flatpickr-day.turnover-day {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%) !important;
+    color: #065f46 !important;
+    font-weight: 600 !important;
+    position: relative !important;
+}
+
+.flatpickr-day.turnover-day:after {
+    content: '✓' !important;
+    position: absolute !important;
+    top: 2px !important;
+    right: 2px !important;
+    font-size: 10px !important;
+    font-weight: bold !important;
+}
+
+.flatpickr-day.turnover-day:hover {
+    background: linear-gradient(135deg, #a7f3d0 0%, #10b981 100%) !important;
+    transform: scale(1.05) !important;
+}
+
+.flatpickr-day.available-for-checkout {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%) !important;
+    color: #1e40af !important;
+    font-weight: 500 !important;
+    position: relative !important;
+}
+
+.flatpickr-day.available-for-checkout:after {
+    content: '✓' !important;
+    position: absolute !important;
+    top: 2px !important;
+    right: 2px !important;
+    font-size: 10px !important;
+    color: #1e40af !important;
+}
+
+.flatpickr-day.available-for-checkout:hover {
+    background: linear-gradient(135deg, #bfdbfe 0%, #3b82f6 100%) !important;
+    color: white !important;
+    transform: scale(1.05) !important;
+}
+
+.flatpickr-day.available-for-checkout:hover:after {
+    color: white !important;
+}
+
+/* Stili per i giorni della settimana */
+.flatpickr-weekday {
+    background: #f8fafc !important;
+    color: #64748b !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+}
+
+/* Stili per oggi */
+.flatpickr-day.today {
+    background: #fef3c7 !important;
+    color: #92400e !important;
+    font-weight: 600 !important;
+    border: 2px solid #f59e0b !important;
+}
+
+.flatpickr-day.today:hover {
+    background: #fde68a !important;
+    transform: scale(1.05) !important;
+}
+
+/* Stili per i mesi */
+.flatpickr-monthDropdown-months {
+    background: white !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 6px !important;
+    padding: 0.5rem !important;
+    font-weight: 500 !important;
+}
+
+.flatpickr-monthDropdown-months option {
+    padding: 0.5rem !important;
+    font-weight: 500 !important;
+}
+
+/* Stili per gli input */
+.flatpickr-input {
+    background: white !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+}
+
+.flatpickr-input:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+    outline: none !important;
+}
+
+/* Stili per il calendario mobile */
+@media (max-width: 768px) {
+    .flatpickr-calendar {
+        width: 100% !important;
+        max-width: 320px !important;
+        margin: 0 auto !important;
+    }
+    
+    .flatpickr-day {
+        height: 40px !important;
+        line-height: 40px !important;
+        font-size: 0.875rem !important;
+    }
+    
+    .flatpickr-months {
+        padding: 0.75rem !important;
+    }
+    
+    .flatpickr-prev-month,
+    .flatpickr-next-month {
+        padding: 0.25rem !important;
+    }
+}
+
+/* Animazioni */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.flatpickr-calendar {
+    animation: fadeIn 0.3s ease-out !important;
+}
+
+/* Stili per tooltip personalizzati */
+.calendar-tooltip {
+    position: absolute;
+    background: #1f2937;
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    z-index: 1000;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-5px);
+    transition: all 0.2s ease;
+    max-width: 200px;
+    word-wrap: break-word;
+}
+
+.calendar-tooltip.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.calendar-tooltip:after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #1f2937 transparent transparent transparent;
+}
+
+/* Stili per loading */
+.calendar-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    border-radius: 12px;
+}
+
+.calendar-loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e5e7eb;
+    border-top: 3px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Stili per messaggi di stato */
+.calendar-status-message {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+}
+
+.calendar-status-message.success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.calendar-status-message.error {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.calendar-status-message.warning {
+    background: #fefce8;
+    color: #ca8a04;
+    border: 1px solid #fde68a;
+}
+
+.calendar-status-message.info {
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+}
+
+.calendar-status-message::before {
+    content: '';
+    width: 16px;
+    height: 16px;
+    margin-right: 0.5rem;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.calendar-status-message.success::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23166534'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7'/%3E%3C/svg%3E");
+}
+
+.calendar-status-message.error::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23dc2626'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'/%3E%3C/svg%3E");
+}
+
+.calendar-status-message.warning::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ca8a04'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z'/%3E%3C/svg%3E");
+}
+
+.calendar-status-message.info::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%232563eb'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
+}
