@@ -4,7 +4,7 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from .models import ClosureRule, CheckInOutRule, PriceRule, ExternalCalendar
-from .forms import PriceRuleForm
+# PriceRuleForm rimosso - non più utilizzato
 from django.contrib import messages  # Questo è l'import corretto
 from datetime import timedelta, date  # aggiungiamo l'import di timedelta
 
@@ -50,7 +50,7 @@ class CheckInOutRuleAdmin(admin.ModelAdmin):
 
 @admin.register(PriceRule)
 class PriceRuleAdmin(admin.ModelAdmin):
-    form = PriceRuleForm
+    # form = PriceRuleForm  # Rimosso - usando ModelForm standard di Django
     list_display = ['listing', 'start_date', 'end_date', 'price', 'min_nights']
     list_filter = ['listing', 'start_date']
     search_fields = ['listing__title']
