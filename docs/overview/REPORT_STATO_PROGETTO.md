@@ -375,11 +375,12 @@ python test_calendar_configurations.py
 
 ## 📚 DOCUMENTAZIONE DISPONIBILE
 
-1. ✅ `REFACTORING_COMPLETATO_FINALE.md` - Documentazione refactoring calendario
-2. ✅ `CALENDAR_SYSTEM_IMPROVEMENTS.md` - Miglioramenti sistema calendario
-3. ✅ `calendar_rules/services/README.md` - Documentazione servizi calendario
-4. ✅ `ANALISI_EFFICIENZA_CALENDARIO.md` - Analisi efficienza sistema calendario (NUOVO)
-5. ✅ `test_calendar_configurations.py` - Suite test configurazioni calendario (NUOVO)
+Tutta la documentazione è organizzata nella cartella `docs/`. Vedi [docs/README.md](../README.md) per l'indice completo.
+
+1. ✅ [docs/technical/CALENDAR_SYSTEM_IMPROVEMENTS.md](../technical/CALENDAR_SYSTEM_IMPROVEMENTS.md) - Miglioramenti sistema calendario
+2. ✅ `calendar_rules/services/README.md` - Documentazione servizi calendario
+3. ✅ [docs/technical/NUOVO_SISTEMA_CALENDARIO.md](../technical/NUOVO_SISTEMA_CALENDARIO.md) - Documentazione nuovo sistema calendario
+4. ✅ [docs/technical/INTEGRAZIONE_ICAL.md](../technical/INTEGRAZIONE_ICAL.md) - Integrazione calendari esterni
 
 ---
 
