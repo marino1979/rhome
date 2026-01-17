@@ -1,0 +1,24 @@
+# Gestione automatica dei line endings
+# Forza LF per tutti i file di testo
+* text=auto eol=lf
+
+# Eccezioni per file che devono mantenere CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# File binari (non toccare)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.exe binary
+*.dll binary
+*.so binary
+*.pyc binary
+*.mo binary
+*.db binary
+*.sqlite3 binary
