@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .forms import RegistrationForm
-from bookings.models import Booking
+from bookings.models import Booking, MultiBooking
 
 
 def register(request):
@@ -55,18 +55,45 @@ def register(request):
 @login_required
 def dashboard(request):
     from bookings.models import Message
-    bookings = Booking.objects.filter(guest=request.user).order_by('-created_at').prefetch_related('messages')
-    
-    # Aggiungi informazioni sui messaggi non letti per ogni prenotazione
-    for booking in bookings:
+    from django.utils import timezone
+    from datetime import timedelta
+
+    # Prendi SOLO le prenotazioni singole che NON fanno parte di un multi-booking
+    single_bookings = Booking.objects.filter(
+        guest=request.user,
+        multi_booking__isnull=True  # Escludi quelle che fanno parte di combinazioni
+    ).select_related('listing').prefetch_related('messages').order_by('-check_in_date')
+
+    # Prendi tutte le multi-bookings
+    multi_bookings = MultiBooking.objects.filter(
+        guest=request.user
+    ).prefetch_related('individual_bookings__listing').order_by('-check_in_date')
+
+    # Crea una lista unificata di tutte le prenotazioni con un tipo identificativo
+    all_bookings = []
+
+    # Aggiungi multi-bookings
+    for mb in multi_bookings:
+        mb.booking_type = 'multi'
+        # can_cancel è già una @property nel modello, non serve impostarlo
+        all_bookings.append(mb)
+
+    # Aggiungi single bookings con info messaggi
+    for booking in single_bookings:
+        booking.booking_type = 'single'
         booking.has_unread_messages = Message.objects.filter(
             booking=booking,
             recipient=request.user,
             is_read=False
         ).exists()
-    
+        # can_cancel è già una @property nel modello, non serve impostarlo
+        all_bookings.append(booking)
+
+    # Ordina tutto per data di check-in (più recente prima)
+    all_bookings.sort(key=lambda x: x.check_in_date, reverse=True)
+
     return render(request, 'account/dashboard.html', {
-        'bookings': bookings,
+        'all_bookings': all_bookings,
     })
 
 

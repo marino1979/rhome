@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+from decouple import config, Csv
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -23,12 +24,14 @@ print("BASE_DIR:", BASE_DIR)
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-qlq60s7t1dy_-vt&-mat+2t3zx0-+t29*9_c%jpipd2u)pf^m3'
+# Load from .env file using python-decouple
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+# Allowed hosts - should be configured in .env for production
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
 
 
 # Application definition
@@ -104,6 +107,22 @@ DATABASES = {
     }
 }
 
+# Cache configuration
+# Per produzione, usare Redis o Memcached
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+        'TIMEOUT': 300,  # 5 minuti default
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
+        }
+    }
+}
+
+# Debug calendario - abilita logging dettagliato (disabilitare in produzione)
+DEBUG_CALENDAR = config('DEBUG_CALENDAR', default=False, cast=bool)
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -135,7 +154,9 @@ LANGUAGES = [
 ]
 LANGUAGE_CODE = 'it'
 
-TIME_ZONE = 'UTC'
+# Changed from UTC to Europe/Rome for Italian booking system
+# This ensures check-in/check-out times are correct with DST
+TIME_ZONE = 'Europe/Rome'
 
 USE_I18N = True
 
@@ -205,15 +226,23 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # Allauth Settings
-ACCOUNT_AUTHENTICATION_METHOD = 'username_email'  # Permette login con username o email
-ACCOUNT_EMAIL_REQUIRED = True
+# Nuove impostazioni (django-allauth >= 0.57.0)
+ACCOUNT_LOGIN_METHODS = {'email', 'username'}  # Permette login con username o email
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']  # Campi obbligatori per signup
 ACCOUNT_EMAIL_VERIFICATION = 'optional'  # 'mandatory', 'optional', o 'none'
-ACCOUNT_USERNAME_REQUIRED = True
 ACCOUNT_USERNAME_MIN_LENGTH = 3
-ACCOUNT_SIGNUP_EMAIL_ENTER_TWICE = False
 ACCOUNT_SESSION_REMEMBER = True
-ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
-ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300  # 5 minuti
+ACCOUNT_RATE_LIMITS = {
+    'login_failed': '5/m'  # 5 tentativi per minuto
+}
+
+# Impostazioni deprecate (mantenute per compatibilità, verranno rimosse in futuro)
+# ACCOUNT_AUTHENTICATION_METHOD = 'username_email'  # DEPRECATO - usa ACCOUNT_LOGIN_METHODS
+# ACCOUNT_EMAIL_REQUIRED = True  # DEPRECATO - usa ACCOUNT_SIGNUP_FIELDS
+# ACCOUNT_USERNAME_REQUIRED = True  # DEPRECATO - usa ACCOUNT_SIGNUP_FIELDS
+# ACCOUNT_SIGNUP_EMAIL_ENTER_TWICE = False  # DEPRECATO - usa ACCOUNT_SIGNUP_FIELDS
+# ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5  # DEPRECATO - usa ACCOUNT_RATE_LIMITS
+# ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300  # DEPRECATO - usa ACCOUNT_RATE_LIMITS
 
 LOGIN_REDIRECT_URL = '/accounts/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
@@ -290,9 +319,11 @@ LOGGING = {
             'formatter': 'calendar_debug',
         },
         'file': {
-            'class': 'logging.FileHandler',
+            'class': 'logging.handlers.RotatingFileHandler',
             'filename': 'calendar_debug.log',
             'formatter': 'verbose',
+            'maxBytes': 5_000_000,  # 5MB
+            'backupCount': 3,  # Keep 3 backup files
         },
     },
     'loggers': {
@@ -300,6 +331,11 @@ LOGGING = {
             'handlers': ['calendar_console', 'file'],
             'level': 'INFO',
             'propagate': False,  # Evita duplicazione
+        },
+        'listings.services.review_sync': {
+            'handlers': ['console'],
+            'level': 'INFO',  # Mostra INFO e superiori
+            'propagate': False,
         },
         'django': {
             'handlers': ['console'],
@@ -309,5 +345,6 @@ LOGGING = {
     },
 }
 
-LOGIN_REDIRECT_URL = '/accounts/dashboard/'
-LOGOUT_REDIRECT_URL = '/'
+# Increase max number of fields for admin forms with many inlines
+# (beds, photos, price rules, amenities, etc.)
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 5000

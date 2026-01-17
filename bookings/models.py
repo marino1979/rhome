@@ -72,6 +72,11 @@ class Booking(models.Model):
     guest_phone = models.CharField(max_length=20, blank=True)
     guest_email = models.EmailField(blank=True)
 
+    # Richieste di modifica da parte dell'utente
+    change_requested = models.BooleanField(default=False)
+    change_request_note = models.TextField(blank=True)
+    change_request_created_at = models.DateTimeField(null=True, blank=True)
+
     # Codici di accesso
     check_in_code = models.CharField(max_length=10, blank=True)
     wifi_password = models.CharField(max_length=50, blank=True)
@@ -340,6 +345,58 @@ class Booking(models.Model):
             self.generate_check_in_code()
 
         super().save(*args, **kwargs)
+        
+        # Invalida cache calendario per questo listing dopo il salvataggio
+        self._invalidate_calendar_cache()
+    
+    def _invalidate_calendar_cache(self):
+        """Invalida la cache del calendario per questo listing"""
+        try:
+            from django.core.cache import cache
+            from datetime import timedelta
+            from django.utils import timezone
+            
+            # Invalida tutte le cache per questo listing
+            # Pattern: calendar:{listing_id}:*
+            # Django cache non supporta delete_pattern nativamente, quindi invalidiamo manualmente
+            # Per ora invalidiamo tutte le cache (in produzione si può usare redis con pattern delete)
+            listing_id = getattr(self, 'listing_id', None) or (self.listing.id if hasattr(self, 'listing') and self.listing else None)
+            
+            if listing_id:
+                # Invalida cache per un range ampio di date (ultimi 6 mesi e prossimi 12 mesi)
+                today = timezone.now().date()
+                start_date = today - timedelta(days=180)  # 6 mesi fa
+                end_date = today + timedelta(days=365)     # 12 mesi avanti
+                
+                # Invalida cache per range di date comuni (ogni 30 giorni)
+                current = start_date
+                while current <= end_date:
+                    cache_key = f"calendar:{listing_id}:{current.isoformat()}:{(current + timedelta(days=30)).isoformat()}"
+                    cache.delete(cache_key)
+                    current += timedelta(days=30)
+        except Exception:
+            # Se la cache fallisce, non bloccare il salvataggio
+            pass
+
+    @property
+    def can_cancel(self):
+        """Indica se l'utente può richiedere la cancellazione"""
+        if self.status not in ['pending', 'confirmed']:
+            return False
+        return self.check_in_date > timezone.now().date() + timedelta(days=1)
+
+    @property
+    def can_request_change(self):
+        """Indica se l'utente può richiedere modifiche alla prenotazione"""
+        if self.status not in ['pending', 'confirmed']:
+            return False
+        return self.check_in_date > timezone.now().date() + timedelta(days=1)
+
+    @property
+    def change_request_status(self):
+        if not self.change_requested:
+            return 'none'
+        return 'pending'
 
     def __str__(self):
         return f"{self.listing.title} - {self.guest.get_full_name() or self.guest.username} ({self.check_in_date} to {self.check_out_date})"
@@ -428,6 +485,11 @@ class MultiBooking(models.Model):
     guest_phone = models.CharField(max_length=20, blank=True)
     guest_email = models.EmailField(blank=True)
 
+    # Richieste di modifica
+    change_requested = models.BooleanField(default=False)
+    change_request_note = models.TextField(blank=True)
+    change_request_created_at = models.DateTimeField(null=True, blank=True)
+
     # Note interne
     host_notes = models.TextField(blank=True)
 
@@ -494,6 +556,19 @@ class MultiBooking(models.Model):
     def __str__(self):
         listings = ", ".join(self.get_listings_names())
         return f"Multi: {listings} - {self.guest.get_full_name() or self.guest.username} ({self.check_in_date} to {self.check_out_date})"
+
+    @property
+    def can_cancel(self):
+        if self.status not in ['pending', 'confirmed']:
+            return False
+        return self.check_in_date > timezone.now().date() + timedelta(days=1)
+
+    @property
+    def can_request_change(self):
+        """Indica se l'utente può richiedere modifiche alla prenotazione combinata"""
+        if self.status not in ['pending', 'confirmed']:
+            return False
+        return self.check_in_date > timezone.now().date() + timedelta(days=1)
 
 
 class Message(models.Model):

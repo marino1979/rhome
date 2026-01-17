@@ -6,7 +6,17 @@
       "Bash(curl:*)",
       "Bash(python manage.py:*)",
       "Bash(python:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(pip install:*)",
+      "Bash(timeout:*)",
+      "Bash(exit 0)",
+      "Bash(dir \"C:\\\\Users\\\\utente\\\\Documents\\\\python\\\\booking_env\\\\Rhome_book\\\\account\\\\migrations\")",
+      "Bash(pip show:*)",
+      "Bash(findstr:*)",
+      "Bash(node --check:*)",
+      "Bash(del temp_page.html)",
+      "Bash(find:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []

@@ -14,6 +14,9 @@ urlpatterns = [
     path('calendar-test/<slug:slug>/', views_test.calendar_test_page, name='calendar_test_detail'),
     path('calendar-test/<slug:slug>/api/', views_test.calendar_test_api, name='calendar_test_api'),
 
+    # Nuovo calendario Airbnb-style
+    path('calendar/<slug:slug>/', views.booking_calendar_demo, name='booking_calendar'),
+
     path('wizard/', ListingWizardView.as_view(), name='listing_wizard'),
     path('room-types/', RoomTypesView.as_view(), name='room_types'),
     path('bed-types/', BedTypesView.as_view(), name='bed_types'),

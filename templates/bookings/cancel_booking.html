@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Cancella prenotazione" %} - Rhome Book{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto px-4 py-10">
+    <div class="bg-white shadow rounded-lg p-6">
+        <h1 class="text-2xl font-semibold text-gray-900 mb-4">{% trans "Cancella prenotazione" %}</h1>
+        <p class="text-gray-700 mb-6">
+            {% trans "Confermi di voler cancellare la prenotazione per" %} <strong>{{ booking.listing.title }}</strong>
+            {% trans "dal" %} <strong>{{ booking.check_in_date|date:"d/m/Y" }}</strong> {% trans "al" %}
+            <strong>{{ booking.check_out_date|date:"d/m/Y" }}</strong>?
+        </p>
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div class="flex items-center justify-between">
+                <a href="{% url 'bookings:booking_detail' booking.id %}" class="text-gray-600 hover:text-gray-800">
+                    {% trans "Annulla" %}
+                </a>
+                <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                    {% trans "Conferma cancellazione" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

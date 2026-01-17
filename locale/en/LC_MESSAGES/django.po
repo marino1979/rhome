@@ -553,6 +553,521 @@ msgstr "Services"
 msgid "Nessun appartamento disponibile al momento"
 msgstr "No apartments available at this time"
 
+#: templates\base.html
+msgid "Dashboard"
+msgstr "Dashboard"
+
+#: templates\base.html
+msgid "Esci"
+msgstr "Get out"
+
+#: templates\account\dashboard.html
+msgid "Ciao"
+msgstr "Hi"
+
+#: templates\account\dashboard.html
+msgid "Benvenuto/a nella tua area riservata"
+msgstr "Welcome to your reserved area"
+
+#: templates\account\dashboard.html
+msgid "Le tue prenotazioni"
+msgstr "Your reservations"
+
+#: templates\account\dashboard.html
+msgid "Prenotazione Combinata"
+msgstr "Combined Booking"
+
+#: templates\account\dashboard.html
+msgid "ospiti totali"
+msgstr "total guests"
+
+#: templates\account\dashboard.html
+msgid "appartamenti"
+msgstr "apartments"
+
+#: templates\account\dashboard.html
+msgid "Modifica in attesa"
+msgstr "Pending change"
+
+#: templates\account\dashboard.html templates\bookings\booking_messages.html
+msgid "Messaggi"
+msgstr "Posts"
+
+#: templates\account\dashboard.html
+#: templates\bookings\cancel_multi_booking.html
+msgid "Cancella combinazione"
+msgstr "Delete combination"
+
+#: templates\account\dashboard.html
+msgid ""
+"Per richiedere modifiche alla prenotazione, utilizza il sistema di "
+"messaggistica."
+msgstr "To request changes to your reservation, use the messaging system."
+
+#: templates\account\dashboard.html templates\bookings\booking_messages.html
+msgid "Nuovo"
+msgstr "New"
+
+#: templates\account\dashboard.html
+msgid "Cancella"
+msgstr "Delete"
+
+#: templates\account\dashboard.html
+msgid "Nessuna prenotazione"
+msgstr "No reservation"
+
+#: templates\account\dashboard.html
+msgid "Non hai ancora effettuato nessuna prenotazione."
+msgstr "You have not made any reservations yet."
+
+#: templates\account\dashboard.html
+msgid "Esplora appartamenti"
+msgstr "Explore apartments"
+
+#: templates\account\dashboard.html
+msgid "Azioni rapide"
+msgstr "Quick actions"
+
+#: templates\account\dashboard.html
+msgid "Modifica profilo"
+msgstr "Edit profile"
+
+#: templates\account\dashboard.html templates\account\profile.html
+msgid "Aggiorna le tue informazioni personali"
+msgstr "Update your personal information"
+
+#: templates\account\dashboard.html
+msgid "Sfoglia appartamenti"
+msgstr "Browse apartments"
+
+#: templates\account\dashboard.html
+msgid "Cerca la tua prossima meta"
+msgstr "Search for your next destination"
+
+#: templates\account\login.html
+msgid "Accedi al tuo account"
+msgstr "Sign in to your account"
+
+#: templates\account\login.html templates\bookings\booking_messages.html
+msgid "Errore:"
+msgstr "Error:"
+
+#: templates\account\login.html
+msgid "Username o password non corretti. Per favore riprova."
+msgstr "Incorrect username or password. Please try again."
+
+#: templates\account\login.html templates\account\signup.html
+msgid "Username"
+msgstr "Username"
+
+#: templates\account\login.html templates\account\signup.html
+msgid "Password"
+msgstr "Password"
+
+#: templates\account\login.html
+msgid "Non hai ancora un account?"
+msgstr "Don't have an account yet?"
+
+#: templates\account\login.html
+msgid "Registrati qui"
+msgstr "Register here"
+
+#: templates\account\profile.html
+msgid "Modifica Profilo"
+msgstr "Edit Profile"
+
+#: templates\account\profile.html
+msgid "Inserisci il tuo nome"
+msgstr "Enter your name"
+
+#: templates\account\profile.html templates\account\signup.html
+msgid "Cognome"
+msgstr "Last name"
+
+#: templates\account\profile.html
+msgid "Inserisci il tuo cognome"
+msgstr "Enter your last name"
+
+#: templates\account\profile.html
+msgid "nome@esempio.com"
+msgstr "nome@esempio.com"
+
+#: templates\account\profile.html
+msgid ""
+"Questa email sarà utilizzata per le comunicazioni relative alle prenotazioni"
+msgstr "This email will be used for communications related to reservations"
+
+#: templates\account\profile.html
+msgid "Numero di telefono"
+msgstr "Phone Number"
+
+#: templates\account\profile.html
+msgid "Inserisci il tuo numero di telefono con prefisso internazionale"
+msgstr "Enter your phone number with area code"
+
+#: templates\account\profile.html
+msgid "Informazioni Account"
+msgstr "Account Information"
+
+#: templates\account\profile.html
+msgid "Username:"
+msgstr "Username:"
+
+#: templates\account\profile.html
+msgid "Data registrazione:"
+msgstr "Record date:"
+
+#: templates\account\profile.html
+msgid "Torna alla dashboard"
+msgstr "Back to the dashboard"
+
+#: templates\account\profile.html
+msgid "Salva modifiche"
+msgstr "Save Changes"
+
+#: templates\account\signup.html
+msgid "Crea il tuo account"
+msgstr "Create your account"
+
+#: templates\account\signup.html
+msgid "Conferma Password"
+msgstr "Confirm Password"
+
+#: templates\account\signup.html
+msgid "Hai già un account?"
+msgstr "Do you already have an account?"
+
+#: templates\admin\sync_airbnb_reviews.html
+msgid "Home"
+msgstr "Home"
+
+#: templates\admin\sync_airbnb_reviews.html
+msgid "Sincronizza Recensioni Airbnb"
+msgstr "Synchronize Airbnb Reviews"
+
+#: templates\bookings\booking_detail.html
+#: templates\bookings\booking_messages.html
+msgid "Prenotazione"
+msgstr "Reservation"
+
+#: templates\bookings\booking_detail.html
+msgid "Dettagli Soggiorno"
+msgstr "Living Room Details"
+
+#: templates\bookings\booking_detail.html
+#: templates\bookings\booking_messages.html
+msgid "Check-in:"
+msgstr "Check-in:"
+
+#: templates\bookings\booking_detail.html
+#: templates\bookings\booking_messages.html
+msgid "Check-out:"
+msgstr "Check-out:"
+
+#: templates\bookings\booking_detail.html
+msgid "Notti:"
+msgstr "Nights:"
+
+#: templates\bookings\booking_detail.html
+#: templates\bookings\booking_messages.html
+msgid "Ospiti:"
+msgstr "Guests:"
+
+#: templates\bookings\booking_detail.html
+msgid "adulti"
+msgstr "adults"
+
+#: templates\bookings\booking_detail.html
+msgid "bambini"
+msgstr "children"
+
+#: templates\bookings\booking_detail.html
+msgid "Codice Accesso:"
+msgstr "Access Code:"
+
+#: templates\bookings\booking_detail.html
+msgid "Richieste Speciali:"
+msgstr "Special Requests:"
+
+#: templates\bookings\booking_detail.html
+msgid "Riepilogo Prezzi"
+msgstr "Price Summary"
+
+#: templates\bookings\booking_detail.html
+msgid "Ospiti extra"
+msgstr "Extra guests"
+
+#: templates\bookings\booking_detail.html
+msgid "Email:"
+msgstr "Email:"
+
+#: templates\bookings\booking_detail.html
+msgid "Telefono:"
+msgstr "Phone:"
+
+#: templates\bookings\booking_detail.html
+msgid "Prenotazione effettuata:"
+msgstr "Reservation made:"
+
+#: templates\bookings\booking_detail.html
+msgid "Pagamenti"
+msgstr "Payments"
+
+#: templates\bookings\booking_detail.html
+msgid "Cancella Prenotazione"
+msgstr "Cancel Reservation"
+
+#: templates\bookings\booking_detail.html
+msgid "Torna alle Mie Prenotazioni"
+msgstr "Back to My Reservations"
+
+#: templates\bookings\booking_list.html
+msgid "Le Mie Prenotazioni"
+msgstr "My Reservations"
+
+#: templates\bookings\booking_list.html
+msgid "Benvenuto"
+msgstr "Welcome"
+
+#: templates\bookings\booking_list.html templates\listings\listing_detail.html
+msgid "Check-in"
+msgstr "Check-in"
+
+#: templates\bookings\booking_list.html
+msgid "Check-out"
+msgstr "Check-out"
+
+#: templates\bookings\booking_list.html
+msgid "Vedi Dettagli"
+msgstr "View Details"
+
+#: templates\bookings\booking_list.html
+msgid "Nessuna prenotazione trovata"
+msgstr "No reservation found"
+
+#: templates\bookings\booking_list.html
+msgid "Non hai ancora effettuato prenotazioni."
+msgstr "You have not yet made reservations."
+
+#: templates\bookings\booking_list.html
+msgid "Esplora gli Appartamenti"
+msgstr "Explore the Apartments"
+
+#: templates\bookings\booking_messages.html
+msgid "Torna alla Dashboard"
+msgstr "Back to Dashboard"
+
+#: templates\bookings\booking_messages.html
+msgid "Stato:"
+msgstr "Status:"
+
+#: templates\bookings\booking_messages.html
+msgid "Tu"
+msgstr "You"
+
+#: templates\bookings\booking_messages.html
+msgid "Nessun messaggio ancora. Inizia la conversazione!"
+msgstr "No messages yet. Start the conversation!"
+
+#: templates\bookings\booking_messages.html
+msgid "Scrivi un messaggio..."
+msgstr "Write a message..."
+
+#: templates\bookings\booking_messages.html
+msgid "Invia"
+msgstr "Send"
+
+#: templates\bookings\booking_messages.html
+msgid "Invio..."
+msgstr "Sending..."
+
+#: templates\bookings\booking_messages.html
+msgid "Impossibile inviare il messaggio"
+msgstr "Unable to send message"
+
+#: templates\bookings\booking_messages.html
+#: templates\listings\listing_detail.html
+msgid "Errore di connessione. Riprova più tardi."
+msgstr "Connection error. Please try again later."
+
+#: templates\bookings\cancel_booking.html
+msgid "Cancella prenotazione"
+msgstr "Cancel reservation"
+
+#: templates\bookings\cancel_booking.html
+msgid "Confermi di voler cancellare la prenotazione per"
+msgstr "Please confirm that you wish to cancel your reservation for"
+
+#: templates\bookings\cancel_booking.html
+msgid "dal"
+msgstr "from"
+
+#: templates\bookings\cancel_booking.html
+#: templates\bookings\cancel_multi_booking.html
+msgid "al"
+msgstr "at"
+
+#: templates\bookings\cancel_booking.html
+#: templates\bookings\cancel_multi_booking.html
+msgid "Annulla"
+msgstr "Cancel"
+
+#: templates\bookings\cancel_booking.html
+msgid "Conferma cancellazione"
+msgstr "Confirmation of cancellation"
+
+#: templates\bookings\cancel_multi_booking.html
+msgid "Cancella prenotazione combinata"
+msgstr "Cancel combined reservation"
+
+#: templates\bookings\cancel_multi_booking.html
+msgid "Stai per cancellare la combinazione dal"
+msgstr "You are going to delete the combination from the"
+
+#: templates\listings\listing_detail.html
+msgid "bagni"
+msgstr "bathrooms"
+
+#: templates\listings\listing_detail.html
+msgid "Media Valutazione"
+msgstr "Average Rating"
+
+#: templates\listings\listing_detail.html
+msgid "Totale Recensioni"
+msgstr "Total Reviews"
+
+#: templates\listings\listing_detail.html
+msgid "Sito"
+msgstr "Website"
+
+#: templates\listings\listing_detail.html
+msgid "Distribuzione"
+msgstr "Distribution"
+
+#: templates\listings\listing_detail.html
+msgid "stelle"
+msgstr "stars"
+
+#: templates\listings\listing_detail.html
+msgid "Media per Categoria"
+msgstr "Average by Category"
+
+#: templates\listings\listing_detail.html
+msgid "Pulizia"
+msgstr "Cleaning"
+
+#: templates\listings\listing_detail.html
+msgid "Precisione"
+msgstr "Accuracy"
+
+#: templates\listings\listing_detail.html
+msgid "Comunicazione"
+msgstr "Communication"
+
+#: templates\listings\listing_detail.html
+msgid "Rapporto Qualità-Prezzo"
+msgstr "Value for Money"
+
+#: templates\listings\listing_detail.html
+msgid "Tutte"
+msgstr "All"
+
+#: templates\listings\listing_detail.html
+msgid "Valore"
+msgstr "Value"
+
+#: templates\listings\listing_detail.html
+msgid "Risposta dell'Host"
+msgstr "Host's Response"
+
+#: templates\listings\listing_detail.html
+msgid "Nessuna recensione disponibile"
+msgstr "No reviews available"
+
+#: templates\listings\listing_detail.html
+msgid "Mostra tutte le recensioni"
+msgstr "Show all reviews"
+
+#: templates\listings\listing_detail.html
+msgid "Seleziona date"
+msgstr "Select dates"
+
+#: templates\listings\listing_detail.html templates\listings\listing_list.html
+msgid "Seleziona il periodo di soggiorno"
+msgstr "Select the period of stay"
+
+#: templates\listings\listing_detail.html
+msgid "Seleziona le date di check-in e check-out"
+msgstr "Select check-in and check-out dates"
+
+#: templates\listings\listing_detail.html
+msgid "Prenotazione in corso..."
+msgstr "Reservation in progress..."
+
+#: templates\listings\listing_detail.html
+msgid "Prenotazione creata con successo!"
+msgstr "Reservation successfully created!"
+
+#: templates\listings\listing_detail.html
+msgid "Errore nella creazione della prenotazione"
+msgstr "Error in creating the reservation"
+
+#: templates\listings\listing_detail.html
+msgid "Devi essere autenticato per prenotare. Reindirizzamento al login..."
+msgstr "You must be authenticated to book. Redirecting to login..."
+
+#: templates\listings\listing_list.html
+msgid "Ricerca Disponibilità Combinata"
+msgstr "Combined Availability Search"
+
+#: templates\listings\listing_list.html
+msgid "Trova la combinazione perfetta di appartamenti per il tuo gruppo"
+msgstr "Find the perfect combination of apartments for your group"
+
+#: templates\listings\listing_list.html
+msgid ""
+"Le combinazioni sono predefinite dall'host per garantire la migliore "
+"esperienza"
+msgstr "Combinations are predefined by the host to ensure the best experience"
+
+#: templates\listings\listing_list.html
+msgid "Seleziona Date"
+msgstr "Select Dates"
+
+#: templates\listings\listing_list.html
+msgid "Cerca"
+msgstr "Search"
+
+#: templates\listings\listing_list.html
+msgid "Combinazioni disponibili"
+msgstr "Available combinations"
+
+#: templates\listings\listing_list.html
+msgid "Ricerca combinazioni..."
+msgstr "Research combinations..."
+
+#: templates\listings\listing_list.html
+msgid ""
+"<p class=\" text-base leading-relaxed\"> I nostri appartamenti si trovano "
+"nel cuore di Moscova, una delle zone più vivaci e dinamiche e luogo ideale "
+"per cene e drinks. Il quartiere di Brera, cuore artistico e centro della "
+"moda e del design di Milano, si trova proprio a ridosso.</p> <p> Per chi "
+"invece avesse voglia di godersi una corsa mattutina o un drink lontano dal "
+"caos cittadino, basta attraversare la strada per essere nel Parco "
+"Sempione.<br/> Passeggiando per il parco è anche possibile raggiungere "
+"alcune grandi attrazioni che meritano sicuramente una visita come il "
+"Castello Sforzesco, la Triennale e l’Arco della Pace.</p>"
+msgstr ""
+"<p class=\" text-base leading-relaxed\"> Our apartments are located in the "
+"heart of Moscova, one of the most lively and dynamic areas and an ideal "
+"place for dinners and drinks. The Brera district, the artistic heart and "
+"center of Milan's fashion and design, is right next door.</p> <p>For those "
+"who, on the other hand, feel like enjoying a morning run or a drink away "
+"from the city chaos, just cross the street to be in Sempione Park.<br/> "
+"Walking through the park, it is also possible to reach some great "
+"attractions that are definitely worth a visit such as the Castello "
+"Sforzesco, the Triennale and the Arco della Pace.</p>"
+
 #~ msgid "Non ci sono ancora recensioni per questo alloggio"
 #~ msgstr "There are no reviews for this accommodation yet"
 

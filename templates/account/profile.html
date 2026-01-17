@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% load static %}
+{% load i18n %}
 
 {% block content %}
 <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Modifica Profilo</h1>
-        <p class="mt-2 text-gray-600">Aggiorna le tue informazioni personali</p>
+        <h1 class="text-3xl font-bold text-gray-900">{% trans "Modifica Profilo" %}</h1>
+        <p class="mt-2 text-gray-600">{% trans "Aggiorna le tue informazioni personali" %}</p>
     </div>
 
     <div class="bg-white rounded-lg shadow-md p-8">
@@ -21,63 +22,63 @@
 
         <form method="post" class="space-y-6">
             {% csrf_token %}
-            
+
             <div>
-                <label for="first_name" class="block text-sm font-medium text-gray-700 mb-2">Nome</label>
-                <input type="text" 
-                       id="first_name" 
-                       name="first_name" 
-                       value="{{ request.user.first_name }}" 
-                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                       placeholder="Inserisci il tuo nome">
+                <label for="first_name" class="block text-sm font-medium text-gray-700 mb-2">{% trans "Nome" %}</label>
+                <input type="text"
+                       id="first_name"
+                       name="first_name"
+                       value="{{ request.user.first_name }}"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                       placeholder="{% trans "Inserisci il tuo nome" %}">
             </div>
 
             <div>
-                <label for="last_name" class="block text-sm font-medium text-gray-700 mb-2">Cognome</label>
-                <input type="text" 
-                       id="last_name" 
-                       name="last_name" 
-                       value="{{ request.user.last_name }}" 
-                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                       placeholder="Inserisci il tuo cognome">
+                <label for="last_name" class="block text-sm font-medium text-gray-700 mb-2">{% trans "Cognome" %}</label>
+                <input type="text"
+                       id="last_name"
+                       name="last_name"
+                       value="{{ request.user.last_name }}"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                       placeholder="{% trans "Inserisci il tuo cognome" %}">
             </div>
 
             <div>
-                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                <input type="email" 
-                       id="email" 
-                       name="email" 
-                       value="{{ request.user.email }}" 
-                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                       placeholder="nome@esempio.com">
-                <p class="mt-1 text-sm text-gray-500">Questa email sarà utilizzata per le comunicazioni relative alle prenotazioni</p>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">{% trans "Email" %}</label>
+                <input type="email"
+                       id="email"
+                       name="email"
+                       value="{{ request.user.email }}"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                       placeholder="{% trans "nome@esempio.com" %}">
+                <p class="mt-1 text-sm text-gray-500">{% trans "Questa email sarà utilizzata per le comunicazioni relative alle prenotazioni" %}</p>
             </div>
 
             <div>
-                <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Numero di telefono</label>
-                <input type="text" 
-                       id="phone" 
-                       name="phone" 
-                       value="{% if user_profile %}{{ user_profile.phone }}{% endif %}" 
-                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">{% trans "Numero di telefono" %}</label>
+                <input type="text"
+                       id="phone"
+                       name="phone"
+                       value="{% if user_profile %}{{ user_profile.phone }}{% endif %}"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                        placeholder="+39 123 456 7890">
-                <p class="mt-1 text-sm text-gray-500">Inserisci il tuo numero di telefono con prefisso internazionale</p>
+                <p class="mt-1 text-sm text-gray-500">{% trans "Inserisci il tuo numero di telefono con prefisso internazionale" %}</p>
             </div>
 
             <div class="bg-gray-50 rounded-lg p-4">
-                <h3 class="text-sm font-medium text-gray-900 mb-2">Informazioni Account</h3>
+                <h3 class="text-sm font-medium text-gray-900 mb-2">{% trans "Informazioni Account" %}</h3>
                 <div class="space-y-2 text-sm text-gray-600">
-                    <p><strong>Username:</strong> {{ request.user.username }}</p>
-                    <p><strong>Data registrazione:</strong> {{ request.user.date_joined|date:"d/m/Y" }}</p>
+                    <p><strong>{% trans "Username:" %}</strong> {{ request.user.username }}</p>
+                    <p><strong>{% trans "Data registrazione:" %}</strong> {{ request.user.date_joined|date:"d/m/Y" }}</p>
                 </div>
             </div>
 
             <div class="flex items-center justify-between pt-4 border-t border-gray-200">
                 <a href="{% url 'account:dashboard' %}" class="text-gray-600 hover:text-gray-900 font-medium">
-                    ← Torna alla dashboard
+                    ← {% trans "Torna alla dashboard" %}
                 </a>
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">
-                    Salva modifiche
+                    {% trans "Salva modifiche" %}
                 </button>
             </div>
         </form>

@@ -34,8 +34,7 @@ urlpatterns += [
     path('admin/', admin.site.urls),
     path('appartamenti/', include('listings.urls')),
     path('icons/', include('icons.urls')),
-    path('api/', include('calendar_rules.urls')),  # per le API - include /api/calculate-price/
-    path('calendar/', include('calendar_rules.urls')),  # per le viste web
+    path('calendar/', include('calendar_rules.urls')),  # API calendario (include /calendar/api/listings/...)
     path('i18n/', include('django.conf.urls.i18n')),
     path('chi-siamo/', chi_siamo, name='about_us'),
     path('contatti/', contatti, name='contacts'),

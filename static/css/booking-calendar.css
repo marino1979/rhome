@@ -1,0 +1,575 @@
+/**
+ * Booking Calendar Styles - Airbnb Style
+ */
+
+.booking-calendar-container {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* Header */
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #EBEBEB;
+}
+
+.calendar-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: #222222;
+}
+
+.calendar-nav-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #DDDDDD;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.2s ease;
+}
+
+.calendar-nav-btn:hover {
+    border-color: #222222;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+}
+
+.calendar-nav-btn:active {
+    transform: scale(0.96);
+}
+
+/* Calendars Container */
+.calendars-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-bottom: 24px;
+    align-items: start;
+}
+
+@media (max-width: 768px) {
+    .calendars-container {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+}
+
+/* Month Calendar */
+.month-calendar {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.month-header {
+    font-size: 16px;
+    font-weight: 600;
+    color: #222222;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+/* Weekdays */
+.weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    margin-bottom: 8px;
+}
+
+.weekday {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #717171;
+    padding: 8px 0;
+}
+
+/* Days Grid */
+.days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-auto-rows: minmax(48px, auto);
+    gap: 2px;
+    align-items: start;
+}
+
+.day-cell {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.1s ease, border-color 0.1s ease;
+    background: white;
+}
+
+.day-cell.empty {
+    visibility: hidden;
+}
+
+.day-number {
+    font-size: 14px;
+    font-weight: 400;
+    color: #222222;
+    margin-bottom: 2px;
+}
+
+.day-price {
+    font-size: 11px;
+    color: #717171;
+    font-weight: 400;
+}
+
+/* Day States */
+.day-cell:hover:not(.blocked):not(.past):not(.hover-range):not(.selected) {
+    border-color: #222222;
+    background: #F7F7F7;
+}
+
+.day-cell.past {
+    cursor: not-allowed;
+    opacity: 0.3;
+}
+
+.day-cell.past .day-number,
+.day-cell.past .day-price {
+    color: #DDDDDD;
+}
+
+/* Blocchi generici */
+.day-cell.blocked {
+    cursor: not-allowed;
+    background: #F7F7F7;
+    text-decoration: line-through;
+}
+
+.day-cell.blocked .day-number,
+.day-cell.blocked .day-price {
+    color: #DDDDDD;
+}
+
+/* Blocchi specifici per check-in impossibile */
+.day-cell.checkin-disabled {
+    cursor: not-allowed;
+    background: #F0F0F0;
+    opacity: 0.6;
+    border: 1px solid #fcfbfb;
+}
+
+.day-cell.checkin-disabled .day-number {
+    color: #bdbdbd;
+    font-weight: 600;
+}
+
+.day-cell.checkin-disabled .day-price {
+    color: #bdbdbd;
+}
+
+/* Blocchi specifici per check-out impossibile */
+.day-cell.checkout-disabled {
+    cursor: not-allowed;
+    background: #F0F0F0;
+    opacity: 0.6;
+    border: 1px solid #fcfbfb;
+}
+
+.day-cell.checkout-disabled .day-number {
+    color: #bdbdbd;
+    font-weight: 600;
+}
+
+.day-cell.checkout-disabled .day-price {
+    color: #bdbdbd;
+}
+
+/* Prenotazione esistente (interno) */
+.day-cell.booked-interior {
+    cursor: not-allowed;
+    background: #E8E8E8;
+    text-decoration: line-through;
+}
+
+.day-cell.booked-interior .day-number,
+.day-cell.booked-interior .day-price {
+    color: #999999;
+}
+
+/* Giorno dopo prenotazione (limite selezione) */
+.day-cell.after-next-booking {
+    cursor: not-allowed;
+    background: #F0F0F0;
+    opacity: 0.6;
+}
+
+.day-cell.after-next-booking .day-number,
+.day-cell.after-next-booking .day-price {
+    color: #AAAAAA;
+}
+
+/* Selected States */
+.day-cell.selected {
+    background: #222222 !important;
+    border-color: #222222 !important;
+}
+
+.day-cell.selected .day-number,
+.day-cell.selected .day-price {
+    color: white !important;
+}
+
+/* Range selezionato - uniforme */
+.day-cell.in-range {
+    background: #E8F0FE !important;
+    border-radius: 0 !important;
+    border-color: #B3D9FF !important;
+    border-top: 1px solid #B3D9FF;
+    border-bottom: 1px solid #B3D9FF;
+    opacity: 1 !important;
+}
+
+.day-cell.in-range .day-number {
+    color: #014361;
+    font-weight: 500;
+}
+
+.day-cell.in-range .day-price {
+    color: #014361;
+}
+
+/* Bordi arrotondati per check-in e check-out */
+.day-cell.check-in {
+    border-radius: 8px 0 0 8px !important;
+    background: #222222 !important;
+}
+
+.day-cell.check-out {
+    border-radius: 0 8px 8px 0 !important;
+    background: #222222 !important;
+}
+
+.day-cell.check-in.check-out {
+    border-radius: 8px !important;
+}
+
+/* Range in hover - stesso stile del range selezionato */
+
+.day-cell.hover-range {
+    background: #E8F0FE !important;
+    border-color: #B3D9FF !important;
+    border-radius: 0;
+}
+
+/* Border-radius for in-range only (hover-range handled by JavaScript) */
+.day-cell.in-range:first-child {
+    border-radius: 8px 0 0 8px;
+}
+
+.day-cell.in-range:last-child {
+    border-radius: 0 8px 8px 0;
+}
+
+/* Footer */
+.calendar-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid #EBEBEB;
+}
+
+.selection-info {
+    flex: 1;
+}
+
+.selected-dates {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #222222;
+    margin-bottom: 4px;
+}
+
+.arrow {
+    color: #717171;
+}
+
+.nights-info {
+    font-size: 14px;
+    color: #717171;
+}
+
+.hint {
+    font-size: 14px;
+    color: #717171;
+}
+
+.min-stay-hint {
+    font-size: 12px;
+    color: #717171;
+    margin-top: 4px;
+}
+
+.hint-reset {
+    font-size: 12px;
+    color: #717171;
+    margin-top: 8px;
+    font-style: italic;
+}
+
+.clear-dates-btn {
+    padding: 8px 16px;
+    border: 1px solid #222222;
+    border-radius: 8px;
+    background: white;
+    color: #222222;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.clear-dates-btn:hover {
+    background: #F7F7F7;
+}
+
+.clear-dates-btn:active {
+    transform: scale(0.96);
+}
+
+/* Loading & Error States */
+.calendar-loading,
+.calendar-error {
+    text-align: center;
+    padding: 40px 20px;
+    font-size: 16px;
+    color: #717171;
+}
+
+.calendar-error {
+    color: #C13515;
+}
+
+/* Price Display Component */
+.price-display {
+    background: white;
+    border: 1px solid #DDDDDD;
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 24px;
+}
+
+.price-display-header {
+    font-size: 22px;
+    font-weight: 600;
+    color: #222222;
+    margin-bottom: 16px;
+}
+
+.price-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    color: #222222;
+}
+
+.price-row.subtotal {
+    padding-top: 16px;
+    border-top: 1px solid #EBEBEB;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+.price-label {
+    color: #222222;
+}
+
+.price-value {
+    font-weight: 500;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .booking-calendar-container {
+        padding: 16px;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .day-cell {
+        padding: 2px;
+    }
+
+    .day-number {
+        font-size: 13px;
+    }
+
+    .day-price {
+        font-size: 10px;
+    }
+
+    .calendar-footer {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+    }
+
+    .clear-dates-btn {
+        width: 100%;
+    }
+}
+
+/* Accessibility */
+.day-cell:focus {
+    outline: 2px solid #222222;
+    outline-offset: 2px;
+}
+
+.calendar-nav-btn:focus {
+    outline: 2px solid #222222;
+    outline-offset: 2px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.month-calendar {
+    animation: fadeIn 0.3s ease;
+}
+
+/* Special Indicators */
+.day-cell.has-special-price .day-price {
+    color: #FF385C;
+    font-weight: 600;
+}
+
+.day-cell.weekend:not(.blocked):not(.past) {
+    background: #FFFBF8;
+}
+
+/* Tooltip generico per tutte le celle */
+.day-cell[title] {
+    position: relative;
+}
+
+/* Tooltip visibile al hover */
+.day-cell[title]:hover::before {
+    content: attr(title);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #222222;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    animation: tooltipFadeIn 0.2s ease forwards;
+}
+
+.day-cell[title]:hover::after {
+    content: '';
+    position: absolute;
+    bottom: calc(100% + 2px);
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #222222;
+    z-index: 99;
+    animation: tooltipFadeIn 0.2s ease forwards;
+}
+
+@keyframes tooltipFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Messaggi informativi nel footer */
+.calendar-message {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-top: 16px;
+    font-size: 14px;
+    line-height: 1.5;
+    transition: opacity 0.3s ease;
+}
+
+.calendar-message.temporary {
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.calendar-message.info {
+    background: #E8F4FD;
+    border: 1px solid #B3D9FF;
+    color: #014361;
+}
+
+.calendar-message.warning {
+    background: #FFF4E5;
+    border: 1px solid #FFD9A3;
+    color: #663C00;
+}
+
+.calendar-message.error {
+    background: #FFE5E5;
+    border: 1px solid #FFB3B3;
+    color: #CC0000;
+}
+
+.calendar-message strong {
+    font-weight: 600;
+}

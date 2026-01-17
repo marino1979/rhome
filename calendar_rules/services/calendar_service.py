@@ -9,14 +9,49 @@ una API pulita e testabile per la gestione della disponibilit calendario.
 import logging
 from datetime import date, timedelta
 from typing import Dict, List, Set, Tuple, Any
+from functools import wraps
 from django.db.models import QuerySet
+from django.core.cache import cache
+from django.conf import settings
 
 from ..models import ClosureRule, CheckInOutRule, PriceRule
 from bookings.models import Booking
 from .exceptions import CalendarServiceError, InvalidDateRangeError
+from .query_optimizer import QueryOptimizer
+from .range_consolidator import RangeConsolidator
 
 # Configura logger per debug calendario
 logger = logging.getLogger('calendar_debug')
+
+# Flag per abilitare/disabilitare debug logging (da settings o env)
+DEBUG_CALENDAR = getattr(settings, 'DEBUG_CALENDAR', False)
+
+
+def cache_calendar_data(timeout=300):
+    """Decoratore per caching dei risultati calendario"""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(self, start_date, end_date):
+            # Genera chiave cache
+            cache_key = f"calendar:{self.listing.id}:{start_date.isoformat()}:{end_date.isoformat()}"
+            
+            # Prova a recuperare da cache
+            cached = cache.get(cache_key)
+            if cached is not None:
+                if hasattr(self, '_log_if_debug'):
+                    self._log_if_debug(logging.INFO, f"[CACHE HIT] Calendario per Listing {self.listing.id}")
+                return cached
+            
+            # Calcola risultato
+            if hasattr(self, '_log_if_debug'):
+                self._log_if_debug(logging.INFO, f"[CACHE MISS] Calcolo calendario per Listing {self.listing.id}")
+            result = func(self, start_date, end_date)
+            
+            # Salva in cache
+            cache.set(cache_key, result, timeout)
+            return result
+        return wrapper
+    return decorator
 
 
 class CalendarService:
@@ -37,7 +72,15 @@ class CalendarService:
             listing: Istanza del modello Listing
         """
         self.listing = listing
+        self.query_optimizer = QueryOptimizer()
+        self.range_consolidator = RangeConsolidator()
     
+    def _log_if_debug(self, level, message):
+        """Logging condizionale - solo se DEBUG_CALENDAR è True o livello logger è DEBUG"""
+        if DEBUG_CALENDAR or logger.level <= logging.DEBUG:
+            logger.log(level, message)
+    
+    @cache_calendar_data(timeout=300)
     def get_unavailable_dates(self, start_date: date, end_date: date) -> Dict[str, Any]:
         """
         Metodo principale per ottenere tutte le informazioni di disponibilit.
@@ -57,25 +100,28 @@ class CalendarService:
         self._validate_date_range(start_date, end_date)
         
         # DEBUG: Inizio calcolo disponibilit
-        logger.info(f"[CALENDAR DEBUG] Inizio calcolo disponibilit per Listing {self.listing.id}")
-        logger.info(f"[CALENDAR DEBUG] Periodo richiesto: {start_date} -> {end_date}")
-        logger.info(f"[CALENDAR DEBUG] Gap tra prenotazioni: {self.listing.gap_between_bookings or 0} giorni")
+        self._log_if_debug(logging.INFO, f"[CALENDAR DEBUG] Inizio calcolo disponibilit per Listing {self.listing.id}")
+        self._log_if_debug(logging.INFO, f"[CALENDAR DEBUG] Periodo richiesto: {start_date} -> {end_date}")
+        self._log_if_debug(logging.INFO, f"[CALENDAR DEBUG] Gap tra prenotazioni: {self.listing.gap_between_bookings or 0} giorni")
         
         try:
-            # Ottieni dati ottimizzati
+            # Ottieni dati ottimizzati usando QueryOptimizer
             calendar_data = self._get_optimized_calendar_data(start_date, end_date)
             
             # DEBUG: Dati ottenuti
             self._debug_calendar_data(calendar_data)
             
-            # Calcola componenti separati con la nuova logica
+            # Prepara periods UNA VOLTA per evitare iterazioni multiple
+            periods = self._prepare_periods(calendar_data, start_date, end_date)
+            
+            # Calcola componenti separati con la nuova logica (usa periods preparati)
             blocked_ranges = self._calculate_blocked_ranges_only_bookings(calendar_data, start_date, end_date)
             checkin_dates = self._extract_checkin_dates(calendar_data, start_date, end_date)
             checkout_dates = self._extract_checkout_dates(calendar_data, start_date, end_date)
-            gap_days = self._calculate_gap_days(calendar_data, start_date, end_date)
+            gap_days = self._calculate_gap_days_optimized(periods, calendar_data, start_date, end_date)
             checkin_blocked_rules = self._calculate_checkin_blocked_by_rules(calendar_data, start_date, end_date)
             checkout_blocked_rules = self._calculate_checkout_blocked_by_rules(calendar_data, start_date, end_date)
-            checkin_blocked_gap = self._calculate_checkin_blocked_by_gap(calendar_data, start_date, end_date)
+            checkin_blocked_gap = self._calculate_checkin_blocked_by_gap_optimized(periods, calendar_data, start_date, end_date)
             
             # DEBUG: Risultati calcoli
             self._debug_new_calculation_results(
@@ -110,7 +156,7 @@ class CalendarService:
             return result
             
         except Exception as e:
-            logger.error(f"[ERROR] [CALENDAR DEBUG] Errore durante il calcolo: {str(e)}")
+            self._log_if_debug(logging.ERROR, f"[ERROR] [CALENDAR DEBUG] Errore durante il calcolo: {str(e)}")
             if isinstance(e, CalendarServiceError):
                 raise
             raise CalendarServiceError(f"Errore durante il calcolo disponibilit: {str(e)}")
@@ -124,56 +170,57 @@ class CalendarService:
             raise InvalidDateRangeError("La data di inizio deve essere precedente alla data di fine")
         
         # Verifica che le date non siano troppo nel passato
-        today = date.today()
+        # Use timezone.now().date() for consistency with other date comparisons
+        from django.utils import timezone
+        today = timezone.now().date()
         if start_date < today - timedelta(days=365):
             raise InvalidDateRangeError("Non  possibile calcolare disponibilit per date troppo nel passato")
-        
+
         # Verifica che le date non siano troppo nel futuro
         if end_date > today + timedelta(days=365):
             raise InvalidDateRangeError("Non  possibile calcolare disponibilit per date troppo nel futuro")
     
     def _get_optimized_calendar_data(self, start_date: date, end_date: date) -> Dict[str, Any]:
         """
-        Ottiene tutti i dati necessari con query ottimizzate.
+        Ottiene tutti i dati necessari con query ottimizzate usando QueryOptimizer.
         """
-        gap_lookback_days = self.listing.gap_between_bookings or 0
-        gap_start_date = start_date - timedelta(days=gap_lookback_days)
-
-        # Booking window leggermente estesa a sinistra per gestire gap prima dell'intervallo
-        bookings = Booking.objects.filter(
-            listing=self.listing,
-            status__in=['pending', 'confirmed'],
-            check_out_date__gte=gap_start_date,
-            check_in_date__lte=end_date
-        ).values('check_in_date', 'check_out_date')
-
-        closures = self.listing.closure_rules.filter(
-            end_date__gte=start_date,
-            start_date__lte=end_date
-        ).values('start_date', 'end_date', 'is_external_booking')
-
-        checkinout_rules = self.listing.checkinout_rules.all()
-
-        # Price rules + calcolo min_nights effettivo (il più piccolo nel periodo)
-        price_rules_qs = self.listing.price_rules.filter(
-            end_date__gte=start_date,
-            start_date__lte=end_date
+        # Usa QueryOptimizer per query ottimizzate
+        optimized_data = self.query_optimizer.get_optimized_calendar_data(
+            self.listing, start_date, end_date
         )
-        price_rules = list(price_rules_qs.values('min_nights'))
-        min_nights_values = [pr['min_nights'] for pr in price_rules if pr.get('min_nights') is not None]
+        
+        # Calcola min_nights effettivo (il più piccolo nel periodo)
+        price_rules = optimized_data.get('price_rules', [])
+        min_nights_values = [pr.get('min_nights') for pr in price_rules if pr.get('min_nights') is not None]
         effective_min_nights = min(min_nights_values) if min_nights_values else 1
-
-        return {
-            'bookings': list(bookings),
-            'closures': list(closures),
-            'checkinout_rules': checkinout_rules,
-            'price_rules': list(price_rules),
-            'gap_days': self.listing.gap_between_bookings or 0,
-            'min_nights': effective_min_nights,
-            'start_date': start_date,
-            'end_date': end_date,
-            'gap_start_date': gap_start_date,
-        }
+        
+        # Aggiungi min_nights calcolato
+        optimized_data['min_nights'] = effective_min_nights
+        
+        return optimized_data
+    
+    def _prepare_periods(self, calendar_data: Dict[str, Any], start_date: date, end_date: date) -> List[Tuple[date, date]]:
+        """
+        Prepara periods UNA VOLTA per tutti i calcoli successivi.
+        Evita ricostruzione periods in metodi diversi.
+        """
+        periods: List[Tuple[date, date]] = []
+        
+        # Aggiungi periods da bookings
+        for booking in calendar_data.get('bookings', []):
+            ci = booking.get('check_in_date')
+            co = booking.get('check_out_date')
+            if ci and co:
+                periods.append((ci, co))
+        
+        # Aggiungi periods da closures
+        for closure in calendar_data.get('closures', []):
+            c_start = closure.get('start_date')
+            c_end = closure.get('end_date')
+            if c_start and c_end:
+                periods.append((c_start, c_end))
+        
+        return periods
     
     def _calculate_blocked_ranges(self, calendar_data: Dict[str, Any], start_date: date, end_date: date) -> List[Tuple[date, date]]:
         """
@@ -374,7 +421,7 @@ class CalendarService:
         Include tutte le date della prenotazione (dal check-in incluso al check-out escluso).
         Questo blocca tutte le date che non possono essere selezionate per nuove prenotazioni.
         """
-        logger.info("[BLOCKED] [CALENDAR DEBUG] === CALCOLO RANGE BLOCCATI (INCLUDE CHECK-IN/OUT) ===")
+        self._log_if_debug(logging.INFO, "[BLOCKED] [CALENDAR DEBUG] === CALCOLO RANGE BLOCCATI (INCLUDE CHECK-IN/OUT) ===")
         
         blocked_ranges: List[Tuple[date, date]] = []
         bookings = calendar_data['bookings']
@@ -393,9 +440,9 @@ class CalendarService:
                 blocked_end = min(co - timedelta(days=1), end_date)
                 if blocked_start <= blocked_end:
                     blocked_ranges.append((blocked_start, blocked_end))
-                    logger.info(f"   [BOOKING] Prenotazione {i}: {blocked_start} -> {blocked_end} (check-in={ci}, check-out={co})")
+                    self._log_if_debug(logging.INFO, f"   [BOOKING] Prenotazione {i}: {blocked_start} -> {blocked_end} (check-in={ci}, check-out={co})")
                 else:
-                    logger.info(f"   [BOOKING] Prenotazione {i}: nessun giorno bloccato (check-in={ci}, check-out={co})")
+                    self._log_if_debug(logging.INFO, f"   [BOOKING] Prenotazione {i}: nessun giorno bloccato (check-in={ci}, check-out={co})")
         
         # Chiusure
         for i, closure in enumerate(closures, 1):
@@ -403,16 +450,16 @@ class CalendarService:
             r1 = min(closure['end_date'], end_date)
             if r0 <= r1:
                 blocked_ranges.append((r0, r1))
-                logger.info(f"   [CLOSURE] Chiusura {i}: {r0} -> {r1}")
+                self._log_if_debug(logging.INFO, f"   [CLOSURE] Chiusura {i}: {r0} -> {r1}")
         
-        logger.info(f"[BLOCKED] [CALENDAR DEBUG] Totale range bloccati: {len(blocked_ranges)}")
+        self._log_if_debug(logging.INFO, f"[BLOCKED] [CALENDAR DEBUG] Totale range bloccati: {len(blocked_ranges)}")
         return blocked_ranges
     
     def _extract_checkin_dates(self, calendar_data: Dict[str, Any], start_date: date, end_date: date) -> List[str]:
         """
         Estrae le date di check-in (arrivo) delle prenotazioni esistenti.
         """
-        logger.info("[CHECKIN] [CALENDAR DEBUG] === ESTRAZIONE DATE CHECK-IN ===")
+        self._log_if_debug(logging.INFO, "[CHECKIN] [CALENDAR DEBUG] === ESTRAZIONE DATE CHECK-IN ===")
         
         checkin_dates: Set[str] = set()
         bookings = calendar_data['bookings']
@@ -421,16 +468,16 @@ class CalendarService:
             check_in = booking['check_in_date']
             if check_in and start_date <= check_in <= end_date:
                 checkin_dates.add(check_in.isoformat())
-                logger.info(f"   [CHECKIN] Check-in {i}: {check_in}")
+                self._log_if_debug(logging.INFO, f"   [CHECKIN] Check-in {i}: {check_in}")
         
-        logger.info(f"[CHECKIN] [CALENDAR DEBUG] Totale check-in: {len(checkin_dates)}")
+        self._log_if_debug(logging.INFO, f"[CHECKIN] [CALENDAR DEBUG] Totale check-in: {len(checkin_dates)}")
         return sorted(checkin_dates)
     
     def _extract_checkout_dates(self, calendar_data: Dict[str, Any], start_date: date, end_date: date) -> List[str]:
         """
         Estrae le date di check-out (partenza) delle prenotazioni esistenti.
         """
-        logger.info("[CHECKOUT] [CALENDAR DEBUG] === ESTRAZIONE DATE CHECK-OUT ===")
+        self._log_if_debug(logging.INFO, "[CHECKOUT] [CALENDAR DEBUG] === ESTRAZIONE DATE CHECK-OUT ===")
         
         checkout_dates: Set[str] = set()
         bookings = calendar_data['bookings']
@@ -439,93 +486,76 @@ class CalendarService:
             check_out = booking['check_out_date']
             if check_out and start_date <= check_out <= end_date:
                 checkout_dates.add(check_out.isoformat())
-                logger.info(f"   [CHECKOUT] Check-out {i}: {check_out}")
+                self._log_if_debug(logging.INFO, f"   [CHECKOUT] Check-out {i}: {check_out}")
         
-        logger.info(f"[CHECKOUT] [CALENDAR DEBUG] Totale check-out: {len(checkout_dates)}")
+        self._log_if_debug(logging.INFO, f"[CHECKOUT] [CALENDAR DEBUG] Totale check-out: {len(checkout_dates)}")
         return sorted(checkout_dates)
     
     def _calculate_gap_days(self, calendar_data: Dict[str, Any], start_date: date, end_date: date) -> List[str]:
         """
         Calcola i giorni di gap tra prenotazioni e chiusure (interne o esterne).
-        I gap days sono giorni in cui non è consentito un nuovo check-in o check-out
-        per garantire il tempo di preparazione dell'alloggio.
+        DEPRECATO: Usa _calculate_gap_days_optimized con periods preparati.
         """
-        logger.info("[GAP] [CALENDAR DEBUG] === CALCOLO GAP DAYS ===")
+        periods = self._prepare_periods(calendar_data, start_date, end_date)
+        return self._calculate_gap_days_optimized(periods, calendar_data, start_date, end_date)
+    
+    def _calculate_gap_days_optimized(self, periods: List[Tuple[date, date]], calendar_data: Dict[str, Any], 
+                                      start_date: date, end_date: date) -> List[str]:
+        """
+        Calcola i giorni di gap tra prenotazioni e chiusure (ottimizzato).
+        Usa periods già preparati per evitare iterazioni multiple.
+        """
+        self._log_if_debug(logging.INFO, "[GAP] [CALENDAR DEBUG] === CALCOLO GAP DAYS ===")
 
         gap_days_set: Set[str] = set()
-        bookings = calendar_data['bookings']
-        closures = calendar_data.get('closures', [])
         gap_days = calendar_data['gap_days']
         min_stay = calendar_data.get('min_nights', 1)
 
         if gap_days == 0 and min_stay <= 1:
-            logger.info("[GAP] [CALENDAR DEBUG] Nessun gap configurato")
+            self._log_if_debug(logging.INFO, "[GAP] [CALENDAR DEBUG] Nessun gap configurato")
             return []
 
-        logger.info(f"[GAP] [CALENDAR DEBUG] Gap configurato: {gap_days} giorni")
-
-        periods: List[Tuple[date, date]] = []
-
-        for booking in bookings:
-            ci, co = booking['check_in_date'], booking['check_out_date']
-            if ci and co:
-                periods.append((ci, co))
-
-        for closure in closures:
-            c_start = closure.get('start_date')
-            c_end = closure.get('end_date')
-            if c_start and c_end:
-                periods.append((c_start, c_end))
+        self._log_if_debug(logging.INFO, f"[GAP] [CALENDAR DEBUG] Gap configurato: {gap_days} giorni")
 
         for idx, (period_start, period_end) in enumerate(periods, 1):
             if gap_days > 0:
-                # Blocca i giorni prima dell'inizio nel rispetto del gap
-                pre_start = period_start - timedelta(days=max(gap_days - 1, 0))
-                pre_end = period_start - timedelta(days=1)
-                if pre_start < start_date:
-                    pre_start = start_date
-                if pre_end > end_date:
-                    pre_end = end_date
-                d = pre_start
-                while d <= pre_end:
-                    gap_days_set.add(d.isoformat())
-                    d += timedelta(days=1)
+                # Pre-gap: giorni prima dell'inizio
+                pre_start = max(period_start - timedelta(days=gap_days), start_date)
+                pre_end = min(period_start - timedelta(days=1), end_date)
                 if pre_start <= pre_end:
-                    logger.info(f"   [GAP] Pre-gap periodo {idx}: {pre_start} -> {pre_end}")
+                    gap_days_set.update(self._date_range(pre_start, pre_end))
+                    self._log_if_debug(logging.INFO, f"   [GAP] Pre-gap periodo {idx}: {pre_start} -> {pre_end}")
 
-                # Blocca il giorno di check-out e i successivi gap_days-1 giorni
-                post_start = period_end
-                post_end = period_end + timedelta(days=gap_days - 1)
-                if post_start < start_date:
-                    post_start = start_date
-                if post_end > end_date:
-                    post_end = end_date
-                d = post_start
-                while d <= post_end:
-                    gap_days_set.add(d.isoformat())
-                    d += timedelta(days=1)
+                # Post-gap: giorno di check-out e successivi gap_days-1 giorni
+                post_start = max(period_end, start_date)
+                post_end = min(period_end + timedelta(days=gap_days - 1), end_date)
                 if post_start <= post_end:
-                    logger.info(f"   [GAP] Post-gap periodo {idx}: {post_start} -> {post_end}")
+                    gap_days_set.update(self._date_range(post_start, post_end))
+                    self._log_if_debug(logging.INFO, f"   [GAP] Post-gap periodo {idx}: {post_start} -> {post_end}")
 
-            # Enforce minimum stay by blocking ranges that would be shorter than min_stay
+            # Enforce minimum stay
             if min_stay > 1:
                 short_range_end = min(period_start - timedelta(days=1), end_date)
                 short_range_start = max(start_date, short_range_end - timedelta(days=min_stay - 2))
                 if short_range_start <= short_range_end:
-                    logger.info(f"   [GAP] Blocked short stay before periodo {idx}: {short_range_start} -> {short_range_end}")
-                    d = short_range_start
-                    while d <= short_range_end:
-                        gap_days_set.add(d.isoformat())
-                        d += timedelta(days=1)
+                    self._log_if_debug(logging.INFO, f"   [GAP] Blocked short stay before periodo {idx}: {short_range_start} -> {short_range_end}")
+                    gap_days_set.update(self._date_range(short_range_start, short_range_end))
 
-        logger.info(f"[GAP] [CALENDAR DEBUG] Totale gap days: {len(gap_days_set)}")
+        self._log_if_debug(logging.INFO, f"[GAP] [CALENDAR DEBUG] Totale gap days: {len(gap_days_set)}")
         return sorted(gap_days_set)
+    
+    def _date_range(self, start: date, end: date):
+        """Generatore efficiente per range date"""
+        current = start
+        while current <= end:
+            yield current.isoformat()
+            current += timedelta(days=1)
     
     def _calculate_checkin_blocked_by_rules(self, calendar_data: Dict[str, Any], start_date: date, end_date: date) -> Dict[str, Any]:
         """
         Calcola i giorni bloccati per check-in a causa delle regole (no_checkin).
         """
-        logger.info("[RULES] [CALENDAR DEBUG] === CALCOLO CHECK-IN BLOCCATI DA REGOLE ===")
+        self._log_if_debug(logging.INFO, "[RULES] [CALENDAR DEBUG] === CALCOLO CHECK-IN BLOCCATI DA REGOLE ===")
         
         checkin_blocked_dates: Set[str] = set()
         checkin_blocked_weekdays: Set[int] = set()
@@ -535,13 +565,13 @@ class CalendarService:
                 if rule.recurrence_type == 'specific_date' and rule.specific_date:
                     if start_date <= rule.specific_date <= end_date:
                         checkin_blocked_dates.add(rule.specific_date.isoformat())
-                        logger.info(f"   [RULE] Data specifica bloccata: {rule.specific_date}")
+                        self._log_if_debug(logging.INFO, f"   [RULE] Data specifica bloccata: {rule.specific_date}")
                 elif rule.recurrence_type == 'weekly' and rule.day_of_week is not None:
                     checkin_blocked_weekdays.add(rule.day_of_week)
                     days = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
-                    logger.info(f"   [RULE] Giorno settimana bloccato: {days[rule.day_of_week]}")
+                    self._log_if_debug(logging.INFO, f"   [RULE] Giorno settimana bloccato: {days[rule.day_of_week]}")
         
-        logger.info(f"[RULES] [CALENDAR DEBUG] Check-in bloccati: {len(checkin_blocked_dates)} date, {len(checkin_blocked_weekdays)} weekdays")
+        self._log_if_debug(logging.INFO, f"[RULES] [CALENDAR DEBUG] Check-in bloccati: {len(checkin_blocked_dates)} date, {len(checkin_blocked_weekdays)} weekdays")
         
         return {
             'dates': sorted(checkin_blocked_dates),
@@ -552,7 +582,7 @@ class CalendarService:
         """
         Calcola i giorni bloccati per check-out a causa delle regole (no_checkout).
         """
-        logger.info("[RULES] [CALENDAR DEBUG] === CALCOLO CHECK-OUT BLOCCATI DA REGOLE ===")
+        self._log_if_debug(logging.INFO, "[RULES] [CALENDAR DEBUG] === CALCOLO CHECK-OUT BLOCCATI DA REGOLE ===")
         
         checkout_blocked_dates: Set[str] = set()
         checkout_blocked_weekdays: Set[int] = set()
@@ -562,13 +592,13 @@ class CalendarService:
                 if rule.recurrence_type == 'specific_date' and rule.specific_date:
                     if start_date <= rule.specific_date <= end_date:
                         checkout_blocked_dates.add(rule.specific_date.isoformat())
-                        logger.info(f"   [RULE] Data specifica bloccata: {rule.specific_date}")
+                        self._log_if_debug(logging.INFO, f"   [RULE] Data specifica bloccata: {rule.specific_date}")
                 elif rule.recurrence_type == 'weekly' and rule.day_of_week is not None:
                     checkout_blocked_weekdays.add(rule.day_of_week)
                     days = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
-                    logger.info(f"   [RULE] Giorno settimana bloccato: {days[rule.day_of_week]}")
+                    self._log_if_debug(logging.INFO, f"   [RULE] Giorno settimana bloccato: {days[rule.day_of_week]}")
         
-        logger.info(f"[RULES] [CALENDAR DEBUG] Check-out bloccati: {len(checkout_blocked_dates)} date, {len(checkout_blocked_weekdays)} weekdays")
+        self._log_if_debug(logging.INFO, f"[RULES] [CALENDAR DEBUG] Check-out bloccati: {len(checkout_blocked_dates)} date, {len(checkout_blocked_weekdays)} weekdays")
         
         return {
             'dates': sorted(checkout_blocked_dates),
@@ -578,48 +608,39 @@ class CalendarService:
     def _calculate_checkin_blocked_by_gap(self, calendar_data: Dict[str, Any], start_date: date, end_date: date) -> List[str]:
         """
         Calcola i giorni AGGIUNTIVI bloccati per check-in a causa della combinazione gap + min_nights.
+        DEPRECATO: Usa _calculate_checkin_blocked_by_gap_optimized con periods preparati.
+        """
+        periods = self._prepare_periods(calendar_data, start_date, end_date)
+        return self._calculate_checkin_blocked_by_gap_optimized(periods, calendar_data, start_date, end_date)
+    
+    def _calculate_checkin_blocked_by_gap_optimized(self, periods: List[Tuple[date, date]], 
+                                                    calendar_data: Dict[str, Any], 
+                                                    start_date: date, end_date: date) -> List[str]:
+        """
+        Calcola i giorni AGGIUNTIVI bloccati per check-in a causa della combinazione gap + min_nights.
+        Usa periods già preparati per evitare iterazioni multiple.
         
         NON include i giorni che sono già gap days (quelli sono già nella sezione gap_days).
         
         Logica:
         - Se min_nights = 1: NON aggiunge nulla (i gap days sono sufficienti)
         - Se min_nights > 1: Blocca i giorni PRIMA dei gap days necessari per rispettare il min_nights
-        
-        Esempio con gap=3 giorni, min_nights=2, check-in successivo il 25:
-        - Gap days: 22, 23, 24 (già nella sezione gap_days)
-        - Ultimo check-out possibile: 21 (prima dei gap)
-        - Ultimo check-in possibile: 20 (per avere 2 notti fino al 21)
-        - Check-in bloccato da gap: 21 (giorno aggiuntivo bloccato)
         """
-        logger.info("[GAP_CHECKIN] [CALENDAR DEBUG] === CALCOLO CHECK-IN BLOCCATI DA GAP + MIN_NIGHTS ===")
+        self._log_if_debug(logging.INFO, "[GAP_CHECKIN] [CALENDAR DEBUG] === CALCOLO CHECK-IN BLOCCATI DA GAP + MIN_NIGHTS ===")
         
         checkin_blocked_gap: Set[str] = set()
-        bookings = calendar_data['bookings']
         gap_days = calendar_data['gap_days']
         min_nights = calendar_data.get('min_nights', 1)
         
         if gap_days == 0:
-            logger.info("[GAP_CHECKIN] [CALENDAR DEBUG] Nessun gap configurato")
+            self._log_if_debug(logging.INFO, "[GAP_CHECKIN] [CALENDAR DEBUG] Nessun gap configurato")
             return []
         
         if min_nights <= 1:
-            logger.info(f"[GAP_CHECKIN] [CALENDAR DEBUG] Min nights = {min_nights}, nessun blocco aggiuntivo necessario")
+            self._log_if_debug(logging.INFO, f"[GAP_CHECKIN] [CALENDAR DEBUG] Min nights = {min_nights}, nessun blocco aggiuntivo necessario")
             return []
         
-        logger.info(f"[GAP_CHECKIN] [CALENDAR DEBUG] Gap: {gap_days} giorni, Min nights: {min_nights}")
-        
-        periods: List[Tuple[date, date]] = []
-        for booking in bookings:
-            ci = booking['check_in_date']
-            co = booking['check_out_date']
-            if ci and co:
-                periods.append((ci, co))
-        closures = calendar_data.get('closures', [])
-        for closure in closures:
-            c_start = closure.get('start_date')
-            c_end = closure.get('end_date')
-            if c_start and c_end:
-                periods.append((c_start, c_end))
+        self._log_if_debug(logging.INFO, f"[GAP_CHECKIN] [CALENDAR DEBUG] Gap: {gap_days} giorni, Min nights: {min_nights}")
 
         for idx, (ci, co) in enumerate(periods, 1):
             first_gap_day = ci - timedelta(days=gap_days)
@@ -630,63 +651,34 @@ class CalendarService:
             block_end = min(first_gap_day - timedelta(days=1), end_date)
             
             if block_start <= block_end:
-                d = block_start
-                while d <= block_end:
-                    checkin_blocked_gap.add(d.isoformat())
-                    d += timedelta(days=1)
-                logger.info(f"   [GAP_CHECKIN] Periodo {idx}: bloccati {block_start} -> {block_end}")
-                logger.info(f"      (gap inizia: {first_gap_day}, ultimo check-out: {last_checkout_day}, ultimo check-in valido: {last_valid_checkin})")
+                checkin_blocked_gap.update(self._date_range(block_start, block_end))
+                self._log_if_debug(logging.INFO, f"   [GAP_CHECKIN] Periodo {idx}: bloccati {block_start} -> {block_end}")
+                self._log_if_debug(logging.INFO, f"      (gap inizia: {first_gap_day}, ultimo check-out: {last_checkout_day}, ultimo check-in valido: {last_valid_checkin})")
             else:
-                logger.info(f"   [GAP_CHECKIN] Periodo {idx}: nessun blocco aggiuntivo necessario")
+                self._log_if_debug(logging.INFO, f"   [GAP_CHECKIN] Periodo {idx}: nessun blocco aggiuntivo necessario")
         
-        logger.info(f"[GAP_CHECKIN] [CALENDAR DEBUG] Totale check-in bloccati da gap+min_nights: {len(checkin_blocked_gap)}")
+        self._log_if_debug(logging.INFO, f"[GAP_CHECKIN] [CALENDAR DEBUG] Totale check-in bloccati da gap+min_nights: {len(checkin_blocked_gap)}")
         return sorted(checkin_blocked_gap)
     
     # ==================== FINE NUOVI METODI ====================
     
     def _consolidate_ranges(self, blocked_ranges: List[Tuple[date, date]]) -> List[Dict[str, str]]:
         """
-        Consolida i range bloccati sovrapposti.
-        
-        TODO: Implementare RangeConsolidator per logica pi robusta
+        Consolida i range bloccati sovrapposti usando RangeConsolidator.
         """
-        logger.info("[CONSOLIDATE] [CALENDAR DEBUG] === CONSOLIDAMENTO RANGE ===")
+        self._log_if_debug(logging.INFO, "[CONSOLIDATE] [CALENDAR DEBUG] === CONSOLIDAMENTO RANGE ===")
         
         if not blocked_ranges:
-            logger.info("[CONSOLIDATE] [CALENDAR DEBUG] Nessun range da consolidare")
+            self._log_if_debug(logging.INFO, "[CONSOLIDATE] [CALENDAR DEBUG] Nessun range da consolidare")
             return []
         
-        logger.info(f"[CONSOLIDATE] [CALENDAR DEBUG] Consolidando {len(blocked_ranges)} range bloccati")
+        self._log_if_debug(logging.INFO, f"[CONSOLIDATE] [CALENDAR DEBUG] Consolidando {len(blocked_ranges)} range bloccati")
         
-        # Per ora, usa la logica esistente semplificata
-        sorted_ranges = sorted(blocked_ranges, key=lambda item: item[0])
-        logger.info("[CONSOLIDATE] [CALENDAR DEBUG] Range ordinati per data di inizio")
+        # Usa RangeConsolidator per logica robusta e testata
+        result = self.range_consolidator.optimize_ranges_for_api(blocked_ranges)
         
-        merged = [list(sorted_ranges[0])]
-        logger.info(f"[CONSOLIDATE] [CALENDAR DEBUG] Range iniziale: {sorted_ranges[0][0]} -> {sorted_ranges[0][1]}")
-        
-        for i, (current_start, current_end) in enumerate(sorted_ranges[1:], 2):
-            last_start, last_end = merged[-1]
-            logger.info(f"[CONSOLIDATE] [CALENDAR DEBUG] Analizzando range {i}: {current_start} -> {current_end}")
-            logger.info(f"[CONSOLIDATE] [CALENDAR DEBUG] Ultimo range consolidato: {last_start} -> {last_end}")
-            
-            if current_start <= last_end + timedelta(days=1):
-                # Range sovrapposti o adiacenti - unisci
-                old_end = merged[-1][1]
-                merged[-1][1] = max(last_end, current_end)
-                logger.info(f"   [CONSOLIDATE] Range {i} unito al precedente: {last_start} -> {merged[-1][1]} (era {old_end})")
-            else:
-                # Range separati - aggiungi nuovo
-                merged.append([current_start, current_end])
-                logger.info(f"   [CONSOLIDATE] Range {i} aggiunto come nuovo: {current_start} -> {current_end}")
-        
-        result = [
-            {'from': start.isoformat(), 'to': end.isoformat()}
-            for start, end in merged
-        ]
-        
-        logger.info(f"[CONSOLIDATE] [CALENDAR DEBUG] Consolidamento completato: {len(blocked_ranges)} -> {len(result)} range")
-        logger.info("[CONSOLIDATE] [CALENDAR DEBUG] === FINE CONSOLIDAMENTO RANGE ===")
+        self._log_if_debug(logging.INFO, f"[CONSOLIDATE] [CALENDAR DEBUG] Consolidamento completato: {len(blocked_ranges)} -> {len(result)} range")
+        self._log_if_debug(logging.INFO, "[CONSOLIDATE] [CALENDAR DEBUG] === FINE CONSOLIDAMENTO RANGE ===")
         
         return result
     
@@ -755,39 +747,39 @@ class CalendarService:
     
     def _debug_calendar_data(self, calendar_data: Dict[str, Any]) -> None:
         """Debug dettagliato dei dati del calendario ottenuti."""
-        logger.info("[DATA] [CALENDAR DEBUG] === DATI CALENDARIO OTTENUTI ===")
+        self._log_if_debug(logging.INFO, "[DATA] [CALENDAR DEBUG] === DATI CALENDARIO OTTENUTI ===")
         
         # Debug prenotazioni
         bookings = calendar_data['bookings']
-        logger.info(f"[RULES] [CALENDAR DEBUG] Prenotazioni trovate: {len(bookings)}")
+        self._log_if_debug(logging.INFO, f"[RULES] [CALENDAR DEBUG] Prenotazioni trovate: {len(bookings)}")
         for i, booking in enumerate(bookings, 1):
-            logger.info(f"   [ITEM] Prenotazione {i}: Check-in {booking['check_in_date']} -> Check-out {booking['check_out_date']}")
+            self._log_if_debug(logging.INFO, f"   [ITEM] Prenotazione {i}: Check-in {booking['check_in_date']} -> Check-out {booking['check_out_date']}")
         
         # Debug chiusure
         closures = calendar_data['closures']
-        logger.info(f"[BLOCKED] [CALENDAR DEBUG] Chiusure trovate: {len(closures)}")
+        self._log_if_debug(logging.INFO, f"[BLOCKED] [CALENDAR DEBUG] Chiusure trovate: {len(closures)}")
         for i, closure in enumerate(closures, 1):
-            logger.info(f"   [BLOCKED] Chiusura {i}: {closure['start_date']} -> {closure['end_date']}")
+            self._log_if_debug(logging.INFO, f"   [BLOCKED] Chiusura {i}: {closure['start_date']} -> {closure['end_date']}")
         
         # Debug regole check-in/out
         checkinout_rules = calendar_data['checkinout_rules']
-        logger.info(f"[RULES] [CALENDAR DEBUG] Regole check-in/out: {len(checkinout_rules)}")
+        self._log_if_debug(logging.INFO, f"[RULES] [CALENDAR DEBUG] Regole check-in/out: {len(checkinout_rules)}")
         for i, rule in enumerate(checkinout_rules, 1):
             rule_type = "NO CHECK-IN" if rule.rule_type == 'no_checkin' else "NO CHECK-OUT"
             if rule.recurrence_type == 'specific_date':
-                logger.info(f"   [DATE] Regola {i}: {rule_type} il {rule.specific_date}")
+                self._log_if_debug(logging.INFO, f"   [DATE] Regola {i}: {rule_type} il {rule.specific_date}")
             elif rule.recurrence_type == 'weekly':
                 days = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
-                logger.info(f"   [DATE] Regola {i}: {rule_type} ogni {days[rule.day_of_week] if rule.day_of_week is not None else 'N/A'}")
+                self._log_if_debug(logging.INFO, f"   [DATE] Regola {i}: {rule_type} ogni {days[rule.day_of_week] if rule.day_of_week is not None else 'N/A'}")
         
         # Debug price rules
         price_rules = calendar_data['price_rules']
-        logger.info(f"[PRICE] [CALENDAR DEBUG] Regole prezzi: {len(price_rules)}")
+        self._log_if_debug(logging.INFO, f"[PRICE] [CALENDAR DEBUG] Regole prezzi: {len(price_rules)}")
         for i, rule in enumerate(price_rules, 1):
-            logger.info(f"   [PRICE] Regola {i}: Min notti {rule.get('min_nights', 'N/A')}")
+            self._log_if_debug(logging.INFO, f"   [PRICE] Regola {i}: Min notti {rule.get('min_nights', 'N/A')}")
         
-        logger.info(f"[GAP] [CALENDAR DEBUG] Gap days: {calendar_data['gap_days']}")
-        logger.info("[DATA] [CALENDAR DEBUG] === FINE DATI CALENDARIO ===")
+        self._log_if_debug(logging.INFO, f"[GAP] [CALENDAR DEBUG] Gap days: {calendar_data['gap_days']}")
+        self._log_if_debug(logging.INFO, "[DATA] [CALENDAR DEBUG] === FINE DATI CALENDARIO ===")
     
     def _debug_calculation_results(self, blocked_ranges, checkin_block_data, checkout_block_data, turnover_days, real_checkin_dates):
         """Debug dettagliato dei risultati dei calcoli."""
@@ -835,84 +827,84 @@ class CalendarService:
     def _debug_new_calculation_results(self, blocked_ranges, checkin_dates, checkout_dates, gap_days, 
                                        checkin_blocked_rules, checkout_blocked_rules, checkin_blocked_gap):
         """Debug dettagliato dei risultati dei calcoli con la nuova struttura."""
-        logger.info("[NEW_CALC] [CALENDAR DEBUG] === RISULTATI NUOVI CALCOLI ===")
+        self._log_if_debug(logging.INFO, "[NEW_CALC] [CALENDAR DEBUG] === RISULTATI NUOVI CALCOLI ===")
         
         # Debug range bloccati
-        logger.info(f"[BLOCKED] [CALENDAR DEBUG] Range bloccati (solo prenotazioni): {len(blocked_ranges)}")
+        self._log_if_debug(logging.INFO, f"[BLOCKED] [CALENDAR DEBUG] Range bloccati (solo prenotazioni): {len(blocked_ranges)}")
         for i, (start, end) in enumerate(blocked_ranges, 1):
-            logger.info(f"   [BLOCKED] Range {i}: {start} -> {end}")
+            self._log_if_debug(logging.INFO, f"   [BLOCKED] Range {i}: {start} -> {end}")
         
         # Debug check-in dates
-        logger.info(f"[CHECKIN] [CALENDAR DEBUG] Date check-in: {len(checkin_dates)}")
+        self._log_if_debug(logging.INFO, f"[CHECKIN] [CALENDAR DEBUG] Date check-in: {len(checkin_dates)}")
         for date_str in checkin_dates:
-            logger.info(f"   [CHECKIN] {date_str}")
+            self._log_if_debug(logging.INFO, f"   [CHECKIN] {date_str}")
         
         # Debug check-out dates
-        logger.info(f"[CHECKOUT] [CALENDAR DEBUG] Date check-out: {len(checkout_dates)}")
+        self._log_if_debug(logging.INFO, f"[CHECKOUT] [CALENDAR DEBUG] Date check-out: {len(checkout_dates)}")
         for date_str in checkout_dates:
-            logger.info(f"   [CHECKOUT] {date_str}")
+            self._log_if_debug(logging.INFO, f"   [CHECKOUT] {date_str}")
         
         # Debug gap days
-        logger.info(f"[GAP] [CALENDAR DEBUG] Gap days: {len(gap_days)}")
+        self._log_if_debug(logging.INFO, f"[GAP] [CALENDAR DEBUG] Gap days: {len(gap_days)}")
         if len(gap_days) <= 20:  # Mostra solo se non troppi
             for date_str in gap_days:
-                logger.info(f"   [GAP] {date_str}")
+                self._log_if_debug(logging.INFO, f"   [GAP] {date_str}")
         
         # Debug check-in bloccati da regole
-        logger.info(f"[RULES] [CALENDAR DEBUG] Check-in bloccati da regole: {len(checkin_blocked_rules['dates'])} date, {len(checkin_blocked_rules['weekdays'])} weekdays")
+        self._log_if_debug(logging.INFO, f"[RULES] [CALENDAR DEBUG] Check-in bloccati da regole: {len(checkin_blocked_rules['dates'])} date, {len(checkin_blocked_rules['weekdays'])} weekdays")
         for date_str in checkin_blocked_rules['dates']:
-            logger.info(f"   [RULE] Check-in bloccato: {date_str}")
+            self._log_if_debug(logging.INFO, f"   [RULE] Check-in bloccato: {date_str}")
         if checkin_blocked_rules['weekdays']:
             days = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
             weekdays_str = [days[wd] for wd in checkin_blocked_rules['weekdays']]
-            logger.info(f"   [RULE] Weekdays check-in bloccati: {', '.join(weekdays_str)}")
+            self._log_if_debug(logging.INFO, f"   [RULE] Weekdays check-in bloccati: {', '.join(weekdays_str)}")
         
         # Debug check-out bloccati da regole
-        logger.info(f"[RULES] [CALENDAR DEBUG] Check-out bloccati da regole: {len(checkout_blocked_rules['dates'])} date, {len(checkout_blocked_rules['weekdays'])} weekdays")
+        self._log_if_debug(logging.INFO, f"[RULES] [CALENDAR DEBUG] Check-out bloccati da regole: {len(checkout_blocked_rules['dates'])} date, {len(checkout_blocked_rules['weekdays'])} weekdays")
         for date_str in checkout_blocked_rules['dates']:
-            logger.info(f"   [RULE] Check-out bloccato: {date_str}")
+            self._log_if_debug(logging.INFO, f"   [RULE] Check-out bloccato: {date_str}")
         if checkout_blocked_rules['weekdays']:
             days = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
             weekdays_str = [days[wd] for wd in checkout_blocked_rules['weekdays']]
-            logger.info(f"   [RULE] Weekdays check-out bloccati: {', '.join(weekdays_str)}")
+            self._log_if_debug(logging.INFO, f"   [RULE] Weekdays check-out bloccati: {', '.join(weekdays_str)}")
         
         # Debug check-in bloccati da gap
-        logger.info(f"[GAP_CHECKIN] [CALENDAR DEBUG] Check-in bloccati da gap: {len(checkin_blocked_gap)}")
+        self._log_if_debug(logging.INFO, f"[GAP_CHECKIN] [CALENDAR DEBUG] Check-in bloccati da gap: {len(checkin_blocked_gap)}")
         if len(checkin_blocked_gap) <= 20:  # Mostra solo se non troppi
             for date_str in checkin_blocked_gap:
-                logger.info(f"   [GAP_CHECKIN] {date_str}")
+                self._log_if_debug(logging.INFO, f"   [GAP_CHECKIN] {date_str}")
         
-        logger.info("[NEW_CALC] [CALENDAR DEBUG] === FINE RISULTATI NUOVI CALCOLI ===")
+        self._log_if_debug(logging.INFO, "[NEW_CALC] [CALENDAR DEBUG] === FINE RISULTATI NUOVI CALCOLI ===")
     
     def _debug_consolidated_ranges(self, consolidated_ranges):
         """Debug dei range consolidati."""
-        logger.info("[CONSOLIDATE] [CALENDAR DEBUG] === RANGE CONSOLIDATI ===")
-        logger.info(f"[CONSOLIDATE] [CALENDAR DEBUG] Range consolidati finali: {len(consolidated_ranges)}")
+        self._log_if_debug(logging.INFO, "[CONSOLIDATE] [CALENDAR DEBUG] === RANGE CONSOLIDATI ===")
+        self._log_if_debug(logging.INFO, f"[CONSOLIDATE] [CALENDAR DEBUG] Range consolidati finali: {len(consolidated_ranges)}")
         for i, range_dict in enumerate(consolidated_ranges, 1):
-            logger.info(f"   [CONSOLIDATE] Range {i}: {range_dict['from']} -> {range_dict['to']}")
-        logger.info("[CONSOLIDATE] [CALENDAR DEBUG] === FINE RANGE CONSOLIDATI ===")
+            self._log_if_debug(logging.INFO, f"   [CONSOLIDATE] Range {i}: {range_dict['from']} -> {range_dict['to']}")
+        self._log_if_debug(logging.INFO, "[CONSOLIDATE] [CALENDAR DEBUG] === FINE RANGE CONSOLIDATI ===")
     
     def _debug_final_result(self, result):
         """Debug del risultato finale (supporta sia vecchia che nuova struttura)."""
-        logger.info("[RESULT] [CALENDAR DEBUG] === RISULTATO FINALE ===")
-        logger.info(f"[RESULT] [CALENDAR DEBUG] Listing ID: {result['listing_id']}")
-        logger.info(f"[RESULT] [CALENDAR DEBUG] Range bloccati finali: {len(result['blocked_ranges'])}")
+        self._log_if_debug(logging.INFO, "[RESULT] [CALENDAR DEBUG] === RISULTATO FINALE ===")
+        self._log_if_debug(logging.INFO, f"[RESULT] [CALENDAR DEBUG] Listing ID: {result['listing_id']}")
+        self._log_if_debug(logging.INFO, f"[RESULT] [CALENDAR DEBUG] Range bloccati finali: {len(result['blocked_ranges'])}")
         
         # Nuova struttura
         if 'checkin_dates' in result:
-            logger.info(f"[RESULT] [CALENDAR DEBUG] Check-in dates: {len(result['checkin_dates'])}")
-            logger.info(f"[RESULT] [CALENDAR DEBUG] Check-out dates: {len(result['checkout_dates'])}")
-            logger.info(f"[RESULT] [CALENDAR DEBUG] Gap days: {len(result['gap_days'])}")
-            logger.info(f"[RESULT] [CALENDAR DEBUG] Check-in bloccati da regole: {len(result['checkin_blocked_rules']['dates'])}")
-            logger.info(f"[RESULT] [CALENDAR DEBUG] Check-out bloccati da regole: {len(result['checkout_blocked_rules']['dates'])}")
-            logger.info(f"[RESULT] [CALENDAR DEBUG] Check-in bloccati da gap: {len(result['checkin_blocked_gap'])}")
+            self._log_if_debug(logging.INFO, f"[RESULT] [CALENDAR DEBUG] Check-in dates: {len(result['checkin_dates'])}")
+            self._log_if_debug(logging.INFO, f"[RESULT] [CALENDAR DEBUG] Check-out dates: {len(result['checkout_dates'])}")
+            self._log_if_debug(logging.INFO, f"[RESULT] [CALENDAR DEBUG] Gap days: {len(result['gap_days'])}")
+            self._log_if_debug(logging.INFO, f"[RESULT] [CALENDAR DEBUG] Check-in bloccati da regole: {len(result['checkin_blocked_rules']['dates'])}")
+            self._log_if_debug(logging.INFO, f"[RESULT] [CALENDAR DEBUG] Check-out bloccati da regole: {len(result['checkout_blocked_rules']['dates'])}")
+            self._log_if_debug(logging.INFO, f"[RESULT] [CALENDAR DEBUG] Check-in bloccati da gap: {len(result['checkin_blocked_gap'])}")
         # Vecchia struttura
         else:
-            logger.info(f"[RESULT] [CALENDAR DEBUG] Giorni turnover: {len(result.get('turnover_days', []))}")
-            logger.info(f"[RESULT] [CALENDAR DEBUG] Check-in bloccati: {len(result.get('checkin_block', {}).get('dates', []))}")
-            logger.info(f"[RESULT] [CALENDAR DEBUG] Check-out bloccati: {len(result.get('checkout_block', {}).get('dates', []))}")
-            logger.info(f"[RESULT] [CALENDAR DEBUG] Check-in reali: {len(result.get('real_checkin_dates', []))}")
+            self._log_if_debug(logging.INFO, f"[RESULT] [CALENDAR DEBUG] Giorni turnover: {len(result.get('turnover_days', []))}")
+            self._log_if_debug(logging.INFO, f"[RESULT] [CALENDAR DEBUG] Check-in bloccati: {len(result.get('checkin_block', {}).get('dates', []))}")
+            self._log_if_debug(logging.INFO, f"[RESULT] [CALENDAR DEBUG] Check-out bloccati: {len(result.get('checkout_block', {}).get('dates', []))}")
+            self._log_if_debug(logging.INFO, f"[RESULT] [CALENDAR DEBUG] Check-in reali: {len(result.get('real_checkin_dates', []))}")
         
-        logger.info(f"[RESULT] [CALENDAR DEBUG] Gap tra prenotazioni: {result['metadata']['gap_between_bookings']}")
-        logger.info(f"[RESULT] [CALENDAR DEBUG] Soggiorno minimo: {result['metadata']['min_stay']}")
-        logger.info("[RESULT] [CALENDAR DEBUG] === FINE RISULTATO FINALE ===")
+        self._log_if_debug(logging.INFO, f"[RESULT] [CALENDAR DEBUG] Gap tra prenotazioni: {result['metadata']['gap_between_bookings']}")
+        self._log_if_debug(logging.INFO, f"[RESULT] [CALENDAR DEBUG] Soggiorno minimo: {result['metadata']['min_stay']}")
+        self._log_if_debug(logging.INFO, "[RESULT] [CALENDAR DEBUG] === FINE RISULTATO FINALE ===")

@@ -557,6 +557,530 @@ msgstr "Servicios"
 msgid "Nessun appartamento disponibile al momento"
 msgstr "No hay piso disponible en este momento"
 
+#: templates\base.html
+msgid "Dashboard"
+msgstr "Cuadro de mandos"
+
+#: templates\base.html
+msgid "Esci"
+msgstr "Salida"
+
+#: templates\account\dashboard.html
+msgid "Ciao"
+msgstr "Hola"
+
+#: templates\account\dashboard.html
+msgid "Benvenuto/a nella tua area riservata"
+msgstr "Bienvenido a su área reservada"
+
+#: templates\account\dashboard.html
+msgid "Le tue prenotazioni"
+msgstr "Sus reservas"
+
+#: templates\account\dashboard.html
+msgid "Prenotazione Combinata"
+msgstr "Reserva combinada"
+
+#: templates\account\dashboard.html
+msgid "ospiti totali"
+msgstr "total de huéspedes"
+
+#: templates\account\dashboard.html
+msgid "appartamenti"
+msgstr "pisos"
+
+#: templates\account\dashboard.html
+msgid "Modifica in attesa"
+msgstr "Edición pendiente"
+
+#: templates\account\dashboard.html templates\bookings\booking_messages.html
+msgid "Messaggi"
+msgstr "Mensajes"
+
+#: templates\account\dashboard.html
+#: templates\bookings\cancel_multi_booking.html
+msgid "Cancella combinazione"
+msgstr "Borrar combinación"
+
+#: templates\account\dashboard.html
+msgid ""
+"Per richiedere modifiche alla prenotazione, utilizza il sistema di "
+"messaggistica."
+msgstr ""
+"Para solicitar cambios en su reserva, utilice el sistema de mensajería."
+
+#: templates\account\dashboard.html templates\bookings\booking_messages.html
+msgid "Nuovo"
+msgstr "Nuevo"
+
+#: templates\account\dashboard.html
+msgid "Cancella"
+msgstr "Borrar"
+
+#: templates\account\dashboard.html
+msgid "Nessuna prenotazione"
+msgstr "Sin reserva"
+
+#: templates\account\dashboard.html
+msgid "Non hai ancora effettuato nessuna prenotazione."
+msgstr "Aún no ha hecho ninguna reserva."
+
+#: templates\account\dashboard.html
+msgid "Esplora appartamenti"
+msgstr "Explorar pisos"
+
+#: templates\account\dashboard.html
+msgid "Azioni rapide"
+msgstr "Acciones rápidas"
+
+#: templates\account\dashboard.html
+msgid "Modifica profilo"
+msgstr "Editar perfil"
+
+#: templates\account\dashboard.html templates\account\profile.html
+msgid "Aggiorna le tue informazioni personali"
+msgstr "Actualice sus datos personales"
+
+#: templates\account\dashboard.html
+msgid "Sfoglia appartamenti"
+msgstr "Buscar pisos"
+
+#: templates\account\dashboard.html
+msgid "Cerca la tua prossima meta"
+msgstr "Busque su próximo destino"
+
+#: templates\account\login.html
+msgid "Accedi al tuo account"
+msgstr "Acceda a su cuenta"
+
+#: templates\account\login.html templates\bookings\booking_messages.html
+msgid "Errore:"
+msgstr "Error:"
+
+#: templates\account\login.html
+msgid "Username o password non corretti. Per favore riprova."
+msgstr ""
+"Nombre de usuario o contraseña incorrectos. Por favor, inténtelo de nuevo."
+
+#: templates\account\login.html templates\account\signup.html
+msgid "Username"
+msgstr "Nombre de usuario"
+
+#: templates\account\login.html templates\account\signup.html
+msgid "Password"
+msgstr "Contraseña"
+
+#: templates\account\login.html
+msgid "Non hai ancora un account?"
+msgstr "¿Aún no tiene cuenta?"
+
+#: templates\account\login.html
+msgid "Registrati qui"
+msgstr "Regístrese aquí"
+
+#: templates\account\profile.html
+msgid "Modifica Profilo"
+msgstr "Editar perfil"
+
+#: templates\account\profile.html
+msgid "Inserisci il tuo nome"
+msgstr "Introduzca su nombre"
+
+#: templates\account\profile.html templates\account\signup.html
+msgid "Cognome"
+msgstr "Apellido"
+
+#: templates\account\profile.html
+msgid "Inserisci il tuo cognome"
+msgstr "Introduzca su apellido"
+
+#: templates\account\profile.html
+msgid "nome@esempio.com"
+msgstr "nome@esempio.com"
+
+#: templates\account\profile.html
+msgid ""
+"Questa email sarà utilizzata per le comunicazioni relative alle prenotazioni"
+msgstr ""
+"Este correo electrónico se utilizará para comunicaciones relacionadas con "
+"las reservas"
+
+#: templates\account\profile.html
+msgid "Numero di telefono"
+msgstr "Número de teléfono"
+
+#: templates\account\profile.html
+msgid "Inserisci il tuo numero di telefono con prefisso internazionale"
+msgstr "Introduzca su número de teléfono con el prefijo internacional"
+
+#: templates\account\profile.html
+msgid "Informazioni Account"
+msgstr "Información sobre la cuenta"
+
+#: templates\account\profile.html
+msgid "Username:"
+msgstr "Nombre de usuario:"
+
+#: templates\account\profile.html
+msgid "Data registrazione:"
+msgstr "Fecha de inscripción:"
+
+#: templates\account\profile.html
+msgid "Torna alla dashboard"
+msgstr "Volver al salpicadero"
+
+#: templates\account\profile.html
+msgid "Salva modifiche"
+msgstr "Guardar cambios"
+
+#: templates\account\signup.html
+msgid "Crea il tuo account"
+msgstr "Cree su cuenta"
+
+#: templates\account\signup.html
+msgid "Conferma Password"
+msgstr "Confirmación de contraseña"
+
+#: templates\account\signup.html
+msgid "Hai già un account?"
+msgstr "¿Ya tiene una cuenta?"
+
+#: templates\admin\sync_airbnb_reviews.html
+msgid "Home"
+msgstr "Inicio"
+
+#: templates\admin\sync_airbnb_reviews.html
+msgid "Sincronizza Recensioni Airbnb"
+msgstr "Sincronizar las opiniones de Airbnb"
+
+#: templates\bookings\booking_detail.html
+#: templates\bookings\booking_messages.html
+msgid "Prenotazione"
+msgstr "Reservas"
+
+#: templates\bookings\booking_detail.html
+msgid "Dettagli Soggiorno"
+msgstr "Detalles de la sala de estar"
+
+#: templates\bookings\booking_detail.html
+#: templates\bookings\booking_messages.html
+msgid "Check-in:"
+msgstr "Facturación:"
+
+#: templates\bookings\booking_detail.html
+#: templates\bookings\booking_messages.html
+msgid "Check-out:"
+msgstr "Salida:"
+
+#: templates\bookings\booking_detail.html
+msgid "Notti:"
+msgstr "Noches:"
+
+#: templates\bookings\booking_detail.html
+#: templates\bookings\booking_messages.html
+msgid "Ospiti:"
+msgstr "Invitados:"
+
+#: templates\bookings\booking_detail.html
+msgid "adulti"
+msgstr "adultos"
+
+#: templates\bookings\booking_detail.html
+msgid "bambini"
+msgstr "niños"
+
+#: templates\bookings\booking_detail.html
+msgid "Codice Accesso:"
+msgstr "Código de acceso:"
+
+#: templates\bookings\booking_detail.html
+msgid "Richieste Speciali:"
+msgstr "Peticiones especiales:"
+
+#: templates\bookings\booking_detail.html
+msgid "Riepilogo Prezzi"
+msgstr "Resumen de precios"
+
+#: templates\bookings\booking_detail.html
+msgid "Ospiti extra"
+msgstr "Invitados adicionales"
+
+#: templates\bookings\booking_detail.html
+msgid "Email:"
+msgstr "Correo electrónico:"
+
+#: templates\bookings\booking_detail.html
+msgid "Telefono:"
+msgstr "Teléfono:"
+
+#: templates\bookings\booking_detail.html
+msgid "Prenotazione effettuata:"
+msgstr "Reserva hecha:"
+
+#: templates\bookings\booking_detail.html
+msgid "Pagamenti"
+msgstr "Pagos"
+
+#: templates\bookings\booking_detail.html
+msgid "Cancella Prenotazione"
+msgstr "Cancelar reserva"
+
+#: templates\bookings\booking_detail.html
+msgid "Torna alle Mie Prenotazioni"
+msgstr "Volver a Mis reservas"
+
+#: templates\bookings\booking_list.html
+msgid "Le Mie Prenotazioni"
+msgstr "Mis reservas"
+
+#: templates\bookings\booking_list.html
+msgid "Benvenuto"
+msgstr "Bienvenido"
+
+#: templates\bookings\booking_list.html templates\listings\listing_detail.html
+msgid "Check-in"
+msgstr "Facturación"
+
+#: templates\bookings\booking_list.html
+msgid "Check-out"
+msgstr "Salida"
+
+#: templates\bookings\booking_list.html
+msgid "Vedi Dettagli"
+msgstr "Ver detalles"
+
+#: templates\bookings\booking_list.html
+msgid "Nessuna prenotazione trovata"
+msgstr "No se ha encontrado ninguna reserva"
+
+#: templates\bookings\booking_list.html
+msgid "Non hai ancora effettuato prenotazioni."
+msgstr "Aún no ha hecho ninguna reserva."
+
+#: templates\bookings\booking_list.html
+msgid "Esplora gli Appartamenti"
+msgstr "Explorar los apartamentos"
+
+#: templates\bookings\booking_messages.html
+msgid "Torna alla Dashboard"
+msgstr "Volver al panel de control"
+
+#: templates\bookings\booking_messages.html
+msgid "Stato:"
+msgstr "Estado:"
+
+#: templates\bookings\booking_messages.html
+msgid "Tu"
+msgstr "Usted"
+
+#: templates\bookings\booking_messages.html
+msgid "Nessun messaggio ancora. Inizia la conversazione!"
+msgstr "Aún no hay mensajes. ¡Inicia la conversación!"
+
+#: templates\bookings\booking_messages.html
+msgid "Scrivi un messaggio..."
+msgstr "Escribe un mensaje..."
+
+#: templates\bookings\booking_messages.html
+msgid "Invia"
+msgstr "Enviar"
+
+#: templates\bookings\booking_messages.html
+msgid "Invio..."
+msgstr "Enviando..."
+
+#: templates\bookings\booking_messages.html
+msgid "Impossibile inviare il messaggio"
+msgstr "No se puede enviar el mensaje"
+
+#: templates\bookings\booking_messages.html
+#: templates\listings\listing_detail.html
+msgid "Errore di connessione. Riprova più tardi."
+msgstr "Error de conexión. Vuelva a intentarlo más tarde."
+
+#: templates\bookings\cancel_booking.html
+msgid "Cancella prenotazione"
+msgstr "Cancelar reserva"
+
+#: templates\bookings\cancel_booking.html
+msgid "Confermi di voler cancellare la prenotazione per"
+msgstr "Por favor, confirme que desea cancelar su reserva para"
+
+#: templates\bookings\cancel_booking.html
+msgid "dal"
+msgstr "de"
+
+#: templates\bookings\cancel_booking.html
+#: templates\bookings\cancel_multi_booking.html
+msgid "al"
+msgstr "en"
+
+#: templates\bookings\cancel_booking.html
+#: templates\bookings\cancel_multi_booking.html
+msgid "Annulla"
+msgstr "Cancelar"
+
+#: templates\bookings\cancel_booking.html
+msgid "Conferma cancellazione"
+msgstr "Confirmación de cancelación"
+
+#: templates\bookings\cancel_multi_booking.html
+msgid "Cancella prenotazione combinata"
+msgstr "Cancelar reserva combinada"
+
+#: templates\bookings\cancel_multi_booking.html
+msgid "Stai per cancellare la combinazione dal"
+msgstr "Está a punto de eliminar la combinación del"
+
+#: templates\listings\listing_detail.html
+msgid "bagni"
+msgstr "baños"
+
+#: templates\listings\listing_detail.html
+msgid "Media Valutazione"
+msgstr "Valoración media"
+
+#: templates\listings\listing_detail.html
+msgid "Totale Recensioni"
+msgstr "Comentarios"
+
+#: templates\listings\listing_detail.html
+msgid "Sito"
+msgstr "Página web"
+
+#: templates\listings\listing_detail.html
+msgid "Distribuzione"
+msgstr "Distribución"
+
+#: templates\listings\listing_detail.html
+msgid "stelle"
+msgstr "estrellas"
+
+#: templates\listings\listing_detail.html
+msgid "Media per Categoria"
+msgstr "Media por categoría"
+
+#: templates\listings\listing_detail.html
+msgid "Pulizia"
+msgstr "Limpieza"
+
+#: templates\listings\listing_detail.html
+msgid "Precisione"
+msgstr "Precisión"
+
+#: templates\listings\listing_detail.html
+msgid "Comunicazione"
+msgstr "Comunicación"
+
+#: templates\listings\listing_detail.html
+msgid "Rapporto Qualità-Prezzo"
+msgstr "Relación calidad-precio"
+
+#: templates\listings\listing_detail.html
+msgid "Tutte"
+msgstr "Todos"
+
+#: templates\listings\listing_detail.html
+msgid "Valore"
+msgstr "Valor"
+
+#: templates\listings\listing_detail.html
+msgid "Risposta dell'Host"
+msgstr "Respuesta del anfitrión"
+
+#: templates\listings\listing_detail.html
+msgid "Nessuna recensione disponibile"
+msgstr "No hay opiniones disponibles"
+
+#: templates\listings\listing_detail.html
+msgid "Mostra tutte le recensioni"
+msgstr "Mostrar todas las opiniones"
+
+#: templates\listings\listing_detail.html
+msgid "Seleziona date"
+msgstr "Seleccione las fechas"
+
+#: templates\listings\listing_detail.html templates\listings\listing_list.html
+msgid "Seleziona il periodo di soggiorno"
+msgstr "Seleccione el periodo de estancia"
+
+#: templates\listings\listing_detail.html
+msgid "Seleziona le date di check-in e check-out"
+msgstr "Seleccione las fechas de entrada y salida"
+
+#: templates\listings\listing_detail.html
+msgid "Prenotazione in corso..."
+msgstr "Reserva en curso..."
+
+#: templates\listings\listing_detail.html
+msgid "Prenotazione creata con successo!"
+msgstr "¡Reserva creada con éxito!"
+
+#: templates\listings\listing_detail.html
+msgid "Errore nella creazione della prenotazione"
+msgstr "Error al crear una reserva"
+
+#: templates\listings\listing_detail.html
+msgid "Devi essere autenticato per prenotare. Reindirizzamento al login..."
+msgstr "Debe iniciar sesión para reservar. Redirigir al inicio de sesión..."
+
+#: templates\listings\listing_list.html
+msgid "Ricerca Disponibilità Combinata"
+msgstr "Búsqueda de disponibilidad combinada"
+
+#: templates\listings\listing_list.html
+msgid "Trova la combinazione perfetta di appartamenti per il tuo gruppo"
+msgstr "Encuentre la combinación perfecta de pisos para su grupo"
+
+#: templates\listings\listing_list.html
+msgid ""
+"Le combinazioni sono predefinite dall'host per garantire la migliore "
+"esperienza"
+msgstr ""
+"Las combinaciones están predefinidas por el anfitrión para garantizar la "
+"mejor experiencia."
+
+#: templates\listings\listing_list.html
+msgid "Seleziona Date"
+msgstr "Seleccionar fechas"
+
+#: templates\listings\listing_list.html
+msgid "Cerca"
+msgstr "Buscar en"
+
+#: templates\listings\listing_list.html
+msgid "Combinazioni disponibili"
+msgstr "Combinaciones disponibles"
+
+#: templates\listings\listing_list.html
+msgid "Ricerca combinazioni..."
+msgstr "Buscar combinaciones..."
+
+#: templates\listings\listing_list.html
+msgid ""
+"<p class=\" text-base leading-relaxed\"> I nostri appartamenti si trovano "
+"nel cuore di Moscova, una delle zone più vivaci e dinamiche e luogo ideale "
+"per cene e drinks. Il quartiere di Brera, cuore artistico e centro della "
+"moda e del design di Milano, si trova proprio a ridosso.</p> <p> Per chi "
+"invece avesse voglia di godersi una corsa mattutina o un drink lontano dal "
+"caos cittadino, basta attraversare la strada per essere nel Parco "
+"Sempione.<br/> Passeggiando per il parco è anche possibile raggiungere "
+"alcune grandi attrazioni che meritano sicuramente una visita come il "
+"Castello Sforzesco, la Triennale e l’Arco della Pace.</p>"
+msgstr ""
+"<p class=\" text-base leading-relaxed\">Nuestros pisos están situados en el "
+"corazón de Moscova, una de las zonas más animadas y dinámicas y un lugar "
+"ideal para cenas y copas. El barrio de Brera, el corazón artístico y centro "
+"de la moda y el diseño de Milán, está justo al lado.</p> <p>Para aquellos "
+"que quieran disfrutar de una carrera matutina o de una copa lejos del caos "
+"de la ciudad, solo tienen que cruzar la calle y se encontrarán en el Parco "
+"Sempione.<br/>Caminando por el parque también se puede llegar a algunas "
+"grandes atracciones que sin duda merecen una visita como el Castello "
+"Sforzesco, la Triennale y el Arco della Pace.</p> <p>Para aquellos que "
+"quieran disfrutar de una carrera matutina o de una copa lejos del caos de la"
+" ciudad, solo tienen que cruzar la calle y se encontrarán en el Parco "
+"Sempione."
+
 #~ msgid "Non ci sono ancora recensioni per questo alloggio"
 #~ msgstr "Aún no hay opiniones para este alojamiento"
 

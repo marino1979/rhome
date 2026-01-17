@@ -1,0 +1,443 @@
+{% load static %}
+
+<!-- Modal Calendario -->
+<div id="calendar-modal" class="calendar-modal hidden">
+    <div class="calendar-modal-overlay" onclick="closeCalendarModal()"></div>
+    <div class="calendar-modal-content">
+        <div class="calendar-modal-header">
+            <h3 class="calendar-modal-title">Seleziona le date del soggiorno</h3>
+            <button class="calendar-modal-close" onclick="closeCalendarModal()" aria-label="Chiudi">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="calendar-modal-body">
+            <div class="modal-calendar-layout">
+                <!-- Calendario a sinistra -->
+                <div class="modal-calendar-left">
+                    <div id="modal-calendar-container"></div>
+                </div>
+
+                <!-- Pannello prenotazione a destra -->
+                <div class="modal-calendar-right">
+                    <div class="modal-booking-card">
+                        <!-- Prezzo -->
+                        <div class="modal-price-display">
+                            <div id="modal-displayPrice" class="modal-price">€{{ listing.base_price }}</div>
+                            <div id="modal-priceSubtext" class="modal-price-subtext">
+                                Prezzo base per {{ listing.included_guests }} {% if listing.included_guests == 1 %}ospite{% else %}ospiti{% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Selettore Ospiti -->
+                        <div class="modal-guests-selector">
+                            <label for="modal-numGuests">Numero ospiti</label>
+                            <div class="modal-guests-input-group">
+                                <button type="button" class="modal-guests-btn" id="modal-decreaseGuests">−</button>
+                                <input type="number" id="modal-numGuests" value="1"
+                                       min="1" max="{{ listing.max_guests }}" readonly>
+                                <button type="button" class="modal-guests-btn" id="modal-increaseGuests">+</button>
+                            </div>
+                            <div class="modal-guests-info">
+                                Fino a {{ listing.max_guests }} ospiti
+                                {% if listing.included_guests > 1 %}
+                                ({{ listing.included_guests }} ospiti inclusi nel prezzo base)
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Breakdown prezzo -->
+                        <div class="modal-price-breakdown" id="modal-priceBreakdown">
+                            <div class="modal-price-row">
+                                <span class="modal-price-label" id="modal-nightsLabel">3 notti</span>
+                                <span class="modal-price-value" id="modal-subtotalValue">€300</span>
+                            </div>
+                            <div class="modal-price-row">
+                                <span class="modal-price-label">Pulizie</span>
+                                <span class="modal-price-value" id="modal-cleaningFeeValue">€{{ listing.cleaning_fee }}</span>
+                            </div>
+                            <div class="modal-price-row" id="modal-extraGuestRow" style="display: none;">
+                                <span class="modal-price-label" id="modal-extraGuestLabel">1 ospite extra</span>
+                                <span class="modal-price-value" id="modal-extraGuestValue">€0</span>
+                            </div>
+                            <div class="modal-price-row modal-price-total">
+                                <span class="modal-price-label">Totale</span>
+                                <span class="modal-price-value" id="modal-totalValue">€0</span>
+                            </div>
+                        </div>
+
+                        <!-- Pulsante Prenota -->
+                        <button type="button" id="modal-reserveBtn" class="modal-reserve-btn" disabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Prenota ora
+                        </button>
+                        <div class="modal-reserve-note">Non ti verrà addebitato nulla in questa fase</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Modal Calendario */
+.calendar-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.calendar-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.calendar-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+}
+
+.calendar-modal-content {
+    position: relative;
+    background: white;
+    border-radius: 16px;
+    max-width: 1200px;
+    width: 100%;
+    max-height: 90vh;
+    overflow: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.calendar-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 32px;
+    border-bottom: 1px solid #EBEBEB;
+}
+
+.calendar-modal-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #222222;
+}
+
+.calendar-modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background 0.2s ease;
+    color: #717171;
+}
+
+.calendar-modal-close:hover {
+    background: #F7F7F7;
+    color: #222222;
+}
+
+.calendar-modal-body {
+    padding: 32px;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .calendar-modal {
+        padding: 0;
+    }
+
+    .calendar-modal-content {
+        max-height: 100vh;
+        height: 100vh;
+        border-radius: 0;
+        max-width: 100%;
+    }
+
+    .calendar-modal-header {
+        padding: 16px 20px;
+    }
+
+    .calendar-modal-body {
+        padding: 20px;
+    }
+}
+
+/* Override booking-calendar styles per il modale */
+#modal-calendar-container .booking-calendar-container {
+    box-shadow: none;
+    border-radius: 0;
+    border: none;
+    padding: 0;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+#modal-calendar-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+/* Layout a due colonne */
+.modal-calendar-layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 24px;
+    align-items: start;
+}
+
+.modal-calendar-left {
+    min-height: 500px;
+    min-width: 0; /* Previene overflow */
+}
+
+.modal-calendar-right {
+    position: sticky;
+    top: 0;
+}
+
+/* Card prenotazione */
+.modal-booking-card {
+    background: #F7F7F7;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid #EBEBEB;
+}
+
+.modal-price-display {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #EBEBEB;
+}
+
+.modal-price {
+    font-size: 32px;
+    font-weight: 600;
+    color: #222222;
+    margin-bottom: 4px;
+}
+
+.modal-price-subtext {
+    font-size: 14px;
+    color: #717171;
+}
+
+/* Selettore ospiti */
+.modal-guests-selector {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #EBEBEB;
+}
+
+.modal-guests-selector label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #222222;
+    margin-bottom: 12px;
+}
+
+.modal-guests-input-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.modal-guests-btn {
+    width: 36px;
+    height: 36px;
+    border: 1px solid #DDDDDD;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    color: #222222;
+}
+
+.modal-guests-btn:hover:not(:disabled) {
+    border-color: #222222;
+    background: #F7F7F7;
+}
+
+.modal-guests-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.modal-guests-input-group input {
+    width: 60px;
+    text-align: center;
+    border: none;
+    background: none;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.modal-guests-info {
+    font-size: 12px;
+    color: #717171;
+    text-align: center;
+}
+
+/* Breakdown prezzo */
+.modal-price-breakdown {
+    margin-bottom: 20px;
+}
+
+.modal-price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    font-size: 14px;
+}
+
+.modal-price-label {
+    color: #717171;
+}
+
+.modal-price-value {
+    color: #222222;
+    font-weight: 500;
+}
+
+.modal-price-total {
+    border-top: 1px solid #EBEBEB;
+    padding-top: 16px;
+    margin-top: 8px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.modal-price-total .modal-price-label,
+.modal-price-total .modal-price-value {
+    color: #222222;
+    font-weight: 600;
+}
+
+/* Pulsante Prenota */
+.modal-reserve-btn {
+    width: 100%;
+    background: linear-gradient(to right, #E61E4D 0%, #E31C5F 50%, #D70466 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 14px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.modal-reserve-btn:hover:not(:disabled) {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(230, 30, 77, 0.3);
+}
+
+.modal-reserve-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.modal-reserve-note {
+    text-align: center;
+    font-size: 12px;
+    color: #717171;
+}
+
+/* Mobile responsive */
+@media (max-width: 968px) {
+    .modal-calendar-layout {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .modal-calendar-right {
+        position: static;
+    }
+
+    .modal-booking-card {
+        position: sticky;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        border-radius: 12px 12px 0 0;
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+    }
+}
+</style>
+
+<script>
+// Funzioni globali per gestire il modale
+function openCalendarModal() {
+    const modal = document.getElementById('calendar-modal');
+    modal.classList.remove('hidden');
+    // Forza reflow
+    modal.offsetHeight;
+    modal.classList.add('active');
+
+    // Previene scroll della pagina
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCalendarModal() {
+    const modal = document.getElementById('calendar-modal');
+    modal.classList.remove('active');
+
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }, 300);
+}
+
+// Chiudi con ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('calendar-modal');
+        if (modal && modal.classList.contains('active')) {
+            closeCalendarModal();
+        }
+    }
+});
+</script>

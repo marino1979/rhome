@@ -7,4 +7,6 @@ def update_listing_totals(sender, instance, **kwargs):
     listing = instance.listing
     listing.total_beds = listing.count_total_beds()
     listing.total_sleeps = listing.count_total_sleeps()
-    listing.save()
+    # Use update_fields to prevent triggering post_save signals on Listing
+    # This prevents infinite recursion if Listing has its own post_save signals
+    listing.save(update_fields=['total_beds', 'total_sleeps'])

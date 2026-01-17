@@ -19,62 +19,27 @@ class CalendarManager:
     
     def check_availability(self, start_date, end_date) -> Tuple[bool, str]:
         """
-        Verifica disponibilità per un periodo usando il nuovo CalendarService.
-        
+        Verifica disponibilità per un periodo.
+
+        Delega ad AvailabilityChecker che implementa TUTTE le regole:
+        - Validazione date
+        - Chiusure
+        - Conflitti con prenotazioni
+        - Gap tra prenotazioni (bidirezionale)
+        - Soggiorno minimo
+        - Regole check-in/out
+
         Args:
             start_date: Data di inizio del periodo
             end_date: Data di fine del periodo
-            
+
         Returns:
             Tuple[bool, str]: (disponibile, messaggio)
         """
-        try:
-            # Usa il nuovo CalendarService per verificare disponibilità
-            calendar_data = self.calendar_service.get_unavailable_dates(start_date, end_date)
-            
-            # Verifica se ci sono conflitti con il periodo richiesto
-            from datetime import datetime
-            
-            # Converti le date in oggetti datetime per il confronto
-            if isinstance(start_date, date):
-                start_datetime = datetime.combine(start_date, datetime.min.time())
-            else:
-                start_datetime = start_date
-                
-            if isinstance(end_date, date):
-                end_datetime = datetime.combine(end_date, datetime.min.time())
-            else:
-                end_datetime = end_date
-            
-            # Verifica se il periodo richiesto si sovrappone con range bloccati
-            for blocked_range in calendar_data.get('blocked_ranges', []):
-                blocked_start = datetime.fromisoformat(blocked_range['from'])
-                blocked_end = datetime.fromisoformat(blocked_range['to'])
-                
-                # Se c'è sovrapposizione
-                if start_datetime < blocked_end and end_datetime > blocked_start:
-                    return False, "Periodo non disponibile per prenotazioni esistenti o regole di chiusura"
-            
-            # Verifica regole di check-in/out specifiche
-            checkin_blocked_dates = calendar_data.get('checkin_block', {}).get('dates', [])
-            checkout_blocked_dates = calendar_data.get('checkout_block', {}).get('dates', [])
-            
-            start_date_str = start_date.strftime('%Y-%m-%d') if hasattr(start_date, 'strftime') else str(start_date)
-            end_date_str = end_date.strftime('%Y-%m-%d') if hasattr(end_date, 'strftime') else str(end_date)
-            
-            if start_date_str in checkin_blocked_dates:
-                return False, f"Check-in non consentito il {start_date_str}"
-            
-            if end_date_str in checkout_blocked_dates:
-                return False, f"Check-out non consentito il {end_date_str}"
-            
-            return True, "Disponibile"
-            
-        except CalendarServiceError as e:
-            return False, f"Errore nel controllo disponibilità: {str(e)}"
-        except Exception as e:
-            # Fallback alla logica originale in caso di errori
-            return self._check_availability_fallback(start_date, end_date)
+        from .availability import AvailabilityChecker
+
+        checker = AvailabilityChecker(self.listing)
+        return checker.check_availability(start_date, end_date)
     
     def _check_availability_fallback(self, start_date, end_date) -> Tuple[bool, str]:
         """
@@ -252,11 +217,10 @@ class CalendarManager:
         Raises:
             ValueError: Se il periodo non è disponibile
         """
-        # Verifica disponibilità prima del calcolo
-        is_available, message = self.check_availability(start_date, end_date)
-        if not is_available:
-            raise ValueError(f"Periodo non disponibile: {message}")
-        
+        # Nota: La disponibilità dovrebbe essere già verificata dal chiamante
+        # per evitare doppia validazione e circular dependency.
+        # Se necessario verificare disponibilità, farlo PRIMA di chiamare questo metodo.
+
         # Calcola il prezzo per ogni giorno
         total_price = Decimal('0.00')
         current_date = start_date

@@ -33,3 +33,6 @@ python-dateutil>=2.8.2
 # iCal parsing and synchronization
 icalendar>=5.0.0
 
+# Airbnb integration
+pyairbnb>=0.1.0
+

@@ -1,138 +1,64 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Le Mie Prenotazioni - Rhome Book</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .header {
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
-        }
-        .booking-card {
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .booking-card:hover {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-        .booking-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .booking-title {
-            color: #007bff;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .status-badge {
-            padding: 5px 15px;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        .status-confirmed { background: #28a745; color: white; }
-        .status-pending { background: #ffc107; color: black; }
-        .status-cancelled { background: #dc3545; color: white; }
-        .status-completed { background: #6c757d; color: white; }
-        .booking-info {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        .info-item {
-            text-align: center;
-        }
-        .info-label {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 5px;
-        }
-        .info-value {
-            font-weight: bold;
-        }
-        .booking-actions {
-            text-align: right;
-        }
-        .btn {
-            background: #007bff;
-            color: white;
-            padding: 8px 15px;
-            border: none;
-            border-radius: 4px;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 14px;
-        }
-        .btn:hover {
-            background: #0056b3;
-        }
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>Le Mie Prenotazioni</h1>
-        <p>Benvenuto, {{ user.get_full_name|default:user.username }}!</p>
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Le Mie Prenotazioni" %} - Rhome Book{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-8">
+    <div class="border-b-2 border-blue-600 pb-5 mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">{% trans "Le Mie Prenotazioni" %}</h1>
+        <p class="mt-2 text-gray-600">{% trans "Benvenuto" %}, {{ user.get_full_name|default:user.username }}!</p>
     </div>
 
     {% if bookings %}
         {% for booking in bookings %}
-        <div class="booking-card">
-            <div class="booking-header">
-                <div class="booking-title">{{ booking.listing.title }}</div>
-                <span class="status-badge status-{{ booking.status }}">{{ booking.get_status_display }}</span>
+        <div class="bg-white border border-gray-200 rounded-lg p-6 mb-5 shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex flex-wrap justify-between items-center mb-4">
+                <div class="text-xl font-bold text-blue-600">{{ booking.listing.title }}</div>
+                <span class="px-4 py-1 rounded-full text-sm font-bold
+                    {% if booking.status == 'confirmed' %}bg-green-500 text-white
+                    {% elif booking.status == 'pending' %}bg-yellow-500 text-black
+                    {% elif booking.status == 'cancelled' %}bg-red-500 text-white
+                    {% elif booking.status == 'completed' %}bg-gray-500 text-white
+                    {% else %}bg-gray-300{% endif %}">
+                    {{ booking.get_status_display }}
+                </span>
             </div>
 
-            <div class="booking-info">
-                <div class="info-item">
-                    <div class="info-label">Check-in</div>
-                    <div class="info-value">{{ booking.check_in_date|date:"d/m/Y" }}</div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                <div class="text-center">
+                    <div class="text-sm text-gray-500">{% trans "Check-in" %}</div>
+                    <div class="font-bold">{{ booking.check_in_date|date:"d/m/Y" }}</div>
                 </div>
-                <div class="info-item">
-                    <div class="info-label">Check-out</div>
-                    <div class="info-value">{{ booking.check_out_date|date:"d/m/Y" }}</div>
+                <div class="text-center">
+                    <div class="text-sm text-gray-500">{% trans "Check-out" %}</div>
+                    <div class="font-bold">{{ booking.check_out_date|date:"d/m/Y" }}</div>
                 </div>
-                <div class="info-item">
-                    <div class="info-label">Ospiti</div>
-                    <div class="info-value">{{ booking.num_guests }}</div>
+                <div class="text-center">
+                    <div class="text-sm text-gray-500">{% trans "Ospiti" %}</div>
+                    <div class="font-bold">{{ booking.num_guests }}</div>
                 </div>
-                <div class="info-item">
-                    <div class="info-label">Totale</div>
-                    <div class="info-value">€{{ booking.total_amount }}</div>
+                <div class="text-center">
+                    <div class="text-sm text-gray-500">{% trans "Totale" %}</div>
+                    <div class="font-bold">€{{ booking.total_amount }}</div>
                 </div>
             </div>
 
-            <div class="booking-actions">
-                <a href="{% url 'bookings:booking_detail' booking.id %}" class="btn">Vedi Dettagli</a>
+            <div class="text-right">
+                <a href="{% url 'bookings:booking_detail' booking.id %}" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg">
+                    {% trans "Vedi Dettagli" %}
+                </a>
             </div>
         </div>
         {% endfor %}
     {% else %}
-        <div class="empty-state">
-            <h3>Nessuna prenotazione trovata</h3>
-            <p>Non hai ancora effettuato prenotazioni.</p>
-            <a href="/appartamenti/" class="btn">Esplora gli Appartamenti</a>
+        <div class="text-center py-16">
+            <h3 class="text-xl font-medium text-gray-700 mb-2">{% trans "Nessuna prenotazione trovata" %}</h3>
+            <p class="text-gray-500 mb-6">{% trans "Non hai ancora effettuato prenotazioni." %}</p>
+            <a href="/appartamenti/" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg">
+                {% trans "Esplora gli Appartamenti" %}
+            </a>
         </div>
     {% endif %}
-</body>
-</html>
+</div>
+{% endblock %}

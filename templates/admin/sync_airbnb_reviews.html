@@ -1,0 +1,122 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; <a href="{% url 'admin:listings_listing_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+&rsaquo; <a href="{% url 'admin:listings_listing_change' original.pk|admin_urlquote %}">{{ original|truncatewords:"18" }}</a>
+&rsaquo; {% trans 'Sincronizza Recensioni Airbnb' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>Sincronizza Recensioni da Airbnb</h1>
+
+<div class="module aligned">
+    <form method="post" id="sync-reviews-form">
+        {% csrf_token %}
+        
+        <fieldset class="module aligned">
+            <h2>Opzioni di Sincronizzazione</h2>
+            
+            <div class="form-row">
+                <div>
+                    <label for="id_airbnb_url">URL Annuncio Airbnb:</label>
+                    <input type="url" 
+                           name="airbnb_url" 
+                           id="id_airbnb_url" 
+                           value="{{ original.airbnb_listing_url|default:'' }}" 
+                           placeholder="https://www.airbnb.it/rooms/12345678"
+                           style="width: 100%; max-width: 600px;">
+                    <p class="help">Se lasciato vuoto, verrà usato l'URL salvato nell'annuncio.</p>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div>
+                    <label for="id_language">Lingua:</label>
+                    <select name="language" id="id_language">
+                        <option value="it" selected>Italiano</option>
+                        <option value="en">English</option>
+                        <option value="es">Español</option>
+                        <option value="fr">Français</option>
+                        <option value="de">Deutsch</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div>
+                    <label for="id_date_filter">Filtro Data:</label>
+                    <select name="date_filter" id="id_date_filter">
+                        <option value="all" selected>Tutte le recensioni disponibili</option>
+                        <option value="last_year">Ultimo anno</option>
+                        <option value="last_6_months">Ultimi 6 mesi</option>
+                        <option value="last_3_months">Ultimi 3 mesi</option>
+                    </select>
+                    <p class="help" style="font-size: 11px; color: #666; margin-top: 5px;">
+                        ⚠️ Nota: pyairbnb potrebbe restituire solo le recensioni più recenti (~50-60). 
+                        Le recensioni più vecchie potrebbero non essere disponibili tramite API.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div>
+                    <label for="id_min_rating">Filtro Stelle Minime:</label>
+                    <select name="min_rating" id="id_min_rating">
+                        <option value="all" selected>Tutte le recensioni</option>
+                        <option value="4.0">4 stelle e oltre</option>
+                        <option value="5.0">Solo 5 stelle</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div>
+                    <label for="id_proxy_url">Proxy URL (opzionale):</label>
+                    <input type="text" 
+                           name="proxy_url" 
+                           id="id_proxy_url" 
+                           value="" 
+                           placeholder="http://proxy.example.com:8080"
+                           style="width: 100%; max-width: 600px;">
+                </div>
+            </div>
+        </fieldset>
+        
+        <div class="submit-row">
+            <input type="submit" value="Sincronizza Recensioni" class="default" name="_save">
+            <a href="{% url 'admin:listings_listing_change' original.pk|admin_urlquote %}" class="button">Annulla</a>
+        </div>
+    </form>
+</div>
+
+<style>
+.form-row {
+    margin-bottom: 15px;
+}
+.form-row label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+.form-row input[type="text"],
+.form-row input[type="url"],
+.form-row select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+.form-row .help {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
+</style>
+{% endblock %}
+

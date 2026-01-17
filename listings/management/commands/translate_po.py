@@ -10,21 +10,21 @@ Per ogni voce msgid, traduce e sovrascrive msgstr.
 
 USO:
     python manage.py translate_po
-        → traduce tutti i msgstr (anche se già compilati)
+        -> traduce tutti i msgstr (anche se gia compilati)
 
     python manage.py translate_po --only-empty
-        → traduce solo le voci con msgstr vuoto
+        -> traduce solo le voci con msgstr vuoto
 
     python manage.py translate_po --dry-run
-        → simula la traduzione, stampa ma non salva
+        -> simula la traduzione, stampa ma non salva
 
     python manage.py translate_po --only-empty --dry-run
-        → mostra solo le traduzioni mancanti, senza toccare i file
+        -> mostra solo le traduzioni mancanti, senza toccare i file
 
 Dopo l'uso, ricordarsi di compilare i messaggi:
     python manage.py compilemessages
 
-⚠️ È richiesto:
+Requisiti:
 - avere i file django.po nelle cartelle corrette
 - impostare una chiave DeepL valida nella variabile DEEPL_API_KEY
 """
@@ -58,10 +58,10 @@ def translate_text(text, target_lang):
 def translate_po_file(locale_code, deepl_code, only_empty=False, dry_run=False):
     po_path = os.path.join('locale', locale_code, 'LC_MESSAGES', 'django.po')
     if not os.path.exists(po_path):
-        print(f"⚠️ File non trovato: {po_path}")
+        print(f"[WARN] File non trovato: {po_path}")
         return
 
-    print(f"🔄 Traducendo {po_path} (solo vuoti: {only_empty}, dry-run: {dry_run})")
+    print(f"[TRANSLATE] Traducendo {po_path} (solo vuoti: {only_empty}, dry-run: {dry_run})")
     po = polib.pofile(po_path)
 
     for entry in po:
@@ -70,18 +70,18 @@ def translate_po_file(locale_code, deepl_code, only_empty=False, dry_run=False):
                 continue
             try:
                 traduzione = translate_text(entry.msgid, deepl_code)
-                print(f"✅ {entry.msgid} → {traduzione}")
+                print(f"[OK] {entry.msgid} -> {traduzione}")
                 if not dry_run:
                     entry.msgstr = traduzione
                 time.sleep(0.5)
             except Exception as e:
-                print(f"⚠️ Errore con '{entry.msgid}': {e}")
+                print(f"[ERROR] Errore con '{entry.msgid}': {e}")
 
     if not dry_run:
         po.save()
-        print(f"💾 File aggiornato: {po_path}")
+        print(f"[SAVED] File aggiornato: {po_path}")
     else:
-        print(f"🧪 Dry-run attivo: nessuna modifica salvata per {locale_code}")
+        print(f"[DRY-RUN] Nessuna modifica salvata per {locale_code}")
 
 class Command(BaseCommand):
     help = 'Traduce i file .po usando DeepL'
@@ -95,4 +95,4 @@ class Command(BaseCommand):
         dry_run = options['dry_run']
         for locale_code, deepl_code in TARGETS:
             translate_po_file(locale_code, deepl_code, only_empty, dry_run)
-        self.stdout.write(self.style.SUCCESS("✅ Traduzione completata!"))
+        self.stdout.write(self.style.SUCCESS("[OK] Traduzione completata!"))

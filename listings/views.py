@@ -8,7 +8,8 @@ def listing_list(request):
     """Vista per mostrare tutti gli annunci attivi"""
     listings = Listing.objects.filter(status='active')
     return render(request, 'listings/listing_list.html', {
-        'listings': listings
+        'listings': listings,
+        'user': request.user  # Assicura che user sia disponibile nel template
     })
 
 def listing_detail(request, slug):
@@ -37,13 +38,27 @@ def listing_detail(request, slug):
     min_price = min(prices) if prices else listing.base_price
     max_price = max(prices) if prices else listing.base_price
 
+    # Recensioni e statistiche
+    reviews = listing.reviews.all().order_by('-review_date', '-created_at')
+    reviews_stats = listing.get_reviews_stats()
+    
+    # Filtro recensioni se richiesto
+    review_filter = request.GET.get('review_filter', 'all')
+    if review_filter == 'airbnb':
+        reviews = reviews.filter(airbnb_review_id__isnull=False)
+    elif review_filter == 'own':
+        reviews = reviews.filter(airbnb_review_id__isnull=True)
+
     return render(request, 'listings/listing_detail.html', {
         'listing': listing,
         'guest_options': guest_options,
         'sample_prices': sample_prices,
         'min_price': min_price,
         'max_price': max_price,
-        'has_dynamic_pricing': min_price != max_price
+        'has_dynamic_pricing': min_price != max_price,
+        'reviews': reviews,
+        'reviews_stats': reviews_stats,
+        'review_filter': review_filter,
     })
 
 def check_availability(request, slug):
@@ -83,8 +98,13 @@ def check_availability(request, slug):
 
     except ValueError as e:
         return JsonResponse({'error': 'Formato date non valido'}, status=400)
-    except Exception as e:
-        return JsonResponse({'error': 'Errore interno'}, status=500)
+
+def booking_calendar_demo(request, slug):
+    """Vista demo per il nuovo calendario di prenotazione"""
+    listing = get_object_or_404(Listing, slug=slug, status='active')
+    return render(request, 'listings/booking_calendar_demo.html', {
+        'listing': listing
+    })
 
 
 def get_unavailable_dates(request, slug):

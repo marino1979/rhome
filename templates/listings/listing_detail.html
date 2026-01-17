@@ -15,13 +15,33 @@
   /* Miglioramenti generali */
   .text-rhome-primary {
     color: #0056b3;
-   
+
   }
   .bg-rhome-primary {
     background-color: #0056b3;
   }
   .hover\:bg-rhome-dark:hover {
     background-color: #004494;
+  }
+
+  /* Calendario inline espandibile stile Airbnb */
+  #inline-calendar-wrapper {
+    min-width: 660px; /* Larghezza per 2 mesi */
+    max-width: 90vw;
+  }
+
+  /* Su schermi piccoli il calendario si adatta */
+  @media (max-width: 768px) {
+    #inline-calendar-wrapper {
+      min-width: auto;
+      left: -20px !important;
+      right: -20px !important;
+    }
+  }
+
+  /* Posizionamento relativo per il form */
+  #booking-form {
+    position: relative;
   }
   
   /* Stili per la galleria */
@@ -615,185 +635,229 @@
             
             <div class="tab-content hidden" id="reviews">
                 <div class="mt-6">
-                    <h3 class="text-xl font-semibold text-gray-900 flex items-center">
+                    <h3 class="text-xl font-semibold text-gray-900 flex items-center mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-rhome-primary" viewBox="0 0 20 20" fill="currentColor">
                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                         </svg>
                         {% trans "Recensioni" %}
                     </h3>
+                    
+                    {% if reviews_stats.total_count > 0 %}
+                    <!-- Statistiche Recensioni -->
+                    <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <div class="text-center">
+                                <div class="text-4xl font-bold text-rhome-primary">{{ reviews_stats.average_rating|floatformat:2|default:"-" }}</div>
+                                <div class="text-sm text-gray-600 mt-1">{% trans "Media Valutazione" %}</div>
+                                <div class="flex justify-center mt-2">
+                                    {% for i in "12345" %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 {% if forloop.counter <= reviews_stats.average_rating|floatformat:0|add:0 %}text-yellow-400{% else %}text-gray-300{% endif %}" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-4xl font-bold text-gray-900">{{ reviews_stats.total_count }}</div>
+                                <div class="text-sm text-gray-600 mt-1">{% trans "Totale Recensioni" %}</div>
+                                <div class="text-xs text-gray-500 mt-2">
+                                    {{ reviews_stats.airbnb_count }} Airbnb, {{ reviews_stats.own_count }} {% trans "Sito" %}
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-lg font-semibold text-gray-900 mb-2">{% trans "Distribuzione" %}</div>
+                                <div class="space-y-1">
+                                    {% for stars, count in reviews_stats.star_distribution.items %}
+                                    <div class="flex items-center justify-between text-xs">
+                                        <span>{{ stars }} {% trans "stelle" %}</span>
+                                        <div class="flex-1 mx-2 bg-gray-200 rounded-full h-2">
+                                            <div class="bg-yellow-400 h-2 rounded-full" style="width: {% widthratio count reviews_stats.total_count 100 %}%"></div>
+                                        </div>
+                                        <span>{{ count }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Media per Categoria -->
+                        {% if reviews_stats.category_averages %}
+                        <div class="border-t border-gray-200 pt-4 mt-4">
+                            <h4 class="text-sm font-semibold text-gray-700 mb-3">{% trans "Media per Categoria" %}</h4>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                {% if reviews_stats.category_averages.cleanliness %}
+                                <div>
+                                    <div class="text-xs text-gray-600">{% trans "Pulizia" %}</div>
+                                    <div class="text-lg font-semibold">{{ reviews_stats.category_averages.cleanliness|floatformat:2 }}</div>
+                                </div>
+                                {% endif %}
+                                {% if reviews_stats.category_averages.accuracy %}
+                                <div>
+                                    <div class="text-xs text-gray-600">{% trans "Precisione" %}</div>
+                                    <div class="text-lg font-semibold">{{ reviews_stats.category_averages.accuracy|floatformat:2 }}</div>
+                                </div>
+                                {% endif %}
+                                {% if reviews_stats.category_averages.checkin %}
+                                <div>
+                                    <div class="text-xs text-gray-600">{% trans "Check-in" %}</div>
+                                    <div class="text-lg font-semibold">{{ reviews_stats.category_averages.checkin|floatformat:2 }}</div>
+                                </div>
+                                {% endif %}
+                                {% if reviews_stats.category_averages.communication %}
+                                <div>
+                                    <div class="text-xs text-gray-600">{% trans "Comunicazione" %}</div>
+                                    <div class="text-lg font-semibold">{{ reviews_stats.category_averages.communication|floatformat:2 }}</div>
+                                </div>
+                                {% endif %}
+                                {% if reviews_stats.category_averages.location %}
+                                <div>
+                                    <div class="text-xs text-gray-600">{% trans "Posizione" %}</div>
+                                    <div class="text-lg font-semibold">{{ reviews_stats.category_averages.location|floatformat:2 }}</div>
+                                </div>
+                                {% endif %}
+                                {% if reviews_stats.category_averages.value %}
+                                <div>
+                                    <div class="text-xs text-gray-600">{% trans "Rapporto Qualità-Prezzo" %}</div>
+                                    <div class="text-lg font-semibold">{{ reviews_stats.category_averages.value|floatformat:2 }}</div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Filtri Recensioni -->
+                    <div class="mb-4 flex flex-wrap gap-2">
+                        <a href="?review_filter=all" class="px-4 py-2 rounded-lg border {% if review_filter == 'all' %}bg-rhome-primary text-white border-rhome-primary{% else %}bg-white text-gray-700 border-gray-300 hover:bg-gray-50{% endif %} transition-colors">
+                            {% trans "Tutte" %} ({{ reviews_stats.total_count }})
+                        </a>
+                        <a href="?review_filter=airbnb" class="px-4 py-2 rounded-lg border {% if review_filter == 'airbnb' %}bg-rhome-primary text-white border-rhome-primary{% else %}bg-white text-gray-700 border-gray-300 hover:bg-gray-50{% endif %} transition-colors">
+                            Airbnb ({{ reviews_stats.airbnb_count }})
+                        </a>
+                        <a href="?review_filter=own" class="px-4 py-2 rounded-lg border {% if review_filter == 'own' %}bg-rhome-primary text-white border-rhome-primary{% else %}bg-white text-gray-700 border-gray-300 hover:bg-gray-50{% endif %} transition-colors">
+                            {% trans "Sito" %} ({{ reviews_stats.own_count }})
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Lista Recensioni -->
                     <div class="mt-4">
-                        {% if listing.reviews.all %}
+                        {% if reviews %}
                             <div class="space-y-6">
-                                {% for review in listing.reviews.all %}
-                                <div class="bg-gray-50 p-4 rounded-lg">
-                                    <div class="flex justify-between items-start">
+                                {% for review in reviews %}
+                                <div class="bg-white border border-gray-200 rounded-lg p-6">
+                                    <div class="flex justify-between items-start mb-4">
                                         <div class="flex items-center">
-                                            {% if review.user.profile_image %}
-                                            <img src="{{ review.user.profile_image.url }}" alt="{{ review.user.name }}" class="w-10 h-10 rounded-full mr-3">
+                                            {% if review.reviewer_avatar_url %}
+                                            <img src="{{ review.reviewer_avatar_url }}" alt="{{ review.reviewer_name }}" class="w-12 h-12 rounded-full mr-3 object-cover">
                                             {% else %}
-                                            <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
-                                                <span class="text-gray-600 font-medium">{{ review.user.name|first }}</span>
+                                            <div class="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center mr-3">
+                                                <span class="text-gray-600 font-medium text-lg">{{ review.reviewer_name|first|upper }}</span>
                                             </div>
                                             {% endif %}
                                             <div>
-                                                <h4 class="font-medium text-gray-800">{{ review.user.name }}</h4>
-                                                <p class="text-gray-500 text-sm">{{ review.date|date:"F Y" }}</p>
+                                                <h4 class="font-semibold text-gray-900">{{ review.reviewer_name }}</h4>
+                                                {% if review.reviewer_location %}
+                                                <p class="text-sm text-gray-500">{{ review.reviewer_location }}</p>
+                                                {% endif %}
+                                                <p class="text-xs text-gray-400 mt-1">
+                                                    {{ review.review_date|date:"d F Y" }}
+                                                    {% if review.is_airbnb_review %}
+                                                    <span class="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">Airbnb</span>
+                                                    {% endif %}
+                                                </p>
                                             </div>
                                         </div>
-                                        <div class="flex">
-                                            {% for i in "12345" %}
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 {% if forloop.counter <= review.rating %}text-yellow-400{% else %}text-gray-300{% endif %}" viewBox="0 0 20 20" fill="currentColor">
-                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                            </svg>
-                                            {% endfor %}
+                                        <div class="flex items-center">
+                                            <span class="text-2xl font-bold text-gray-900 mr-2">{{ review.overall_rating }}</span>
+                                            <div class="flex">
+                                                {% for i in "12345" %}
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 {% if forloop.counter <= review.overall_rating|floatformat:0|add:0 %}text-yellow-400{% else %}text-gray-300{% endif %}" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                </svg>
+                                                {% endfor %}
+                                            </div>
                                         </div>
                                     </div>
-                                    <p class="mt-4 text-gray-700">{{ review.content }}</p>
+                                    
+                                    <p class="text-gray-700 mb-4 leading-relaxed">{{ review.review_text }}</p>
+                                    
+                                    <!-- Rating per Categoria -->
+                                    {% if review.cleanliness_rating or review.accuracy_rating or review.checkin_rating or review.communication_rating or review.location_rating or review.value_rating %}
+                                    <div class="border-t border-gray-200 pt-4 mt-4">
+                                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                                            {% if review.cleanliness_rating %}
+                                            <div>
+                                                <span class="text-gray-600">{% trans "Pulizia" %}:</span>
+                                                <span class="font-semibold ml-1">{{ review.cleanliness_rating }}</span>
+                                            </div>
+                                            {% endif %}
+                                            {% if review.accuracy_rating %}
+                                            <div>
+                                                <span class="text-gray-600">{% trans "Precisione" %}:</span>
+                                                <span class="font-semibold ml-1">{{ review.accuracy_rating }}</span>
+                                            </div>
+                                            {% endif %}
+                                            {% if review.checkin_rating %}
+                                            <div>
+                                                <span class="text-gray-600">{% trans "Check-in" %}:</span>
+                                                <span class="font-semibold ml-1">{{ review.checkin_rating }}</span>
+                                            </div>
+                                            {% endif %}
+                                            {% if review.communication_rating %}
+                                            <div>
+                                                <span class="text-gray-600">{% trans "Comunicazione" %}:</span>
+                                                <span class="font-semibold ml-1">{{ review.communication_rating }}</span>
+                                            </div>
+                                            {% endif %}
+                                            {% if review.location_rating %}
+                                            <div>
+                                                <span class="text-gray-600">{% trans "Posizione" %}:</span>
+                                                <span class="font-semibold ml-1">{{ review.location_rating }}</span>
+                                            </div>
+                                            {% endif %}
+                                            {% if review.value_rating %}
+                                            <div>
+                                                <span class="text-gray-600">{% trans "Valore" %}:</span>
+                                                <span class="font-semibold ml-1">{{ review.value_rating }}</span>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <!-- Risposta Host -->
+                                    {% if review.host_response %}
+                                    <div class="border-t border-gray-200 pt-4 mt-4 bg-gray-50 rounded-lg p-4">
+                                        <div class="flex items-start">
+                                            <div class="flex-shrink-0">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-rhome-primary" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <div class="ml-3 flex-1">
+                                                <p class="text-sm font-semibold text-gray-900 mb-1">{% trans "Risposta dell'Host" %}</p>
+                                                <p class="text-sm text-gray-700">{{ review.host_response }}</p>
+                                                {% if review.host_response_date %}
+                                                <p class="text-xs text-gray-500 mt-2">{{ review.host_response_date|date:"d F Y" }}</p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
                                 </div>
                                 {% endfor %}
                             </div>
                         {% else %}
-                                <!-- Sezione recensioni -->
-        <div class="mt-12">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-bold text-gray-900">Recensioni degli ospiti</h2>
-                <div class="flex items-center">
-                    <div class="flex mr-2">
-                        <i class="fas fa-star text-yellow-400"></i>
-                        <i class="fas fa-star text-yellow-400"></i>
-                        <i class="fas fa-star text-yellow-400"></i>
-                        <i class="fas fa-star text-yellow-400"></i>
-                        <i class="fas fa-star-half-alt text-yellow-400"></i>
-                    </div>
-                    <span class="text-gray-800 font-medium">4.8</span>
-                    <span class="text-gray-500 ml-1">(124 recensioni)</span>
-                </div>
-            </div>
-            
-            <!-- Categorie di recensioni -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                    <div class="flex justify-between mb-2">
-                        <span class="text-gray-700 font-medium">Pulizia</span>
-                        <span class="text-gray-800 font-medium">4.9</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-blue-600 h-2 rounded-full" style="width: 98%"></div>
-                    </div>
-                </div>
-                
-                <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                    <div class="flex justify-between mb-2">
-                        <span class="text-gray-700 font-medium">Comunicazione</span>
-                        <span class="text-gray-800 font-medium">5.0</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-blue-600 h-2 rounded-full" style="width: 100%"></div>
-                    </div>
-                </div>
-                
-                <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                    <div class="flex justify-between mb-2">
-                        <span class="text-gray-700 font-medium">Check-in</span>
-                        <span class="text-gray-800 font-medium">4.8</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-blue-600 h-2 rounded-full" style="width: 96%"></div>
-                    </div>
-                </div>
-                
-                <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                    <div class="flex justify-between mb-2">
-                        <span class="text-gray-700 font-medium">Posizione</span>
-                        <span class="text-gray-800 font-medium">4.7</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-blue-600 h-2 rounded-full" style="width: 94%"></div>
-                    </div>
-                </div>
-            </div>
-            
-         
-            
-            
-        </div>
-                           <!-- Recensioni recenti -->
-            <div class="space-y-6">
-                <!-- Recensione 1 -->
-                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0 mr-4">
-                            <div class="w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
-                                <img src="/api/placeholder/100/100" alt="Foto profilo" class="w-full h-full object-cover">
+                            <div class="bg-white border border-gray-200 rounded-lg p-8 text-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                </svg>
+                                <p class="text-gray-500 text-lg">{% trans "Nessuna recensione disponibile" %}</p>
+                                {% if review_filter != 'all' %}
+                                <a href="?review_filter=all" class="text-rhome-primary hover:underline mt-2 inline-block">{% trans "Mostra tutte le recensioni" %}</a>
+                                {% endif %}
                             </div>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-center justify-between mb-1">
-                                <h4 class="font-semibold text-gray-900">Laura M.</h4>
-                                <div class="flex text-yellow-400">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                </div>
-                            </div>
-                            <p class="text-sm text-gray-500 mb-3">Marzo 2025 · Appartamento a Trastevere</p>
-                            <p class="text-gray-700">Marco è stato un host fantastico! L'appartamento era esattamente come nelle foto, pulito e in una posizione perfetta. I suoi consigli sui ristoranti locali sono stati preziosi. Sicuramente torneremo!</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Recensione 2 -->
-                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0 mr-4">
-                            <div class="w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
-                                <img src="/api/placeholder/100/100" alt="Foto profilo" class="w-full h-full object-cover">
-                            </div>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-center justify-between mb-1">
-                                <h4 class="font-semibold text-gray-900">Michael K.</h4>
-                                <div class="flex text-yellow-400">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="far fa-star"></i>
-                                </div>
-                            </div>
-                            <p class="text-sm text-gray-500 mb-3">Febbraio 2025 · Monolocale vista Colosseo</p>
-                            <p class="text-gray-700">Posizione incredibile! La vista sul Colosseo dalla finestra era mozzafiato. Marco è stato molto disponibile e ha risposto velocemente a tutte le nostre domande. L'unico piccolo inconveniente è stato il rumore dalla strada, ma è comprensibile data la posizione centrale.</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Recensione 3 -->
-                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0 mr-4">
-                            <div class="w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
-                                <img src="/api/placeholder/100/100" alt="Foto profilo" class="w-full h-full object-cover">
-                            </div>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-center justify-between mb-1">
-                                <h4 class="font-semibold text-gray-900">Sofia G.</h4>
-                                <div class="flex text-yellow-400">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                </div>
-                            </div>
-                            <p class="text-sm text-gray-500 mb-3">Gennaio 2025 · Loft Moderno a Prati</p>
-                            <p class="text-gray-700">Il loft è stupendo, ancora più bello che nelle foto! Moderno, pulito e ben attrezzato. Marco è un host eccezionale, ci ha dato ottimi consigli e si è assicurato che avessimo tutto il necessario. La zona è tranquilla ma vicina a tutte le attrazioni principali. Consigliatissimo!</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
                         {% endif %}
                     </div>
                 </div>
@@ -811,40 +875,100 @@
                 </p>
                 
                 <form id="booking-form" class="mt-4 space-y-4">
+                    <!-- Input trigger per calendario -->
                     <div>
-                        <label for="calendar" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Seleziona date" %}</label>
-                        <div id="availability-message" class="hidden mb-2 p-2 rounded-lg text-sm">
-                            <span id="availability-text"></span>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{% trans "Seleziona date" %}</label>
+                        <div id="calendar-trigger" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-3 cursor-pointer hover:border-rhome-primary transition-colors">
+                            <div class="flex items-center justify-between">
+                                <span id="calendar-display" class="text-gray-500">{% trans 'Seleziona il periodo di soggiorno' %}</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
                         </div>
-                        <input id="calendar" type="text" placeholder="{% trans 'Seleziona il periodo di soggiorno' %}" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-rhome-primary focus:border-rhome-primary cursor-pointer" readonly>
+                    </div>
+
+                    <!-- Calendario espandibile -->
+                    <div id="inline-calendar-container" class="hidden">
+                        <div id="inline-calendar-wrapper" class="absolute left-0 right-0 z-50 mt-2 border border-gray-200 rounded-lg p-4 bg-white shadow-2xl">
+                            <div id="inline-booking-calendar"></div>
+                        </div>
                     </div>
 
                     <input type="hidden" id="check-in" name="check_in">
                     <input type="hidden" id="check-out" name="check_out">
+                    <input type="hidden" id="guests" name="guests" value="1">
 
+                    <!-- Selettore Ospiti migliorato -->
                     <div>
-                        <label for="guests" class="block text-sm font-medium text-gray-700 mb-1">{% trans "Ospiti" %}</label>
-                        <select id="guests" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-rhome-primary focus:border-rhome-primary">
-                            {% for i in guest_options %}
-                                <option value="{{ i }}" {% if i == listing.included_guests %}selected{% endif %}>
-                                    {{ i }} {% if i == 1 %}{% trans "ospite" %}{% else %}{% trans "ospiti" %}{% endif %}
-                                </option>
-                            {% endfor %}
-                        </select>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{% trans "Ospiti" %}</label>
+                        <div class="flex items-center gap-3 bg-gray-50 border border-gray-300 rounded-lg p-2">
+                            <button type="button" id="inline-decreaseGuests" class="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:border-rhome-primary bg-white">−</button>
+                            <input type="number" id="inline-numGuests" value="1" min="1" max="{{ listing.max_guests }}" readonly class="flex-1 text-center border-none bg-transparent font-medium">
+                            <button type="button" id="inline-increaseGuests" class="w-8 h-8 flex items-center justify-center rounded-full border border-gray-300 hover:border-rhome-primary bg-white">+</button>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">
+                            Fino a {{ listing.max_guests }} ospiti
+                            {% if listing.included_guests > 1 %}
+                            ({{ listing.included_guests }} inclusi nel prezzo)
+                            {% endif %}
+                        </div>
                     </div>
 
-                    <div id="price-breakdown" class="hidden mt-4 pt-4 border-t border-gray-200">
-                        <div id="breakdown-content" class="space-y-2"></div>
+                    <!-- Breakdown prezzo -->
+                    <div id="inline-price-breakdown" class="hidden pt-4 border-t border-gray-200 space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span id="inline-nightsLabel" class="text-gray-600">3 notti</span>
+                            <span id="inline-subtotalValue" class="text-gray-900">€300</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Pulizie</span>
+                            <span id="inline-cleaningFeeValue" class="text-gray-900">€{{ listing.cleaning_fee }}</span>
+                        </div>
+                        <div id="inline-extraGuestRow" class="hidden flex justify-between text-sm">
+                            <span id="inline-extraGuestLabel" class="text-gray-600">1 ospite extra</span>
+                            <span id="inline-extraGuestValue" class="text-gray-900">€0</span>
+                        </div>
+                        <div class="flex justify-between text-base font-semibold pt-2 border-t border-gray-200">
+                            <span>Totale</span>
+                            <span id="inline-totalValue">€0</span>
+                        </div>
+                    </div>
+
+                    <!-- Messaggio errore disponibilità -->
+                    <div id="inline-availability-error" class="hidden bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
+                        <div class="flex items-start">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <div>
+                                <strong>Prenotazione non disponibile</strong>
+                                <p id="inline-availability-error-message" class="mt-1"></p>
+                            </div>
+                        </div>
                     </div>
 
                     <button type="submit" class="w-full bg-rhome-primary text-white rounded-lg px-4 py-3 hover:bg-rhome-dark transition-colors duration-300 flex justify-center items-center font-medium">
+                        {% if user.is_authenticated %}
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         {% trans "Prenota ora" %}
+                        {% else %}
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                        </svg>
+                        {% trans "Accedi per prenotare" %}
+                        {% endif %}
                     </button>
                 </form>
-                <div class="text-center text-sm text-gray-500 mt-2">{% trans "Non ti verrà addebitato nulla in questa fase" %}</div>
+                <div class="text-center text-sm text-gray-500 mt-2">
+                    {% if user.is_authenticated %}
+                    {% trans "Non ti verrà addebitato nulla in questa fase" %}
+                    {% else %}
+                    {% trans "Accedi o registrati per completare la prenotazione" %}
+                    {% endif %}
+                </div>
 
             </div>
 
@@ -931,6 +1055,7 @@
         </div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -941,8 +1066,193 @@
 <!-- Flatpickr JS per il calendario -->
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/it.js"></script>
+
+<!-- Nuovo Calendario CSS e JS -->
+<link rel="stylesheet" href="{% static 'css/booking-calendar.css' %}">
+<script src="{% static 'js/booking-calendar.js' %}"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // ========== CALENDARIO INLINE SIDEBAR ==========
+    let inlineCalendar = null;
+    const calendarTrigger = document.getElementById('calendar-trigger');
+    const calendarContainer = document.getElementById('inline-calendar-container');
+    const calendarDisplay = document.getElementById('calendar-display');
+
+    const listingConfig = {
+        id: {{ listing.id }},
+        includedGuests: {{ listing.included_guests }},
+        maxGuests: {{ listing.max_guests }},
+        extraGuestFee: parseFloat("{{ listing.extra_guest_fee }}".replace(',', '.')),
+        cleaningFee: parseFloat("{{ listing.cleaning_fee }}".replace(',', '.'))
+    };
+
+    // Toggle calendario
+    calendarTrigger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (calendarContainer.classList.contains('hidden')) {
+            calendarContainer.classList.remove('hidden');
+            if (!inlineCalendar) {
+                initInlineCalendar();
+            }
+        } else {
+            calendarContainer.classList.add('hidden');
+        }
+    });
+
+    // Chiudi calendario con ESC (si chiude automaticamente dopo selezione completa)
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !calendarContainer.classList.contains('hidden')) {
+            calendarContainer.classList.add('hidden');
+        }
+    });
+
+    // Inizializza calendario inline
+    function initInlineCalendar() {
+        inlineCalendar = new BookingCalendar({
+            listingId: listingConfig.id,
+            container: '#inline-booking-calendar',
+            monthsToShow: 2, // Mostra 2 mesi come Airbnb
+            onDateSelect: function(selection) {
+                if (selection && selection.checkIn && selection.checkOut) {
+                    const checkIn = new Date(selection.checkIn);
+                    const checkOut = new Date(selection.checkOut);
+
+                    // Nascondi eventuali errori precedenti
+                    document.getElementById('inline-availability-error').classList.add('hidden');
+
+                    // Aggiorna display
+                    calendarDisplay.textContent = `${formatDateDisplay(checkIn)} - ${formatDateDisplay(checkOut)}`;
+                    calendarDisplay.classList.remove('text-gray-500');
+                    calendarDisplay.classList.add('text-gray-900');
+
+                    // Aggiorna hidden inputs
+                    document.getElementById('check-in').value = selection.checkIn;
+                    document.getElementById('check-out').value = selection.checkOut;
+
+                    // Chiudi calendario
+                    calendarContainer.classList.add('hidden');
+
+                    // Calcola prezzo
+                    fetchAndUpdateInlinePrice();
+                }
+            },
+            onError: function(errorMessage) {
+                // Mostra errore nella sidebar (sempre visibile)
+                const errorDiv = document.getElementById('inline-availability-error');
+                const errorMessageEl = document.getElementById('inline-availability-error-message');
+                errorMessageEl.textContent = errorMessage;
+                errorDiv.classList.remove('hidden');
+
+                // Nascondi il breakdown del prezzo
+                document.getElementById('inline-price-breakdown').classList.add('hidden');
+            }
+        });
+    }
+
+    // Gestione ospiti inline
+    const numGuestsInput = document.getElementById('inline-numGuests');
+    const decreaseBtn = document.getElementById('inline-decreaseGuests');
+    const increaseBtn = document.getElementById('inline-increaseGuests');
+
+    function updateInlineGuestButtons() {
+        const currentValue = parseInt(numGuestsInput.value);
+        decreaseBtn.disabled = currentValue <= 1;
+        increaseBtn.disabled = currentValue >= listingConfig.maxGuests;
+
+        decreaseBtn.style.opacity = decreaseBtn.disabled ? '0.3' : '1';
+        increaseBtn.style.opacity = increaseBtn.disabled ? '0.3' : '1';
+    }
+
+    decreaseBtn.addEventListener('click', function() {
+        const currentValue = parseInt(numGuestsInput.value);
+        if (currentValue > 1) {
+            numGuestsInput.value = currentValue - 1;
+            document.getElementById('guests').value = currentValue - 1; // Aggiorna campo hidden
+            updateInlineGuestButtons();
+            if (inlineCalendar && inlineCalendar.selectedCheckIn && inlineCalendar.selectedCheckOut) {
+                fetchAndUpdateInlinePrice();
+            }
+        }
+    });
+
+    increaseBtn.addEventListener('click', function() {
+        const currentValue = parseInt(numGuestsInput.value);
+        if (currentValue < listingConfig.maxGuests) {
+            numGuestsInput.value = currentValue + 1;
+            document.getElementById('guests').value = currentValue + 1; // Aggiorna campo hidden
+            updateInlineGuestButtons();
+            if (inlineCalendar && inlineCalendar.selectedCheckIn && inlineCalendar.selectedCheckOut) {
+                fetchAndUpdateInlinePrice();
+            }
+        }
+    });
+
+    updateInlineGuestButtons();
+
+    // Calcolo prezzo inline
+    async function fetchAndUpdateInlinePrice() {
+        const checkIn = document.getElementById('check-in').value;
+        const checkOut = document.getElementById('check-out').value;
+
+        if (!checkIn || !checkOut) return;
+
+        const numGuests = parseInt(numGuestsInput.value);
+
+        try {
+            const response = await fetch(`/calendar/api/listings/${listingConfig.id}/calculate-price/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    check_in: checkIn,
+                    check_out: checkOut,
+                    num_guests: numGuests
+                })
+            });
+
+            const pricing = await response.json();
+            updateInlinePriceDisplay(pricing);
+        } catch (error) {
+            console.error('Error calculating price:', error);
+        }
+    }
+
+    function updateInlinePriceDisplay(pricing) {
+        if (pricing) {
+            document.getElementById('inline-nightsLabel').textContent =
+                `€${pricing.price_per_night_avg.toFixed(0)} × ${pricing.nights} ${pricing.nights === 1 ? 'notte' : 'notti'}`;
+            document.getElementById('inline-subtotalValue').textContent =
+                `€${pricing.subtotal.toFixed(0)}`;
+            document.getElementById('inline-cleaningFeeValue').textContent =
+                `€${pricing.cleaning_fee.toFixed(0)}`;
+            document.getElementById('inline-totalValue').textContent =
+                `€${pricing.total.toFixed(0)}`;
+
+            const numGuests = parseInt(numGuestsInput.value);
+            const extraGuests = Math.max(0, numGuests - listingConfig.includedGuests);
+
+            if (extraGuests > 0 && pricing.extra_guest_fee > 0) {
+                document.getElementById('inline-extraGuestRow').classList.remove('hidden');
+                document.getElementById('inline-extraGuestLabel').textContent =
+                    `${extraGuests} ${extraGuests === 1 ? 'ospite extra' : 'ospiti extra'}`;
+                document.getElementById('inline-extraGuestValue').textContent =
+                    `€${pricing.extra_guest_fee.toFixed(2)}`;
+            } else {
+                document.getElementById('inline-extraGuestRow').classList.add('hidden');
+            }
+
+            document.getElementById('inline-price-breakdown').classList.remove('hidden');
+        }
+    }
+
+    // Helper per formattare le date
+    function formatDateDisplay(date) {
+        const options = { day: 'numeric', month: 'short', year: 'numeric' };
+        return date.toLocaleDateString('it-IT', options);
+    }
+
+    // ========== FINE CALENDARIO INLINE SIDEBAR ==========
+
     // Tab handling
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabContents = document.querySelectorAll('.tab-content');
@@ -1345,6 +1655,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const disableConfig = buildDisabledDates();
 
+        // DISABILITATO - Codice Flatpickr commentato, ora usiamo il nuovo calendario modale
+        /*
         try {
             if (window.flatpickr && window.flatpickr.l10ns && window.flatpickr.l10ns.it) {
                 flatpickr.localize(flatpickr.l10ns.it);
@@ -1364,6 +1676,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('📊📊📊 bookingRules:', bookingRules);
         console.log('📊📊📊 bookingRules.windowStart:', bookingRules.windowStart);
         console.log('📊📊📊 bookingRules.windowEnd:', bookingRules.windowEnd);
+
         mainCalendar = flatpickr('#calendar', {
             mode: 'range',
             dateFormat: 'Y-m-d',
@@ -1635,6 +1948,9 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }, 100);
     }
+    */ // FINE BLOCCO FLATPICKR DISABILITATO
+
+    } // Fine initializeUnifiedCalendar (disabilitata perché usiamo il nuovo calendario modale)
 
     // Listener per cambio numero ospiti
     const guestsSelect = document.getElementById('guests');

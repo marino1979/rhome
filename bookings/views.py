@@ -5,13 +5,17 @@ from django.http import JsonResponse
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.db import transaction
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from datetime import datetime, timedelta
 import json
+import logging
 
 from listings.models import Listing
 from calendar_rules.models import ClosureRule, PriceRule
 from .models import Booking, BookingPayment, MultiBooking, Message
+
+# Initialize logger for booking operations
+logger = logging.getLogger(__name__)
 
 
 def listing_detail_with_booking(request, slug):
@@ -99,7 +103,7 @@ def check_availability(request):
             return JsonResponse({
                 'available': True,
                 'pricing': {
-                    'base_price_per_night': float(subtotal / total_nights),
+                    'base_price_per_night': float(subtotal / total_nights) if total_nights > 0 else 0,
                     'total_nights': total_nights,
                     'subtotal': float(subtotal),
                     'cleaning_fee': float(listing.cleaning_fee),
@@ -137,16 +141,40 @@ def create_booking(request):
         return JsonResponse({'error': 'Metodo non consentito'}, status=405)
 
     try:
-        with transaction.atomic():
-            data = json.loads(request.body)
-            listing_id = data.get('listing_id')
-            check_in = datetime.strptime(data.get('check_in'), '%Y-%m-%d').date()
-            check_out = datetime.strptime(data.get('check_out'), '%Y-%m-%d').date()
-            num_guests = int(data.get('num_guests', 1))
-            num_adults = int(data.get('num_adults', num_guests))
-            num_children = int(data.get('num_children', 0))
+        data = json.loads(request.body)
+        listing_id = data.get('listing_id')
+        check_in = datetime.strptime(data.get('check_in'), '%Y-%m-%d').date()
+        check_out = datetime.strptime(data.get('check_out'), '%Y-%m-%d').date()
+        num_guests = int(data.get('num_guests', 1))
+        num_adults = int(data.get('num_adults', num_guests))
+        num_children = int(data.get('num_children', 0))
 
-            listing = get_object_or_404(Listing, id=listing_id)
+        listing = get_object_or_404(Listing, id=listing_id)
+
+        # Use transaction.atomic with select_for_update to prevent race conditions
+        with transaction.atomic():
+            # Lock existing bookings to prevent concurrent modifications
+            # This ensures no two users can book the same dates simultaneously
+            locked_bookings = Booking.objects.select_for_update().filter(
+                listing=listing,
+                status__in=['confirmed', 'pending'],
+                check_in_date__lt=check_out,
+                check_out_date__gt=check_in
+            )
+
+            # Check if there are any conflicting bookings
+            if locked_bookings.exists():
+                return JsonResponse({
+                    'error': 'Date già prenotate da un altro utente'
+                }, status=400)
+
+            # Verify availability with CalendarManager inside the transaction
+            from calendar_rules.managers import CalendarManager
+            calendar = CalendarManager(listing)
+            is_available, message = calendar.check_availability(check_in, check_out)
+
+            if not is_available:
+                return JsonResponse({'error': message}, status=400)
 
             # Crea prenotazione
             booking = Booking(
@@ -175,6 +203,7 @@ def create_booking(request):
     except ValidationError as e:
         return JsonResponse({'error': str(e)}, status=400)
     except Exception as e:
+        logger.error(f"Error creating booking: {e}", exc_info=True)
         return JsonResponse({'error': 'Errore nella creazione della prenotazione'}, status=500)
 
 
@@ -202,7 +231,8 @@ def booking_detail(request, booking_id):
 @login_required
 def booking_list(request):
     """Lista prenotazioni utente"""
-    bookings = Booking.objects.filter(guest=request.user).order_by('-created_at')
+    # Use select_related to prevent N+1 queries when accessing listing details
+    bookings = Booking.objects.filter(guest=request.user).select_related('listing').order_by('-created_at')
 
     context = {
         'bookings': bookings
@@ -222,19 +252,154 @@ def cancel_booking(request, booking_id):
 
     if booking.status not in ['pending', 'confirmed']:
         messages.error(request, 'Non puoi cancellare questa prenotazione')
-        return redirect('booking_detail', booking_id=booking_id)
+        return redirect('bookings:booking_detail', booking_id=booking_id)
 
     if booking.check_in_date <= timezone.now().date() + timedelta(days=1):
         messages.error(request, 'Troppo tardi per cancellare')
-        return redirect('booking_detail', booking_id=booking_id)
+        return redirect('bookings:booking_detail', booking_id=booking_id)
 
     if request.method == 'POST':
         booking.status = 'cancelled'
         booking.save()
         messages.success(request, 'Prenotazione cancellata')
-        return redirect('booking_list')
+        return redirect('account:dashboard')
 
     return render(request, 'bookings/cancel_booking.html', {'booking': booking})
+
+
+@login_required
+def cancel_multi_booking(request, multi_booking_id):
+    """Cancella un'intera prenotazione combinata"""
+    multi_booking = get_object_or_404(
+        MultiBooking,
+        id=multi_booking_id,
+        guest=request.user
+    )
+
+    if multi_booking.status not in ['pending', 'confirmed']:
+        messages.error(request, 'Non puoi cancellare questa prenotazione combinata')
+        return redirect('account:dashboard')
+
+    if multi_booking.check_in_date <= timezone.now().date() + timedelta(days=1):
+        messages.error(request, 'Troppo tardi per cancellare la combinazione')
+        return redirect('account:dashboard')
+
+    if request.method == 'POST':
+        multi_booking.status = 'cancelled'
+        multi_booking.save(update_fields=['status'])
+        multi_booking.individual_bookings.update(status='cancelled')
+        messages.success(request, 'Prenotazione combinata cancellata')
+        return redirect('account:dashboard')
+
+    return render(request, 'bookings/cancel_multi_booking.html', {'multi_booking': multi_booking})
+
+
+def _notify_staff_of_change(booking, user_message):
+    """Crea un messaggio interno per notificare lo staff"""
+    try:
+        from django.contrib.auth.models import User
+        recipient = User.objects.filter(is_superuser=True).first()
+        if recipient is None:
+            recipient = User.objects.filter(is_staff=True).first()
+        if recipient and booking:
+            Message.objects.create(
+                booking=booking,
+                sender=booking.guest,
+                recipient=recipient,
+                message=user_message[:2000]
+            )
+    except Exception as e:
+        # Log the error but don't block the flow
+        logger.error(f"Failed to create notification for booking {booking.id if booking else 'N/A'}: {e}", exc_info=True)
+
+
+@login_required
+@require_POST
+def request_booking_change(request, booking_id):
+    """Permette all'utente di richiedere una modifica (date/ospiti)"""
+    booking = get_object_or_404(
+        Booking,
+        id=booking_id,
+        guest=request.user
+    )
+
+    if booking.status not in ['pending', 'confirmed']:
+        return JsonResponse({'success': False, 'error': 'Non puoi modificare questa prenotazione'}, status=400)
+
+    note = request.POST.get('note', '').strip()
+    new_check_in = request.POST.get('new_check_in', '').strip()
+    new_check_out = request.POST.get('new_check_out', '').strip()
+    new_guests = request.POST.get('new_guests', '').strip()
+
+    summary_parts = []
+    if new_check_in:
+        summary_parts.append(f"Nuovo check-in: {new_check_in}")
+    if new_check_out:
+        summary_parts.append(f"Nuovo check-out: {new_check_out}")
+    if new_guests:
+        summary_parts.append(f"Ospiti richiesti: {new_guests}")
+    if note:
+        summary_parts.append(f"Note: {note}")
+
+    if not summary_parts:
+        return JsonResponse({'success': False, 'error': 'Specifica almeno un campo da modificare'}, status=400)
+
+    summary_text = "; ".join(summary_parts)
+
+    booking.change_requested = True
+    booking.change_request_note = summary_text
+    booking.change_request_created_at = timezone.now()
+    booking.save(update_fields=['change_requested', 'change_request_note', 'change_request_created_at'])
+
+    _notify_staff_of_change(booking, f"Richiesta modifica prenotazione #{booking.id}: {summary_text}")
+
+    return JsonResponse({'success': True, 'message': 'Richiesta inviata. Ti ricontatteremo al più presto.'})
+
+
+@login_required
+@require_POST
+def request_multi_booking_change(request, multi_booking_id):
+    """Richiesta di modifica per una prenotazione combinata"""
+    multi_booking = get_object_or_404(
+        MultiBooking,
+        id=multi_booking_id,
+        guest=request.user
+    )
+
+    if multi_booking.status not in ['pending', 'confirmed']:
+        return JsonResponse({'success': False, 'error': 'Non puoi modificare questa prenotazione combinata'}, status=400)
+
+    note = request.POST.get('note', '').strip()
+    new_check_in = request.POST.get('new_check_in', '').strip()
+    new_check_out = request.POST.get('new_check_out', '').strip()
+    new_guests = request.POST.get('new_guests', '').strip()
+
+    summary_parts = []
+    if new_check_in:
+        summary_parts.append(f"Nuovo check-in: {new_check_in}")
+    if new_check_out:
+        summary_parts.append(f"Nuovo check-out: {new_check_out}")
+    if new_guests:
+        summary_parts.append(f"Ospiti richiesti: {new_guests}")
+    if note:
+        summary_parts.append(f"Note: {note}")
+
+    if not summary_parts:
+        return JsonResponse({'success': False, 'error': 'Specifica almeno un campo da modificare'}, status=400)
+
+    summary_text = "; ".join(summary_parts)
+
+    multi_booking.change_requested = True
+    multi_booking.change_request_note = summary_text
+    multi_booking.change_request_created_at = timezone.now()
+    multi_booking.save(update_fields=['change_requested', 'change_request_note', 'change_request_created_at'])
+
+    # Usa la prima prenotazione individuale per tracciare il messaggio
+    individual_booking = multi_booking.individual_bookings.first()
+    if individual_booking:
+        _notify_staff_of_change(individual_booking, f"Richiesta modifica combinata #{multi_booking.id}: {summary_text}")
+
+    return JsonResponse({'success': True, 'message': 'Richiesta inviata. Ti ricontatteremo al più presto.'})
 
 
 def get_listing_calendar(request, listing_id):
@@ -534,6 +699,13 @@ def find_combined_availability(check_in_date, check_out_date, total_guests):
                 })
                 
             except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(
+                    f"Errore nel calcolo disponibilità per gruppo {group.name}, "
+                    f"appartamento {listing.title}: {str(e)}",
+                    exc_info=True
+                )
                 combination_available = False
                 break
         
@@ -552,6 +724,7 @@ def find_combined_availability(check_in_date, check_out_date, total_guests):
             
             available_combinations.append({
                 'combination': combo_details,
+                'group_id': group.id,
                 'group_name': group.name,
                 'combo_name': combo_name,
                 'combo_type': combo_type,
@@ -568,7 +741,6 @@ def find_combined_availability(check_in_date, check_out_date, total_guests):
     return available_combinations
 
 
-@csrf_exempt
 def combined_availability(request):
     """API endpoint per ricerca disponibilità combinata"""
     if request.method != 'POST':
@@ -613,7 +785,7 @@ def combined_availability(request):
         return JsonResponse({'error': f'Errore interno: {str(e)}'}, status=500)
 
 
-@csrf_exempt
+@login_required
 def create_combined_booking(request):
     """API endpoint per creare una prenotazione combinata"""
     if request.method != 'POST':
@@ -642,27 +814,45 @@ def create_combined_booking(request):
         if not combination_data or len(combination_data) == 0:
             return JsonResponse({'error': 'Combinazione non valida'}, status=400)
         
-        # Verifica disponibilità una volta di più prima di creare le prenotazioni
-        combinations = find_combined_availability(check_in, check_out, total_guests)
-        if not combinations:
-            return JsonResponse({'error': 'Nessuna combinazione disponibile per queste date'}, status=400)
-        
-        # Trova la combinazione corrispondente
-        selected_combination = None
-        for combo in combinations:
-            if len(combo['combination']) == len(combination_data):
-                # Verifica che corrisponda
-                combo_listing_ids = [item['listing']['id'] for item in combo['combination']]
-                data_listing_ids = [item['listing_id'] for item in combination_data]
-                if set(combo_listing_ids) == set(data_listing_ids):
-                    selected_combination = combo
-                    break
-        
-        if not selected_combination:
-            return JsonResponse({'error': 'Combinazione non trovata o non più disponibile'}, status=400)
-        
-        # Crea la prenotazione combinata
+        # Crea la prenotazione combinata con proper locking to prevent race conditions
         with transaction.atomic():
+            # Lock all relevant listings to prevent concurrent bookings
+            listing_ids = [item['listing_id'] for item in combination_data]
+
+            # Lock existing bookings for all listings in the combination
+            for listing_id in listing_ids:
+                locked_bookings = Booking.objects.select_for_update().filter(
+                    listing_id=listing_id,
+                    status__in=['confirmed', 'pending'],
+                    check_in_date__lt=check_out,
+                    check_out_date__gt=check_in
+                )
+
+                # If any listing has conflicting bookings, abort
+                if locked_bookings.exists():
+                    return JsonResponse({
+                        'error': 'Una o più proprietà non sono più disponibili per queste date'
+                    }, status=400)
+
+            # Re-verify availability inside transaction
+            combinations = find_combined_availability(check_in, check_out, total_guests)
+            if not combinations:
+                return JsonResponse({'error': 'Nessuna combinazione disponibile per queste date'}, status=400)
+
+            # Trova la combinazione corrispondente
+            selected_combination = None
+            for combo in combinations:
+                if len(combo['combination']) == len(combination_data):
+                    # Verifica che corrisponda
+                    combo_listing_ids = [item['listing']['id'] for item in combo['combination']]
+                    data_listing_ids = [item['listing_id'] for item in combination_data]
+                    if set(combo_listing_ids) == set(data_listing_ids):
+                        selected_combination = combo
+                        break
+
+            if not selected_combination:
+                return JsonResponse({'error': 'Combinazione non trovata o non più disponibile'}, status=400)
+
             # Crea MultiBooking
             multi_booking = MultiBooking.objects.create(
                 guest=request.user,
@@ -674,13 +864,13 @@ def create_combined_booking(request):
                 guest_email=data.get('guest_email', ''),
                 status='pending'
             )
-            
+
             # Crea i booking individuali
             individual_bookings = []
             for combo_item in selected_combination['combination']:
                 listing = Listing.objects.get(id=combo_item['listing']['id'])
                 guests_for_listing = combo_item['guests']
-                
+
                 # Crea booking individuale
                 booking = Booking.objects.create(
                     listing=listing,
@@ -696,9 +886,9 @@ def create_combined_booking(request):
                     multi_booking=multi_booking,
                     status='pending'
                 )
-                
+
                 individual_bookings.append(booking)
-            
+
             # Aggiorna i prezzi totali della MultiBooking
             multi_booking.calculate_total_pricing()
             multi_booking.save()

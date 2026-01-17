@@ -1,0 +1,447 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/booking-calendar.css' %}">
+<style>
+    .demo-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .demo-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .demo-header h1 {
+        font-size: 32px;
+        font-weight: 700;
+        color: #222222;
+        margin-bottom: 8px;
+    }
+
+    .demo-header p {
+        font-size: 18px;
+        color: #717171;
+    }
+
+    .demo-layout {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 32px;
+        align-items: start;
+    }
+
+    @media (max-width: 968px) {
+        .demo-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .price-card {
+        position: sticky;
+        top: 20px;
+        background: white;
+        border: 1px solid #DDDDDD;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .price-card-header {
+        font-size: 22px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .base-price {
+        font-size: 18px;
+        color: #717171;
+        margin-bottom: 20px;
+    }
+
+    .price-breakdown {
+        display: none;
+        flex-direction: column;
+        gap: 12px;
+        padding-top: 16px;
+        border-top: 1px solid #EBEBEB;
+        margin-top: 16px;
+    }
+
+    .price-breakdown.visible {
+        display: flex;
+    }
+
+    .price-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 16px;
+    }
+
+    .price-row.total {
+        padding-top: 16px;
+        border-top: 1px solid #EBEBEB;
+        font-weight: 600;
+        font-size: 18px;
+    }
+
+    .reserve-btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(to right, #E61E4D 0%, #E31C5F 50%, #D70466 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 16px;
+        transition: all 0.2s ease;
+    }
+
+    .reserve-btn:hover {
+        transform: scale(1.02);
+    }
+
+    .reserve-btn:disabled {
+        background: #DDDDDD;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .listing-info {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #EBEBEB;
+        margin-bottom: 20px;
+    }
+
+    .listing-image {
+        width: 80px;
+        height: 80px;
+        border-radius: 8px;
+        object-fit: cover;
+    }
+
+    .listing-details h2 {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .listing-details p {
+        font-size: 14px;
+        color: #717171;
+    }
+
+    /* Selettore Ospiti */
+    .guests-selector {
+        padding: 16px 0;
+        border-bottom: 1px solid #EBEBEB;
+        margin-bottom: 16px;
+    }
+
+    .guests-selector label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: #222222;
+        margin-bottom: 8px;
+    }
+
+    .guests-input-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    .guests-btn {
+        width: 36px;
+        height: 36px;
+        border: 1px solid #DDDDDD;
+        border-radius: 50%;
+        background: white;
+        color: #222222;
+        font-size: 18px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+
+    .guests-btn:hover:not(:disabled) {
+        border-color: #222222;
+        background: #F7F7F7;
+    }
+
+    .guests-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
+    #numGuests {
+        width: 60px;
+        text-align: center;
+        font-size: 16px;
+        font-weight: 600;
+        border: 1px solid #DDDDDD;
+        border-radius: 8px;
+        padding: 8px;
+        background: white;
+    }
+
+    .guests-info {
+        margin-top: 8px;
+        text-align: center;
+    }
+
+    #guestsHint {
+        font-size: 12px;
+        color: #717171;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="demo-container">
+    <div class="demo-header">
+        <h1>{{ listing.title }}</h1>
+        <p>{{ listing.city }}, {{ listing.zone }}</p>
+    </div>
+
+    <div class="demo-layout">
+        <!-- Calendario -->
+        <div class="booking-calendar-container" id="calendar"></div>
+
+        <!-- Card prezzo -->
+        <div class="price-card">
+            <div class="listing-info">
+                {% if listing.main_image %}
+                <img src="{{ listing.main_image.image.url }}" alt="{{ listing.title }}" class="listing-image">
+                {% endif %}
+                <div class="listing-details">
+                    <h2>{{ listing.title }}</h2>
+                    <p>Fino a {{ listing.max_guests }} ospiti</p>
+                </div>
+            </div>
+
+            <div class="price-card-header">
+                <span id="displayPrice">€{{ listing.base_price|floatformat:0 }}</span> / notte
+            </div>
+            <div class="base-price" id="priceSubtext">
+                Prezzo base per {{ listing.included_guests }} {% if listing.included_guests == 1 %}ospite{% else %}ospiti{% endif %}
+            </div>
+
+            <!-- Selettore Ospiti -->
+            <div class="guests-selector">
+                <label for="numGuests">Numero ospiti</label>
+                <div class="guests-input-group">
+                    <button type="button" class="guests-btn" id="decreaseGuests" onclick="changeGuests(-1)">−</button>
+                    <input type="number" id="numGuests" value="1"
+                           min="1" max="{{ listing.max_guests }}"
+                           onchange="updateGuestCount()" readonly>
+                    <button type="button" class="guests-btn" id="increaseGuests" onclick="changeGuests(1)">+</button>
+                </div>
+                <div class="guests-info">
+                    <span id="guestsHint">
+                        Fino a {{ listing.max_guests }} ospiti
+                        {% if listing.included_guests > 1 %}
+                        ({{ listing.included_guests }} ospiti inclusi nel prezzo base)
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <div class="price-breakdown" id="priceBreakdown">
+                <div class="price-row">
+                    <span class="price-label" id="nightsLabel">3 notti</span>
+                    <span class="price-value" id="subtotalValue">€300</span>
+                </div>
+                <div class="price-row">
+                    <span class="price-label">Pulizie</span>
+                    <span class="price-value">€{{ listing.cleaning_fee|floatformat:0 }}</span>
+                </div>
+                <div class="price-row" id="extraGuestRow" style="display: none;">
+                    <span class="price-label" id="extraGuestLabel">Ospiti extra</span>
+                    <span class="price-value" id="extraGuestValue">€0</span>
+                </div>
+                <div class="price-row total">
+                    <span class="price-label">Totale</span>
+                    <span class="price-value" id="totalValue">€350</span>
+                </div>
+            </div>
+
+            <button class="reserve-btn" id="reserveBtn" disabled>
+                Seleziona le date
+            </button>
+
+            <div style="margin-top: 16px; text-align: center; font-size: 14px; color: #717171;">
+                Non ti verrà addebitato nulla
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/booking-calendar.js' %}"></script>
+<script>
+    // Configurazione listing
+    const listingConfig = {
+        id: {{ listing.id }},
+        includedGuests: {{ listing.included_guests }},
+        maxGuests: {{ listing.max_guests }},
+        extraGuestFee: parseFloat("{{ listing.extra_guest_fee }}".replace(',', '.'))
+    };
+
+    // Inizializza calendario
+    const calendar = new BookingCalendar({
+        listingId: {{ listing.id }},
+        container: '#calendar',
+        onDateSelect: function(selection) {
+            console.log('Date selezionate:', selection);
+            updateReserveButton(selection);
+            // Ricalcola prezzo quando cambiano le date
+            if (selection && selection.checkIn && selection.checkOut) {
+                fetchAndUpdatePrice();
+            }
+        },
+        onPriceUpdate: function(pricing) {
+            console.log('Prezzo calcolato:', pricing);
+            updatePriceDisplay(pricing);
+        }
+    });
+
+    // Funzioni per gestire il selettore ospiti
+    function changeGuests(delta) {
+        const input = document.getElementById('numGuests');
+        const currentValue = parseInt(input.value);
+        const newValue = currentValue + delta;
+
+        if (newValue >= 1 && newValue <= listingConfig.maxGuests) {
+            input.value = newValue;
+            updateGuestButtons();
+            // Ricalcola prezzo se ci sono date selezionate
+            if (calendar.selectedCheckIn && calendar.selectedCheckOut) {
+                fetchAndUpdatePrice();
+            }
+        }
+    }
+
+    function updateGuestButtons() {
+        const input = document.getElementById('numGuests');
+        const currentValue = parseInt(input.value);
+        const decreaseBtn = document.getElementById('decreaseGuests');
+        const increaseBtn = document.getElementById('increaseGuests');
+
+        decreaseBtn.disabled = currentValue <= 1;
+        increaseBtn.disabled = currentValue >= listingConfig.maxGuests;
+    }
+
+    function updateGuestCount() {
+        updateGuestButtons();
+        if (calendar.selectedCheckIn && calendar.selectedCheckOut) {
+            fetchAndUpdatePrice();
+        }
+    }
+
+    // Inizializza stato bottoni ospiti
+    document.addEventListener('DOMContentLoaded', function() {
+        updateGuestButtons();
+    });
+
+    function updateReserveButton(selection) {
+        const btn = document.getElementById('reserveBtn');
+        if (selection && selection.checkIn && selection.checkOut) {
+            btn.disabled = false;
+            btn.textContent = 'Prenota';
+            btn.onclick = function() {
+                const numGuests = document.getElementById('numGuests').value;
+                // Redirect a pagina prenotazione
+                window.location.href = `/bookings/new/?listing={{ listing.id }}&check_in=${selection.checkIn}&check_out=${selection.checkOut}&num_guests=${numGuests}`;
+            };
+        } else {
+            btn.disabled = true;
+            btn.textContent = 'Seleziona le date';
+            btn.onclick = null;
+        }
+    }
+
+    // Funzione per chiamare l'API e aggiornare il prezzo
+    async function fetchAndUpdatePrice() {
+        if (!calendar.selectedCheckIn || !calendar.selectedCheckOut) return;
+
+        const numGuests = parseInt(document.getElementById('numGuests').value);
+        console.log('Fetching price with num_guests:', numGuests);
+
+        try {
+            const response = await fetch(`/calendar/api/listings/${listingConfig.id}/calculate-price/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    check_in: calendar.selectedCheckIn,
+                    check_out: calendar.selectedCheckOut,
+                    num_guests: numGuests
+                })
+            });
+
+            const pricing = await response.json();
+            console.log('Received pricing:', pricing);
+            updatePriceDisplay(pricing);
+        } catch (error) {
+            console.error('Error calculating price:', error);
+        }
+    }
+
+    function updatePriceDisplay(pricing) {
+        const priceBreakdown = document.getElementById('priceBreakdown');
+        const priceSubtext = document.getElementById('priceSubtext');
+
+        if (pricing) {
+            // Mostra breakdown
+            priceBreakdown.classList.add('visible');
+            priceSubtext.style.display = 'none';
+
+            // Aggiorna valori
+            document.getElementById('nightsLabel').textContent =
+                `€${pricing.price_per_night_avg.toFixed(0)} × ${pricing.nights} ${pricing.nights === 1 ? 'notte' : 'notti'}`;
+            document.getElementById('subtotalValue').textContent =
+                `€${pricing.subtotal.toFixed(0)}`;
+            document.getElementById('totalValue').textContent =
+                `€${pricing.total.toFixed(0)}`;
+
+            // Ospiti extra
+            const numGuests = parseInt(document.getElementById('numGuests').value);
+            const extraGuests = Math.max(0, numGuests - listingConfig.includedGuests);
+
+            if (extraGuests > 0 && pricing.extra_guest_fee > 0) {
+                document.getElementById('extraGuestRow').style.display = 'flex';
+                document.getElementById('extraGuestLabel').textContent =
+                    `${extraGuests} ${extraGuests === 1 ? 'ospite extra' : 'ospiti extra'}`;
+                document.getElementById('extraGuestValue').textContent =
+                    `€${pricing.extra_guest_fee.toFixed(2)}`;
+            } else {
+                document.getElementById('extraGuestRow').style.display = 'none';
+            }
+
+            // Aggiorna prezzo principale
+            document.getElementById('displayPrice').textContent =
+                `€${pricing.price_per_night_avg.toFixed(0)}`;
+
+        } else {
+            // Nascondi breakdown
+            priceBreakdown.classList.remove('visible');
+            priceSubtext.style.display = 'block';
+            document.getElementById('displayPrice').textContent =
+                `€{{ listing.base_price|floatformat:0 }}`;
+        }
+    }
+</script>
+{% endblock %}

@@ -20,6 +20,9 @@ urlpatterns = [
     path('my-bookings/', views.booking_list, name='booking_list'),
     path('booking/<int:booking_id>/', views.booking_detail, name='booking_detail'),
     path('booking/<int:booking_id>/cancel/', views.cancel_booking, name='cancel_booking'),
+    path('booking/<int:booking_id>/request-change/', views.request_booking_change, name='request_booking_change'),
+    path('multi-booking/<int:multi_booking_id>/cancel/', views.cancel_multi_booking, name='cancel_multi_booking'),
+    path('multi-booking/<int:multi_booking_id>/request-change/', views.request_multi_booking_change, name='request_multi_booking_change'),
     
     # Messaggistica (richiede login)
     path('booking/<int:booking_id>/messages/', views.booking_messages, name='booking_messages'),

@@ -31,6 +31,43 @@ class ClosureRule(models.Model):
         verbose_name = 'Regola di Chiusura'
         verbose_name_plural = 'Regole di Chiusura'
     
+    def save(self, *args, **kwargs):
+        """Override save per invalidare cache calendario"""
+        super().save(*args, **kwargs)
+        self._invalidate_calendar_cache()
+    
+    def delete(self, *args, **kwargs):
+        """Override delete per invalidare cache calendario"""
+        listing_id = self.listing_id
+        super().delete(*args, **kwargs)
+        if listing_id:
+            self._invalidate_calendar_cache_for_listing(listing_id)
+    
+    def _invalidate_calendar_cache(self):
+        """Invalida la cache del calendario per questo listing"""
+        if self.listing_id:
+            self._invalidate_calendar_cache_for_listing(self.listing_id)
+    
+    @staticmethod
+    def _invalidate_calendar_cache_for_listing(listing_id):
+        """Invalida cache calendario per un listing specifico"""
+        try:
+            from django.core.cache import cache
+            from datetime import date, timedelta
+            from django.utils import timezone
+            
+            today = timezone.now().date()
+            start_date = today - timedelta(days=180)
+            end_date = today + timedelta(days=365)
+            
+            current = start_date
+            while current <= end_date:
+                cache_key = f"calendar:{listing_id}:{current.isoformat()}:{(current + timedelta(days=30)).isoformat()}"
+                cache.delete(cache_key)
+                current += timedelta(days=30)
+        except Exception:
+            pass
+    
     def __str__(self):
         return f"{self.listing.title} - {self.start_date} to {self.end_date}"
 
@@ -83,6 +120,18 @@ class CheckInOutRule(models.Model):
         verbose_name = 'Regola Check-in/Check-out'
         verbose_name_plural = 'Regole Check-in/Check-out'
     
+    def save(self, *args, **kwargs):
+        """Override save per invalidare cache calendario"""
+        super().save(*args, **kwargs)
+        ClosureRule._invalidate_calendar_cache_for_listing(self.listing_id)
+    
+    def delete(self, *args, **kwargs):
+        """Override delete per invalidare cache calendario"""
+        listing_id = self.listing_id
+        super().delete(*args, **kwargs)
+        if listing_id:
+            ClosureRule._invalidate_calendar_cache_for_listing(listing_id)
+    
     def __str__(self):
         if self.recurrence_type == 'specific_date':
             return f"{self.get_rule_type_display()} - {self.specific_date}"
@@ -120,6 +169,18 @@ class PriceRule(models.Model):
         ordering = ['-start_date']
         verbose_name = 'Regola Prezzo'
         verbose_name_plural = 'Regole Prezzo'
+    
+    def save(self, *args, **kwargs):
+        """Override save per invalidare cache calendario"""
+        super().save(*args, **kwargs)
+        ClosureRule._invalidate_calendar_cache_for_listing(self.listing_id)
+    
+    def delete(self, *args, **kwargs):
+        """Override delete per invalidare cache calendario"""
+        listing_id = self.listing_id
+        super().delete(*args, **kwargs)
+        if listing_id:
+            ClosureRule._invalidate_calendar_cache_for_listing(listing_id)
     
     def __str__(self):
         return f"{self.listing.title} - {self.start_date} to {self.end_date}: €{self.price}/notte"
