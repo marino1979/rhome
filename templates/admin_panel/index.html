@@ -1,0 +1,476 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pannello Admin - Gestione Appartamenti</title>
+    <link rel="stylesheet" href="{% static 'admin_panel/css/admin-panel.css' %}">
+    <link rel="stylesheet" href="{% static 'admin_panel/css/calendar-widget.css' %}">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>Admin Panel</h1>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="listings">
+                    <span class="icon">🏠</span>
+                    <span>Annunci</span>
+                </a>
+                <a href="#" class="nav-item" data-section="prices">
+                    <span class="icon">💰</span>
+                    <span>Prezzi</span>
+                </a>
+                <a href="#" class="nav-item" data-section="bookings">
+                    <span class="icon">📅</span>
+                    <span>Prenotazioni</span>
+                </a>
+                <a href="#" class="nav-item" data-section="calendars">
+                    <span class="icon">📆</span>
+                    <span>Calendari ICAL</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="/admin/" class="nav-item">
+                    <span class="icon">⚙️</span>
+                    <span>Django Admin</span>
+                </a>
+                <a href="/" class="nav-item">
+                    <span class="icon">🏡</span>
+                    <span>Vai al Sito</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="content-header">
+                <h2 id="page-title">Gestione Annunci</h2>
+                <div class="header-actions">
+                    <button id="btn-new-listing" class="btn btn-primary" style="display: none;">
+                        + Nuovo Annuncio
+                    </button>
+                </div>
+            </header>
+
+            <!-- Loading Spinner -->
+            <div id="loading" class="loading-spinner" style="display: none;">
+                <div class="spinner"></div>
+            </div>
+
+            <!-- Error/Success Messages -->
+            <div id="messages"></div>
+
+            <!-- Section: Listings -->
+            <section id="section-listings" class="content-section active">
+                <div class="section-header">
+                    <h3>Elenco Annunci</h3>
+                    <button class="btn btn-primary" onclick="openListingModal()">+ Nuovo Annuncio</button>
+                </div>
+                <div id="listings-list" class="cards-grid"></div>
+            </section>
+
+            <!-- Section: Prices -->
+            <section id="section-prices" class="content-section">
+                <div class="section-header">
+                    <h3>Gestione Prezzi e Chiusure</h3>
+                    <select id="price-listing-select" class="form-select">
+                        <option value="">Seleziona annuncio...</option>
+                    </select>
+                </div>
+                
+                <!-- Calendar Widget -->
+                <div id="calendar-container" style="display: none;"></div>
+                
+                <div id="prices-content">
+                    <div class="empty-state">
+                        <p>Seleziona un annuncio per gestire i prezzi</p>
+                    </div>
+                </div>
+                <div id="closures-content" style="margin-top: 40px; display: none;">
+                    <div class="section-header">
+                        <h4>Chiusure</h4>
+                        <button class="btn btn-primary" id="btn-new-closure" style="display: none;">+ Nuova Chiusura</button>
+                    </div>
+                    <div id="closures-list"></div>
+                </div>
+            </section>
+
+            <!-- Section: Bookings -->
+            <section id="section-bookings" class="content-section">
+                <div class="section-header">
+                    <h3>Gestione Prenotazioni</h3>
+                    <div class="filters">
+                        <select id="booking-listing-select" class="form-select">
+                            <option value="">Tutti gli annunci</option>
+                        </select>
+                        <select id="booking-status-select" class="form-select">
+                            <option value="">Tutti gli stati</option>
+                            <option value="pending">In Attesa</option>
+                            <option value="confirmed">Confermata</option>
+                            <option value="cancelled">Cancellata</option>
+                            <option value="completed">Completata</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="bookings-list" class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Annuncio</th>
+                                <th>Ospite</th>
+                                <th>Check-in</th>
+                                <th>Check-out</th>
+                                <th>Ospiti</th>
+                                <th>Totale</th>
+                                <th>Stato</th>
+                                <th>Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookings-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section: Calendars -->
+            <section id="section-calendars" class="content-section">
+                <div class="section-header">
+                    <h3>Calendari ICAL Sincronizzati</h3>
+                    <button class="btn btn-primary" onclick="openCalendarModal()">+ Nuovo Calendario</button>
+                </div>
+                <div id="calendars-list" class="cards-grid"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <!-- Listing Modal -->
+    <div id="modal-listing" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-listing-title">Nuovo Annuncio</h3>
+                <button class="modal-close" onclick="closeListingModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-listing">
+                    <input type="hidden" id="listing-id">
+                    
+                    <div class="form-group">
+                        <label>Titolo *</label>
+                        <input type="text" id="listing-title" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Descrizione *</label>
+                        <textarea id="listing-description" class="form-control" rows="5" required></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Città *</label>
+                            <input type="text" id="listing-city" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Zona</label>
+                            <input type="text" id="listing-zone" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Indirizzo *</label>
+                        <input type="text" id="listing-address" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Prezzo Base (€) *</label>
+                            <input type="number" id="listing-base-price" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Costo Pulizie (€)</label>
+                            <input type="number" id="listing-cleaning-fee" class="form-control" step="0.01" value="0">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Ospiti Massimi *</label>
+                            <input type="number" id="listing-max-guests" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Ospiti Inclusi</label>
+                            <input type="number" id="listing-included-guests" class="form-control" value="1">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Camere da Letto</label>
+                            <input type="number" id="listing-bedrooms" class="form-control" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Bagni</label>
+                            <input type="number" id="listing-bathrooms" class="form-control" step="0.1" value="1">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Stato</label>
+                        <select id="listing-status" class="form-control">
+                            <option value="draft">Bozza</option>
+                            <option value="active">Attivo</option>
+                            <option value="inactive">Non attivo</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Immagini</label>
+                        <div id="listing-images-preview" class="images-preview"></div>
+                        <input type="file" id="listing-image-upload" accept="image/*" multiple>
+                        <button type="button" class="btn btn-secondary" onclick="uploadListingImages()">Carica Immagini</button>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeListingModal()">Annulla</button>
+                        <button type="submit" class="btn btn-primary">Salva</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Price Rule Modal -->
+    <div id="modal-price-rule" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-price-rule-title">Nuova Regola Prezzo</h3>
+                <button class="modal-close" onclick="closePriceRuleModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-price-rule">
+                    <input type="hidden" id="price-rule-id">
+                    <input type="hidden" id="price-rule-listing-id">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Data Inizio *</label>
+                            <input type="date" id="price-rule-start-date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Data Fine *</label>
+                            <input type="date" id="price-rule-end-date" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Prezzo per Notte (€) *</label>
+                            <input type="number" id="price-rule-price" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Soggiorno Minimo (notti)</label>
+                            <input type="number" id="price-rule-min-nights" class="form-control" min="1">
+                            <small class="form-text">Lascia vuoto per usare il minimo dell'annuncio</small>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closePriceRuleModal()">Annulla</button>
+                        <button type="submit" class="btn btn-primary">Salva</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Closure Rule Modal -->
+    <div id="modal-closure" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-closure-title">Nuova Chiusura</h3>
+                <button class="modal-close" onclick="closeClosureModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-closure">
+                    <input type="hidden" id="closure-id">
+                    <input type="hidden" id="closure-listing-id">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Data Inizio *</label>
+                            <input type="date" id="closure-start-date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Data Fine *</label>
+                            <input type="date" id="closure-end-date" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Motivo</label>
+                        <input type="text" id="closure-reason" class="form-control" placeholder="Es: Manutenzione, Chiusura stagionale">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Prenotazione Esterna</label>
+                        <input type="checkbox" id="closure-is-external">
+                        <small class="form-text">Seleziona se questa chiusura è dovuta a una prenotazione su altra piattaforma</small>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeClosureModal()">Annulla</button>
+                        <button type="submit" class="btn btn-primary">Salva</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Room Modal -->
+    <div id="modal-room" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-room-title">Nuova Stanza</h3>
+                <button class="modal-close" onclick="closeRoomModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-room">
+                    <input type="hidden" id="room-id">
+                    <input type="hidden" id="room-listing-id">
+                    
+                    <div class="form-group">
+                        <label>Tipo Stanza *</label>
+                        <select id="room-type" class="form-control" required></select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Nome Stanza *</label>
+                        <input type="text" id="room-name" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Metri Quadri</label>
+                            <input type="number" id="room-square-meters" class="form-control" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Ordine</label>
+                            <input type="number" id="room-order" class="form-control" value="0">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Descrizione</label>
+                        <textarea id="room-description" class="form-control" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Immagini</label>
+                        <div id="room-images-preview" class="images-preview"></div>
+                        <input type="file" id="room-image-upload" accept="image/*" multiple>
+                        <button type="button" class="btn btn-secondary" onclick="uploadRoomImages()">Carica Immagini</button>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeRoomModal()">Annulla</button>
+                        <button type="submit" class="btn btn-primary">Salva</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rooms List Modal -->
+    <div id="modal-rooms-list" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3 id="modal-rooms-list-title">Gestione Stanze</h3>
+                <button class="modal-close" onclick="closeRoomsListModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 20px;">
+                    <button class="btn btn-primary" id="btn-new-room">+ Nuova Stanza</button>
+                </div>
+                <div id="rooms-list-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Detail Modal -->
+    <div id="modal-booking" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3 id="modal-booking-title">Dettagli Prenotazione</h3>
+                <button class="modal-close" onclick="closeBookingModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="booking-detail-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Modal -->
+    <div id="modal-calendar" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-calendar-title">Nuovo Calendario ICAL</h3>
+                <button class="modal-close" onclick="closeCalendarModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-calendar">
+                    <input type="hidden" id="calendar-id">
+                    
+                    <div class="form-group">
+                        <label>Annuncio *</label>
+                        <select id="calendar-listing" class="form-control" required></select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Nome Calendario *</label>
+                        <input type="text" id="calendar-name" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Provider</label>
+                        <select id="calendar-provider" class="form-control">
+                            <option value="airbnb">Airbnb</option>
+                            <option value="booking">Booking.com</option>
+                            <option value="expedia">Expedia</option>
+                            <option value="other">Altro</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>URL iCal *</label>
+                        <input type="url" id="calendar-ical-url" class="form-control" required>
+                        <small class="form-text">URL del calendario iCal da sincronizzare</small>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Intervallo Sincronizzazione (minuti)</label>
+                            <input type="number" id="calendar-sync-interval" class="form-control" value="60" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Attivo</label>
+                            <input type="checkbox" id="calendar-is-active" checked>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeCalendarModal()">Annulla</button>
+                        <button type="submit" class="btn btn-primary">Salva</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'admin_panel/js/admin-panel.js' %}"></script>
+    <script src="{% static 'admin_panel/js/calendar-widget.js' %}"></script>
+</body>
+</html>

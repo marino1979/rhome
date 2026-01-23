@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'translations',
     'bookings.apps.BookingsConfig',
     'users.apps.UsersConfig',
+    'admin_panel',  # Pannello admin esterno
     # Django Allauth per social login
     'allauth',
     'allauth.account',
@@ -348,3 +349,15 @@ LOGGING = {
 # Increase max number of fields for admin forms with many inlines
 # (beds, photos, price rules, amenities, etc.)
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 5000
+
+# Django REST Framework Configuration
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+}

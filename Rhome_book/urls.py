@@ -42,6 +42,7 @@ urlpatterns += [
     path('accounts/', include('users.urls')),
     path('accounts/', include('allauth.urls')),  # Django Allauth URLs (deve essere prima di django.contrib.auth.urls)
     path('accounts/', include('django.contrib.auth.urls')),
+    path('admin-panel/', include('admin_panel.urls')),  # API pannello admin
 ]
 
 # Aggiungi questa parte per servire i file media in sviluppo
