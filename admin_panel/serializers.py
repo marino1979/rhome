@@ -5,8 +5,8 @@ from rest_framework import serializers
 from listings.models import Listing
 from rooms.models import Room, RoomType
 from images.models import Image
-from bookings.models import Booking
-from calendar_rules.models import PriceRule, ExternalCalendar, ClosureRule
+from bookings.models import Booking, BookingPayment, Message
+from calendar_rules.models import PriceRule, ExternalCalendar, ClosureRule, CheckInOutRule
 from amenities.models import Amenity
 
 
@@ -81,6 +81,7 @@ class ListingSerializer(serializers.ModelSerializer):
             'allow_parties', 'allow_photos', 'allow_smoking',
             'checkin_notes', 'checkout_notes', 'parties_notes', 'photos_notes', 'smoking_notes',
             'images', 'rooms', 'amenities', 'amenities_ids', 'main_image_url',
+            'airbnb_listing_url', 'airbnb_reviews_last_synced',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'slug', 'created_at', 'updated_at']
@@ -111,6 +112,26 @@ class ClosureRuleSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 
+class CheckInOutRuleSerializer(serializers.ModelSerializer):
+    """Serializer per le regole di check-in/check-out"""
+    restriction_display = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = CheckInOutRule
+        fields = ['id', 'listing', 'rule_type', 'recurrence_type', 'specific_date', 'day_of_week', 'restriction_display']
+        read_only_fields = ['id', 'restriction_display']
+    
+    def get_restriction_display(self, obj):
+        """Restituisce una rappresentazione user-friendly della restrizione"""
+        if obj.recurrence_type == 'specific_date':
+            return f"Data: {obj.specific_date.strftime('%d/%m/%Y') if obj.specific_date else 'N/A'}"
+        else:
+            days = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica']
+            if obj.day_of_week is not None and 0 <= obj.day_of_week <= 6:
+                return f"Giorno: {days[obj.day_of_week]}"
+            return 'N/A'
+
+
 class ExternalCalendarSerializer(serializers.ModelSerializer):
     """Serializer per i calendari esterni ICAL"""
     last_sync_display = serializers.SerializerMethodField()
@@ -131,11 +152,50 @@ class ExternalCalendarSerializer(serializers.ModelSerializer):
         return 'Mai sincronizzato'
 
 
+class BookingPaymentSerializer(serializers.ModelSerializer):
+    """Serializer per i pagamenti delle prenotazioni"""
+    payment_type_display = serializers.CharField(source='get_payment_type_display', read_only=True)
+    
+    class Meta:
+        model = BookingPayment
+        fields = [
+            'id', 'amount', 'payment_type', 'payment_type_display',
+            'payment_date', 'payment_method', 'transaction_id', 'notes'
+        ]
+        read_only_fields = ['id', 'payment_date']
+
+
+class MessageSerializer(serializers.ModelSerializer):
+    """Serializer per i messaggi delle prenotazioni"""
+    sender_name = serializers.SerializerMethodField()
+    recipient_name = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Message
+        fields = [
+            'id', 'sender', 'sender_name', 'recipient', 'recipient_name',
+            'message', 'created_at', 'read_at', 'is_read'
+        ]
+        read_only_fields = ['id', 'created_at', 'read_at']
+    
+    def get_sender_name(self, obj):
+        if obj.sender:
+            return obj.sender.get_full_name() or obj.sender.username
+        return None
+    
+    def get_recipient_name(self, obj):
+        if obj.recipient:
+            return obj.recipient.get_full_name() or obj.recipient.username
+        return None
+
+
 class BookingSerializer(serializers.ModelSerializer):
     """Serializer per le prenotazioni"""
     listing_title = serializers.CharField(source='listing.title', read_only=True)
     guest_name = serializers.SerializerMethodField()
     guest_email = serializers.CharField(source='guest.email', read_only=True)
+    payments = BookingPaymentSerializer(many=True, read_only=True)
+    messages = MessageSerializer(many=True, read_only=True)
     
     class Meta:
         model = Booking
@@ -146,17 +206,20 @@ class BookingSerializer(serializers.ModelSerializer):
             'extra_guest_fee', 'total_amount',
             'status', 'payment_status',
             'special_requests', 'guest_phone', 'guest_email',
-            'change_requested', 'change_request_note',
-            'check_in_code', 'wifi_password', 'host_notes',
+            'change_requested', 'change_request_note', 'change_request_created_at',
+            'check_in_code', 'wifi_name', 'wifi_password', 'host_notes',
+            'payments', 'messages',
             'created_at', 'updated_at'
         ]
         read_only_fields = [
             'id', 'created_at', 'updated_at',
             'base_price_per_night', 'total_nights', 'subtotal', 'cleaning_fee',
-            'extra_guest_fee', 'total_amount', 'listing_title', 'guest_name', 'guest_email'
+            'extra_guest_fee', 'listing_title', 'guest_name', 'guest_email',
+            'payments', 'messages'
         ]
     
     def get_guest_name(self, obj):
         if obj.guest:
             return obj.guest.get_full_name() or obj.guest.username
         return None
+    
